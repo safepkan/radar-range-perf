@@ -29,6 +29,7 @@ class FmcwWaveform:
     n_chirps: int
     chirp_repetition_time_s: float
     chirp_slope_hz_per_s: float = 0.0
+    noise_bandwidth_hz: float = 0.0
 
     def __post_init__(self) -> None:
         positive = {
@@ -42,6 +43,8 @@ class FmcwWaveform:
                 raise ValueError(f"{field_name} must be positive")
         if self.n_samples < 1 or self.n_chirps < 1:
             raise ValueError("n_samples and n_chirps must be >= 1")
+        if self.noise_bandwidth_hz < 0.0:
+            raise ValueError("noise_bandwidth_hz must be non-negative (0 = auto)")
 
     # --- core derived quantities ---------------------------------------
 
@@ -70,6 +73,18 @@ class FmcwWaveform:
         if self.chirp_slope_hz_per_s > 0.0:
             return self.chirp_slope_hz_per_s
         return self.bandwidth_hz / self.adc_duration_s
+
+    @property
+    def effective_noise_bandwidth_hz(self) -> float:
+        """Noise-equivalent bandwidth per complex sample [Hz].
+
+        Defaults to the ADC sample rate (an ideal brick-wall anti-alias filter);
+        set ``noise_bandwidth_hz`` to override when the receive chain's effective
+        noise bandwidth differs.
+        """
+        if self.noise_bandwidth_hz > 0.0:
+            return self.noise_bandwidth_hz
+        return self.sample_rate_hz
 
     # --- resolution and ambiguity --------------------------------------
 

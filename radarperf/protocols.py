@@ -134,6 +134,14 @@ class Waveform(Protocol):
         """ADC sample rate of the dechirped beat signal [Hz]."""
 
     @property
+    def effective_noise_bandwidth_hz(self) -> float:
+        """Noise-equivalent bandwidth per complex sample [Hz].
+
+        Usually the ADC sample rate; may differ if the receive chain's noise
+        bandwidth is set explicitly.
+        """
+
+    @property
     def n_samples(self) -> int:
         """ADC samples per chirp (range-FFT length)."""
 

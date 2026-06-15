@@ -62,14 +62,18 @@ single-sample SNR times a dimensionless integration gain:
 
 ```
 snr_sample = Pt * Gt * Gr * lambda^2 * sigma
-             / ( (4*pi)^3 * R^4 * k * T0 * F * fs * L_path )
+             / ( (4*pi)^3 * R^4 * k * Tsys * Bn * L_path )
 
 SNR        = snr_sample * coherent_gain / processing_losses
 ```
 
-The noise power per complex baseband sample is `k * T0 * F * fs` (noise
-bandwidth equal to the ADC sample rate, with all receiver noise lumped into the
-noise figure `F` referenced to `T0 = 290 K`). The coherent integration gain
+The noise power per complex baseband sample is `k * Tsys * Bn`, with system
+temperature `Tsys = Tant + (F - 1) * T0` (`Tant` the antenna/scene noise
+temperature, default `T0 = 290 K`; `F` the receiver noise factor) and noise
+bandwidth `Bn` (the waveform's effective noise bandwidth, defaulting to the ADC
+sample rate `fs`). With the defaults `Tant = T0` and `Bn = fs` this reduces to
+`k * T0 * F * fs`. Set `Radar(antenna_noise_temperature_k=...)` and
+`FmcwWaveform(noise_bandwidth_hz=...)` to refine either. The coherent integration gain
 (range-FFT x Doppler-FFT x coherently combined channels) and the named
 processing losses come from the processing model, so the range equation itself
 stays free of FFT-length bookkeeping. Antenna gains are **element** gains;

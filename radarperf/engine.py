@@ -9,13 +9,16 @@ The SNR is built in the unambiguous "single-sample SNR times dimensionless
 integration gain" form of the FMCW radar equation::
 
     snr_sample = Pt G_t G_r lambda^2 sigma
-                 / ((4 pi)^3 R^4 k T0 F f_s L_path)
+                 / ((4 pi)^3 R^4 k T_sys B_n L_path)
     SNR        = snr_sample * coherent_gain / processing_losses
 
-where the noise power per complex sample is ``k T0 F f_s`` (noise bandwidth
-equal to the sample rate) and ``coherent_gain`` / losses come from the
-processing model.  Antenna gains are element gains; coherent array gain is in
-``coherent_gain``.
+The noise power per complex sample is ``k T_sys B_n`` with system temperature
+``T_sys = T_ant + (F - 1) T0`` (``T_ant`` the antenna noise temperature,
+default ``T0 = 290 K``; ``F`` the receiver noise factor) and noise bandwidth
+``B_n`` (the waveform's effective noise bandwidth, defaulting to the ADC sample
+rate).  With ``T_ant = T0`` and ``B_n = f_s`` this reduces to ``k T0 F f_s``.
+``coherent_gain`` / losses come from the processing model.  Antenna gains are
+element gains; coherent array gain is in ``coherent_gain``.
 
 The core physics is computed once, vectorised, in :meth:`Radar._budget_terms`.
 It broadcasts over the fields of the supplied :class:`~radarperf.geometry.Geometry`,
@@ -76,7 +79,13 @@ class _BudgetTerms:
 
 @dataclass(frozen=True)
 class Radar:
-    """A composed radar configuration ready to be evaluated."""
+    """A composed radar configuration ready to be evaluated.
+
+    ``antenna_noise_temperature_k`` is the noise temperature seen at the antenna
+    port (the scene brightness temperature).  It enters the system temperature as
+    ``T_sys = T_ant + (F - 1) T0``; the default of ``T0 = 290 K`` reproduces the
+    usual "all noise lumped into the noise figure" convention.
+    """
 
     frontend: Frontend
     waveform: Waveform
@@ -84,6 +93,7 @@ class Radar:
     tx_antenna: Antenna
     rx_antenna: Antenna
     default_pfa: float = 1.0e-6
+    antenna_noise_temperature_k: float = REFERENCE_TEMPERATURE
 
     def _budget_terms(
         self,
@@ -115,8 +125,12 @@ class Radar:
         l_path = db_to_linear(path_loss_db)
 
         noise_factor = db_to_linear(self.frontend.noise_figure_db)
+        system_temperature_k = (
+            self.antenna_noise_temperature_k
+            + (noise_factor - 1.0) * REFERENCE_TEMPERATURE
+        )
         noise_per_sample_w = (
-            BOLTZMANN * REFERENCE_TEMPERATURE * noise_factor * wf.sample_rate_hz
+            BOLTZMANN * system_temperature_k * wf.effective_noise_bandwidth_hz
         )
 
         common = pt * gt * gr * lam**2 / (_FOUR_PI_CUBED * rng**4 * l_path)
