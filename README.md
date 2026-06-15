@@ -193,14 +193,13 @@ the same checks across Python 3.12 and 3.14.
 
 Near-term, planned:
 
-* Vectorise the engine core over range/azimuth/elevation so sweeps avoid a
-  per-point Python loop.
-* A richer noise model: `T_sys = T_ant + (F - 1) * T0`, with a configurable
-  antenna temperature and a noise bandwidth distinct from the ADC sample rate.
 * A generic, named multi-stage combining model alongside `StandardProcessing`,
   for combining topologies beyond TDM/DDM/BPM.
 * Controlled, datasheet-backed chipset defaults (replacing the illustrative
   presets) and optional Matplotlib plotting helpers.
+* Direction-dependent antenna/scene noise temperature (the current `T_ant` is a
+  single scalar per `Radar`), e.g. a colder sky at high elevation and rain
+  emission raising the floor.
 
 Longer-term: short-range effects (receiver saturation / near-field, TX-to-RX
 leakage, ADC dynamic range, phase-noise / reciprocal-mixing skirts that limit
