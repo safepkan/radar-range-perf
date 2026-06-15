@@ -167,6 +167,11 @@ plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
 `range_elevation_geometry`, `xy_geometry`, `xz_geometry` builders),
 `coverage_range` and `coverage_vs_azimuth`.
 
+Optional Matplotlib helpers (`radarperf.plotting`, requires the `plot` extra)
+turn those into figures: `plot_snr_vs_range`, `plot_pd_vs_range`, `plot_pd_map`
+(with Pd contours) and `plot_coverage` (polar). Each takes an optional `ax` and
+returns it, so they compose and overlay; see `examples/plotting_demo.py`.
+
 ## Assumptions and caveats
 
 * **Chipset presets use datasheet figures** (TI parts: public headline values
@@ -197,7 +202,6 @@ the same checks across Python 3.12 and 3.14.
 
 Near-term, planned:
 
-* Optional Matplotlib plotting helpers.
 * Direction-dependent antenna/scene noise temperature (the current `T_ant` is a
   single scalar per `Radar`), e.g. a colder sky at high elevation and rain
   emission raising the floor.
