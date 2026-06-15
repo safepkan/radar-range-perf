@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=82.0.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radarperf"
+version = "0.1.0"
+description = "Range-performance toolbox for 77 GHz FMCW (MIMO) radar"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy==2.4.5",
+  "scipy==1.17.1",
+]
+
+[project.optional-dependencies]
+plot = [
+  "matplotlib==3.10.9",
+]
+dev = [
+  "radarperf[plot]",
+  "black==26.5.1",
+  "flake8==7.3.0",
+  "Flake8-pyproject==1.2.4",
+  "mypy==2.1.0",
+  "pytest==9.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["radarperf*"]
+
+[tool.black]
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.mypy_cache
+    | \.pytest_cache
+    | \.venv.*
+    | venv
+    | build
+    | dist
+    | archive
+  )/
+)
+'''
+
+[tool.flake8]
+max-line-length = 88
+# E203: whitespace before ':'
+# E501: line too long
+# E741: ambiguous variable name 'I', 'O' or 'l'
+# W503: line break before binary operator
+extend-ignore = ['E203', 'E501', 'E741', 'W503']
+exclude = ['.git', 'venv', '.venv*', 'build', 'dist', 'archive']
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+# These redundant-cast ignores in units.py depend on the numpy stub version, so
+# an ignore that is unused on one Python/numpy combination may be required on
+# another across the CI matrix. Leave them in place rather than churn per-version.
+warn_unused_ignores = false
+warn_unreachable = true
+warn_unused_configs = true
+exclude = ['^archive/', '^build/']
+
+[[tool.mypy.overrides]]
+module = ["scipy.*", "matplotlib.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

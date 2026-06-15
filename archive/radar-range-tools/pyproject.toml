@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radar-range-tools"
+version = "0.1.1"
+description = "Typed Python tools for 76-81 GHz FMCW radar range/SNR/Pd calculations."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Proprietary"}
+authors = [{name = "Radar range tools contributors"}]
+dependencies = [
+    "numpy>=1.23",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.7"]
+dev = [
+    "black>=24.0",
+    "flake8>=7.0",
+    "mypy>=1.8",
+    "pytest>=8.0",
+    "matplotlib>=3.7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+mypy_path = "src"
+packages = ["radar_range"]
+
+[[tool.mypy.overrides]]
+module = ["scipy.*", "matplotlib.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]

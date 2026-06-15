@@ -1,0 +1,32 @@
+# Python
+venv/
+.venv*/
+*.py[cod]
+__pycache__/
+*.so
+*.egg-info/
+dist/
+build/
+
+# Type/lint/test caches
+.mypy_cache/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Plots / local working artifacts
+local/
+*.png
+!archive/**/*.png
+
+# Misc
+.DS_Store
+.cache/
+
+# Original design prompt: kept locally for reference, not committed.
+archive/prompt.md
