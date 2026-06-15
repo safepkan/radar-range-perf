@@ -17,11 +17,13 @@ model.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Sequence, cast
 
 import numpy as np
 import numpy.typing as npt
 from scipy.interpolate import RegularGridInterpolator
+
+from .units import FloatOrArray
 
 
 @dataclass(frozen=True)
@@ -32,7 +34,9 @@ class ConstantGainAntenna:
     beamwidth_az_deg: float = 90.0
     beamwidth_el_deg: float = 90.0
 
-    def gain_dbi(self, azimuth_deg: float, elevation_deg: float) -> float:
+    def gain_dbi(
+        self, azimuth_deg: FloatOrArray, elevation_deg: FloatOrArray
+    ) -> FloatOrArray:
         return self.boresight_gain_dbi
 
 
@@ -49,12 +53,17 @@ class GaussianBeamAntenna:
     beamwidth_el_deg: float
     sidelobe_floor_dbi: float = -30.0
 
-    def gain_dbi(self, azimuth_deg: float, elevation_deg: float) -> float:
+    def gain_dbi(
+        self, azimuth_deg: FloatOrArray, elevation_deg: FloatOrArray
+    ) -> FloatOrArray:
+        az = np.asarray(azimuth_deg, dtype=float)
+        el = np.asarray(elevation_deg, dtype=float)
         roll_off = (
-            12.0 * (azimuth_deg / self.beamwidth_az_deg) ** 2
-            + 12.0 * (elevation_deg / self.beamwidth_el_deg) ** 2
+            12.0 * (az / self.beamwidth_az_deg) ** 2
+            + 12.0 * (el / self.beamwidth_el_deg) ** 2
         )
-        return max(self.boresight_gain_dbi - roll_off, self.sidelobe_floor_dbi)
+        gain = np.maximum(self.boresight_gain_dbi - roll_off, self.sidelobe_floor_dbi)
+        return cast(FloatOrArray, gain)
 
 
 @dataclass(frozen=True)
@@ -104,12 +113,12 @@ class PatternCutAntenna:
             beamwidth_el_deg=_estimate_beamwidth(el[:, 0], el[:, 1]),
         )
 
-    def gain_dbi(self, azimuth_deg: float, elevation_deg: float) -> float:
-        rel_az = float(np.interp(azimuth_deg, self.az_angles_deg, self.az_relative_db))
-        rel_el = float(
-            np.interp(elevation_deg, self.el_angles_deg, self.el_relative_db)
-        )
-        return self.boresight_gain_dbi + rel_az + rel_el
+    def gain_dbi(
+        self, azimuth_deg: FloatOrArray, elevation_deg: FloatOrArray
+    ) -> FloatOrArray:
+        rel_az = np.interp(azimuth_deg, self.az_angles_deg, self.az_relative_db)
+        rel_el = np.interp(elevation_deg, self.el_angles_deg, self.el_relative_db)
+        return cast(FloatOrArray, self.boresight_gain_dbi + rel_az + rel_el)
 
 
 class PatternUVAntenna:
@@ -149,8 +158,16 @@ class PatternUVAntenna:
             self._el, self._gain[int(np.argmin(np.abs(self._az))), :]
         )
 
-    def gain_dbi(self, azimuth_deg: float, elevation_deg: float) -> float:
-        return float(self._interp((azimuth_deg, elevation_deg)))
+    def gain_dbi(
+        self, azimuth_deg: FloatOrArray, elevation_deg: FloatOrArray
+    ) -> FloatOrArray:
+        az, el = np.broadcast_arrays(
+            np.asarray(azimuth_deg, dtype=float),
+            np.asarray(elevation_deg, dtype=float),
+        )
+        points = np.column_stack([az.ravel(), el.ravel()])
+        values = np.asarray(self._interp(points), dtype=float).reshape(az.shape)
+        return float(values) if values.ndim == 0 else cast(FloatOrArray, values)
 
 
 def _estimate_beamwidth(

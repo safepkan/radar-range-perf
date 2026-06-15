@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Mapping, Protocol, runtime_checkable
 
 from .geometry import Geometry
+from .units import FloatOrArray
 
 
 @dataclass(frozen=True)
@@ -101,8 +102,15 @@ class Antenna(Protocol):
     def beamwidth_el_deg(self) -> float:
         """Elevation 3 dB beamwidth [deg]."""
 
-    def gain_dbi(self, azimuth_deg: float, elevation_deg: float) -> float:
-        """Gain toward ``(azimuth, elevation)`` [dBi]."""
+    def gain_dbi(
+        self, azimuth_deg: FloatOrArray, elevation_deg: FloatOrArray
+    ) -> FloatOrArray:
+        """Gain toward ``(azimuth, elevation)`` [dBi].
+
+        Must accept scalar or broadcastable-array angles and return a matching
+        shape, so a single :class:`~radarperf.geometry.Geometry` batch can be
+        evaluated in one vectorised pass.
+        """
 
 
 @runtime_checkable
@@ -154,18 +162,28 @@ class Target(Protocol):
     def swerling(self) -> int:
         """Swerling case (0/5 non-fluctuating, 1-4 fluctuating)."""
 
-    def rcs_m2(self, geometry: Geometry) -> float:
-        """Radar cross section toward the radar at this geometry [m^2]."""
+    def rcs_m2(self, geometry: Geometry) -> FloatOrArray:
+        """Radar cross section toward the radar at this geometry [m^2].
+
+        Returns a scalar for a scalar geometry, or a matching-shape array for a
+        batch geometry.
+        """
 
 
 @runtime_checkable
 class Environment(Protocol):
     """Propagation and volume-clutter effects between radar and target."""
 
-    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> float:
-        """Two-way excess path loss (atmosphere + rain) [dB, >= 0]."""
+    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
+        """Two-way excess path loss (atmosphere + rain) [dB, >= 0].
+
+        Returns a matching shape for a batch geometry.
+        """
 
     def clutter_rcs_m2(
         self, geometry: Geometry, waveform: Waveform, antenna: Antenna
-    ) -> float:
-        """Effective clutter RCS competing with the target in its cell [m^2]."""
+    ) -> FloatOrArray:
+        """Effective clutter RCS competing with the target in its cell [m^2].
+
+        Returns a matching shape for a batch geometry.
+        """

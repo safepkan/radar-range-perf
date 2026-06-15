@@ -1,9 +1,13 @@
 """Geometry of a target relative to the radar.
 
-A :class:`Geometry` is a single point in the radar's field of regard: a slant
-range plus a look direction (azimuth/elevation), together with the kinematic
-and aspect information the rest of the toolbox needs.  Sweeps build large
-collections of these.
+A :class:`Geometry` is a point in the radar's field of regard: a slant range
+plus a look direction (azimuth/elevation), together with the kinematic and
+aspect information the rest of the toolbox needs.
+
+The fields may be plain floats (a single point) or broadcastable NumPy arrays (a
+batch of points evaluated in one vectorised pass).  :attr:`Geometry.is_scalar`
+reports which.  :meth:`~radarperf.engine.Radar.link_budget` requires a single
+point; the sweep helpers in :mod:`radarperf.sweeps` build array geometries.
 
 Conventions
 -----------
@@ -22,45 +26,57 @@ waveguide-antenna patterns are frequently tabulated in uv-space.
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
+from typing import cast
+
+import numpy as np
+
+from .units import FloatOrArray
 
 
 @dataclass(frozen=True)
 class Geometry:
-    """A target location and kinematic state relative to the radar."""
+    """A target location and kinematic state relative to the radar.
 
-    range_m: float
-    azimuth_deg: float = 0.0
-    elevation_deg: float = 0.0
-    aspect_deg: float = 0.0
-    radial_velocity_mps: float = 0.0
+    Each field is a scalar or a broadcastable array (see the module docstring).
+    """
+
+    range_m: FloatOrArray
+    azimuth_deg: FloatOrArray = 0.0
+    elevation_deg: FloatOrArray = 0.0
+    aspect_deg: FloatOrArray = 0.0
+    radial_velocity_mps: FloatOrArray = 0.0
 
     def __post_init__(self) -> None:
-        if self.range_m <= 0.0:
+        if np.any(np.asarray(self.range_m, dtype=float) <= 0.0):
             raise ValueError("range_m must be positive")
 
     @property
-    def u(self) -> float:
-        """Azimuth direction cosine, ``sin(az) * cos(el)``."""
-        az = math.radians(self.azimuth_deg)
-        el = math.radians(self.elevation_deg)
-        return math.sin(az) * math.cos(el)
+    def is_scalar(self) -> bool:
+        """True when every field is a scalar (i.e. a single point)."""
+        return all(np.ndim(getattr(self, f.name)) == 0 for f in fields(self))
 
     @property
-    def v(self) -> float:
+    def u(self) -> FloatOrArray:
+        """Azimuth direction cosine, ``sin(az) * cos(el)``."""
+        az = np.radians(self.azimuth_deg)
+        el = np.radians(self.elevation_deg)
+        return cast(FloatOrArray, np.sin(az) * np.cos(el))
+
+    @property
+    def v(self) -> FloatOrArray:
         """Elevation direction cosine, ``sin(el)``."""
-        return math.sin(math.radians(self.elevation_deg))
+        return cast(FloatOrArray, np.sin(np.radians(self.elevation_deg)))
 
     @classmethod
     def from_cartesian(
         cls,
-        x_m: float,
-        y_m: float,
-        z_m: float = 0.0,
+        x_m: FloatOrArray,
+        y_m: FloatOrArray,
+        z_m: FloatOrArray = 0.0,
         *,
-        aspect_deg: float = 0.0,
-        radial_velocity_mps: float = 0.0,
+        aspect_deg: FloatOrArray = 0.0,
+        radial_velocity_mps: FloatOrArray = 0.0,
     ) -> "Geometry":
         """Build a :class:`Geometry` from radar-frame Cartesian coordinates.
 
@@ -68,14 +84,14 @@ class Geometry:
         (left positive) and ``z`` is up.  This is convenient for x/y and x/z
         coverage maps.
         """
-        ground = math.hypot(x_m, y_m)
-        range_m = math.sqrt(ground * ground + z_m * z_m)
-        azimuth_deg = math.degrees(math.atan2(y_m, x_m))
-        elevation_deg = math.degrees(math.atan2(z_m, ground))
+        ground = np.hypot(x_m, y_m)
+        range_m = np.hypot(ground, z_m)
+        azimuth_deg = np.degrees(np.arctan2(y_m, x_m))
+        elevation_deg = np.degrees(np.arctan2(z_m, ground))
         return cls(
-            range_m=range_m,
-            azimuth_deg=azimuth_deg,
-            elevation_deg=elevation_deg,
+            range_m=cast(FloatOrArray, range_m),
+            azimuth_deg=cast(FloatOrArray, azimuth_deg),
+            elevation_deg=cast(FloatOrArray, elevation_deg),
             aspect_deg=aspect_deg,
             radial_velocity_mps=radial_velocity_mps,
         )

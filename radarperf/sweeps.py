@@ -9,8 +9,9 @@ arrays you actually plot:
 * :func:`coverage_range` / :func:`coverage_vs_azimuth` -- the maximum range that
   still meets a target Pd.
 
-Pd is evaluated vectorised over the whole grid in one call, so large sweeps are
-reasonably fast even though the link budget is looped per point.
+Both the link budget and Pd are evaluated vectorised over the whole grid in a
+single call (the engine broadcasts over an array :class:`Geometry`), so large
+sweeps stay fast.
 """
 
 from __future__ import annotations
@@ -56,23 +57,16 @@ def range_sweep(
 ) -> RangeSweep:
     """SNR/SINR/Pd versus range along a fixed look direction."""
     ranges = np.asarray(ranges_m, dtype=float)
-    snr = np.empty_like(ranges)
-    sinr = np.empty_like(ranges)
-    n_noncoherent = 1
-    n_collapsing = 0
-    for i, rng in enumerate(ranges):
-        geom = Geometry(
-            range_m=float(rng),
-            azimuth_deg=azimuth_deg,
-            elevation_deg=elevation_deg,
-            aspect_deg=aspect_deg,
-            radial_velocity_mps=radial_velocity_mps,
-        )
-        budget = radar.link_budget(target, geom, environment)
-        snr[i] = budget.snr_db
-        sinr[i] = budget.sinr_db
-        n_noncoherent = budget.n_noncoherent
-        n_collapsing = budget.n_collapsing
+    geometry = Geometry(
+        range_m=ranges,
+        azimuth_deg=azimuth_deg,
+        elevation_deg=elevation_deg,
+        aspect_deg=aspect_deg,
+        radial_velocity_mps=radial_velocity_mps,
+    )
+    terms = radar._budget_terms(target, geometry, environment)
+    snr = np.asarray(terms.snr_db, dtype=float)
+    sinr = np.asarray(terms.sinr_db, dtype=float)
 
     metric = sinr if use_sinr else snr
     case = target.swerling if swerling is None else swerling
@@ -81,8 +75,8 @@ def range_sweep(
             metric,
             radar.default_pfa if pfa is None else pfa,
             swerling=case,
-            n_pulses=n_noncoherent,
-            n_collapsing=n_collapsing,
+            n_pulses=terms.n_noncoherent,
+            n_collapsing=terms.n_collapsing,
         ),
         dtype=float,
     )
@@ -119,19 +113,10 @@ def map_2d(
     """
     c1 = np.asarray(coord1_values, dtype=float)
     c2 = np.asarray(coord2_values, dtype=float)
-    sinr = np.empty((c1.size, c2.size))
-    snr = np.empty((c1.size, c2.size))
-    n_noncoherent = 1
-    n_collapsing = 0
-    for i, v1 in enumerate(c1):
-        for j, v2 in enumerate(c2):
-            budget = radar.link_budget(
-                target, geometry_from(float(v1), float(v2)), environment
-            )
-            sinr[i, j] = budget.sinr_db
-            snr[i, j] = budget.snr_db
-            n_noncoherent = budget.n_noncoherent
-            n_collapsing = budget.n_collapsing
+    geometry = _grid_geometry(geometry_from, c1, c2)
+    terms = radar._budget_terms(target, geometry, environment)
+    snr = np.asarray(terms.snr_db, dtype=float)
+    sinr = np.asarray(terms.sinr_db, dtype=float)
 
     metric = sinr if use_sinr else snr
     case = target.swerling if swerling is None else swerling
@@ -140,12 +125,45 @@ def map_2d(
             metric,
             radar.default_pfa if pfa is None else pfa,
             swerling=case,
-            n_pulses=n_noncoherent,
-            n_collapsing=n_collapsing,
+            n_pulses=terms.n_noncoherent,
+            n_collapsing=terms.n_collapsing,
         ),
         dtype=float,
     )
     return Map2D(coord1=c1, coord2=c2, pd=pd, sinr_db=sinr)
+
+
+def _grid_geometry(
+    geometry_from: GeometryBuilder,
+    c1: npt.NDArray[np.float64],
+    c2: npt.NDArray[np.float64],
+) -> Geometry:
+    """Assemble a single batched :class:`Geometry` over the ``(c1, c2)`` grid.
+
+    The per-point builder runs in a Python loop (cheap object construction); the
+    expensive range-equation and detection maths then runs once, vectorised.
+    """
+    shape = (c1.size, c2.size)
+    rng = np.empty(shape)
+    az = np.empty(shape)
+    el = np.empty(shape)
+    aspect = np.empty(shape)
+    velocity = np.empty(shape)
+    for i, v1 in enumerate(c1):
+        for j, v2 in enumerate(c2):
+            point = geometry_from(float(v1), float(v2))
+            rng[i, j] = float(point.range_m)
+            az[i, j] = float(point.azimuth_deg)
+            el[i, j] = float(point.elevation_deg)
+            aspect[i, j] = float(point.aspect_deg)
+            velocity[i, j] = float(point.radial_velocity_mps)
+    return Geometry(
+        range_m=rng,
+        azimuth_deg=az,
+        elevation_deg=el,
+        aspect_deg=aspect,
+        radial_velocity_mps=velocity,
+    )
 
 
 # --- geometry builders for common map planes --------------------------------

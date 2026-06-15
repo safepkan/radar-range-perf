@@ -23,23 +23,25 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Sequence, cast
+
+import numpy as np
 
 from .geometry import Geometry
 from .protocols import Antenna, Environment, Waveform
-from .units import SPEED_OF_LIGHT
+from .units import SPEED_OF_LIGHT, FloatOrArray
 
 
 @dataclass(frozen=True)
 class FreeSpace:
     """No excess loss and no clutter -- the default environment."""
 
-    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> float:
+    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
         return 0.0
 
     def clutter_rcs_m2(
         self, geometry: Geometry, waveform: Waveform, antenna: Antenna
-    ) -> float:
+    ) -> FloatOrArray:
         return 0.0
 
 
@@ -53,13 +55,13 @@ class Atmosphere:
 
     specific_attenuation_db_per_km: float = 0.5
 
-    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> float:
-        range_km = geometry.range_m / 1000.0
-        return 2.0 * self.specific_attenuation_db_per_km * range_km
+    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
+        range_km = np.asarray(geometry.range_m, dtype=float) / 1000.0
+        return cast(FloatOrArray, 2.0 * self.specific_attenuation_db_per_km * range_km)
 
     def clutter_rcs_m2(
         self, geometry: Geometry, waveform: Waveform, antenna: Antenna
-    ) -> float:
+    ) -> FloatOrArray:
         return 0.0
 
 
@@ -79,13 +81,15 @@ class Rain:
         """One-way rain specific attenuation [dB/km]."""
         return float(self.k * self.rain_rate_mm_per_hr**self.alpha)
 
-    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> float:
-        range_km = geometry.range_m / 1000.0
-        return 2.0 * self.specific_attenuation_db_per_km() * range_km
+    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
+        range_km = np.asarray(geometry.range_m, dtype=float) / 1000.0
+        return cast(
+            FloatOrArray, 2.0 * self.specific_attenuation_db_per_km() * range_km
+        )
 
     def clutter_rcs_m2(
         self, geometry: Geometry, waveform: Waveform, antenna: Antenna
-    ) -> float:
+    ) -> FloatOrArray:
         bw_az = antenna.beamwidth_az_deg
         bw_el = antenna.beamwidth_el_deg
         if math.isnan(bw_az) or math.isnan(bw_el):
@@ -101,10 +105,9 @@ class Rain:
         theta_az = math.radians(bw_az)
         theta_el = math.radians(bw_el)
         delta_r = SPEED_OF_LIGHT / (2.0 * waveform.bandwidth_hz)
-        volume = (
-            self.beam_fill_factor * theta_az * theta_el * geometry.range_m**2 * delta_r
-        )
-        return float(eta * volume)
+        range_m = np.asarray(geometry.range_m, dtype=float)
+        volume = self.beam_fill_factor * theta_az * theta_el * range_m**2 * delta_r
+        return cast(FloatOrArray, eta * volume)
 
 
 class CompositeEnvironment:
@@ -113,12 +116,20 @@ class CompositeEnvironment:
     def __init__(self, models: Sequence[Environment]) -> None:
         self._models = tuple(models)
 
-    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> float:
-        return float(sum(m.two_way_loss_db(geometry, waveform) for m in self._models))
+    def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
+        total = np.zeros(())
+        for model in self._models:
+            total = total + np.asarray(
+                model.two_way_loss_db(geometry, waveform), dtype=float
+            )
+        return cast(FloatOrArray, total)
 
     def clutter_rcs_m2(
         self, geometry: Geometry, waveform: Waveform, antenna: Antenna
-    ) -> float:
-        return float(
-            sum(m.clutter_rcs_m2(geometry, waveform, antenna) for m in self._models)
-        )
+    ) -> FloatOrArray:
+        total = np.zeros(())
+        for model in self._models:
+            total = total + np.asarray(
+                model.clutter_rcs_m2(geometry, waveform, antenna), dtype=float
+            )
+        return cast(FloatOrArray, total)

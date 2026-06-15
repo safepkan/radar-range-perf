@@ -15,13 +15,13 @@ constant, a tabulated function of aspect angle, or any callable.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Callable, Sequence, cast
 
 import numpy as np
 import numpy.typing as npt
 
 from .geometry import Geometry
-from .units import db_to_linear, linear_to_db
+from .units import FloatOrArray, db_to_linear, linear_to_db
 
 
 @dataclass(frozen=True)
@@ -44,7 +44,7 @@ class ConstantRcsTarget:
         """Build from RCS in dBsm (dB relative to 1 m^2)."""
         return cls(rcs=float(db_to_linear(rcs_dbsm)), swerling=swerling, name=name)
 
-    def rcs_m2(self, geometry: Geometry) -> float:  # noqa: ARG002 - constant model
+    def rcs_m2(self, geometry: Geometry) -> FloatOrArray:  # noqa: ARG002 - constant
         return self.rcs
 
 
@@ -59,11 +59,17 @@ class AspectRcsTarget:
     def __post_init__(self) -> None:
         _check_swerling(self.swerling)
 
-    def rcs_m2(self, geometry: Geometry) -> float:
-        value = self.rcs_function(geometry.aspect_deg)
-        if value <= 0.0:
+    def rcs_m2(self, geometry: Geometry) -> FloatOrArray:
+        aspect = geometry.aspect_deg
+        if np.ndim(aspect) == 0:
+            value = float(self.rcs_function(float(aspect)))
+            if value <= 0.0:
+                raise ValueError("rcs_function returned a non-positive RCS")
+            return value
+        values = np.vectorize(self.rcs_function, otypes=[float])(aspect)
+        if np.any(values <= 0.0):
             raise ValueError("rcs_function returned a non-positive RCS")
-        return float(value)
+        return cast(FloatOrArray, values)
 
 
 class RcsTableTarget:
@@ -91,10 +97,11 @@ class RcsTableTarget:
         self.swerling = swerling
         self.name = name
 
-    def rcs_m2(self, geometry: Geometry) -> float:
-        wrapped = float(np.mod(geometry.aspect_deg, 360.0))
-        rcs_dbsm = float(np.interp(wrapped, self._aspect, self._rcs_dbsm, period=360.0))
-        return float(db_to_linear(rcs_dbsm))
+    def rcs_m2(self, geometry: Geometry) -> FloatOrArray:
+        wrapped = np.mod(np.asarray(geometry.aspect_deg, dtype=float), 360.0)
+        rcs_dbsm = np.interp(wrapped, self._aspect, self._rcs_dbsm, period=360.0)
+        rcs = db_to_linear(rcs_dbsm)
+        return float(rcs) if rcs.ndim == 0 else cast(FloatOrArray, rcs)
 
 
 # --- Illustrative presets (replace with measured RCS) ------------------------
