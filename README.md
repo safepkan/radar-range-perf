@@ -40,7 +40,7 @@ element = GaussianBeamAntenna(boresight_gain_dbi=11.0,
                               beamwidth_az_deg=80.0, beamwidth_el_deg=20.0)
 
 radar = Radar(
-    frontend=frontend.awr2243(),                 # illustrative preset
+    frontend=frontend.awr2243(),                 # datasheet preset
     waveform=waveform,
     processing=StandardProcessing(mimo=MimoScheme.TDM),
     tx_antenna=element, rx_antenna=element,
@@ -149,7 +149,7 @@ attributes plugs in -- no subclassing or registration; `mypy` checks the
 structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 `Processing`, `Target` and `Environment` (in `radarperf.protocols`).
 
-* **Front-end** — `GenericFrontend` plus `cascade()` and illustrative presets
+* **Front-end** — `GenericFrontend` plus `cascade()` and datasheet-sourced presets
   (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`).
 * **Antenna** — `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
   `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full pattern).
@@ -200,16 +200,12 @@ the same checks across Python 3.12 and 3.14.
 
 ## Possible next steps
 
-Near-term, planned:
-
-* Direction-dependent antenna/scene noise temperature (the current `T_ant` is a
-  single scalar per `Radar`), e.g. a colder sky at high elevation and rain
-  emission raising the floor.
-
-Longer-term: short-range effects (receiver saturation / near-field, TX-to-RX
-leakage, ADC dynamic range, phase-noise / reciprocal-mixing skirts that limit
-SCR against strong nearby reflectors), eclipsing, ADC quantisation noise,
+Longer-term extensions: short-range effects (receiver saturation / near-field,
+TX-to-RX leakage, ADC dynamic range, phase-noise / reciprocal-mixing skirts that
+limit SCR against strong nearby reflectors), eclipsing, ADC quantisation noise,
 range/Doppler-cell clutter for ground / guardrail / multipath, waveform validity
-checks (max beat frequency, range / velocity ambiguity, duty cycle, EIRP), and
+checks (max beat frequency, range / velocity ambiguity, duty cycle, EIRP),
 computing the angular beamforming / straddle loss from the actual array geometry
-rather than a configurable scalar.
+rather than a configurable scalar, and a direction-dependent antenna/scene noise
+temperature (the current `T_ant` is a single scalar per `Radar`; likely a minor
+effect at these frequencies and noise figures, where receiver noise dominates).

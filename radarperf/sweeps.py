@@ -1,7 +1,6 @@
 """Sweeps over range and angle: profiles, 2-D maps and coverage.
 
-These wrap the per-point :meth:`~radarperf.engine.Radar.link_budget` into the
-arrays you actually plot:
+These produce the arrays you actually plot:
 
 * :func:`range_sweep` -- SNR/SINR/Pd versus range along a fixed direction.
 * :func:`map_2d` -- a grid of Pd over any two coordinates, with helper geometry

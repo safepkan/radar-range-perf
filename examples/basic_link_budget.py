@@ -35,7 +35,7 @@ def main() -> None:
     print("Max unambig. vel.:   +/- %.1f m/s" % waveform.max_unambiguous_velocity_mps)
     print()
 
-    # A 3TX/4RX MMIC (illustrative preset) in time-division MIMO, with a
+    # A 3TX/4RX MMIC (datasheet preset) in time-division MIMO, with a
     # wide-azimuth / narrow-elevation element pattern.
     element = GaussianBeamAntenna(
         boresight_gain_dbi=11.0,

@@ -41,7 +41,7 @@ def radar(processing: StandardProcessing) -> Radar:
     )
     element = GaussianBeamAntenna(11.0, 80.0, 20.0)
     return Radar(
-        frontend=frontend.awr2e44p(),  # 4 TX / 4 RX (illustrative)
+        frontend=frontend.awr2e44p(),  # 4 TX / 4 RX (datasheet)
         waveform=waveform,
         processing=processing,
         tx_antenna=element,

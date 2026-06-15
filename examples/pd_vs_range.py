@@ -88,10 +88,11 @@ def main() -> None:
     for r, p, c, t in zip(scan_ranges, pd_per_scan, cumulative, confirm_2of3):
         print(f"{r:10.1f}  {p:8.3f}  {c:8.3f}  {t:8.3f}")
 
-    # To plot instead:
+    # To plot instead, use radarperf.plotting (see examples/plotting_demo.py):
     #   import matplotlib.pyplot as plt
-    #   plt.plot(ranges, sweeps_by_scheme[MimoScheme.DDM].pd)
-    #   plt.xlabel("range [m]"); plt.ylabel("Pd"); plt.show()
+    #   from radarperf.plotting import plot_pd_vs_range
+    #   plot_pd_vs_range(sweeps_by_scheme[MimoScheme.DDM])
+    #   plt.show()
 
 
 def _at(range_m: float):  # type: ignore[no-untyped-def]
