@@ -179,3 +179,109 @@ class StandardProcessing:
             n_collapsing=int(n_total - n_signal),
             losses_db=losses,
         )
+
+
+@dataclass(frozen=True)
+class CombiningStage:
+    """One named channel/subband summation axis.
+
+    ``count`` is the number of cells summed on this axis.  A *coherent* stage
+    multiplies the coherent integration gain by ``count`` (in-phase summation,
+    e.g. beamforming); a *non-coherent* stage instead contributes ``count``
+    square-law detector cells.
+
+    ``signal_count`` is how many of those cells carry target signal; it defaults
+    to ``count`` and may be smaller for a non-coherent stage that also sums
+    noise-only cells (the DDMA empty-subband / collapsing case).  A coherent
+    stage must have ``signal_count == count`` -- empty cells are resolved out
+    before coherent summation rather than summed.
+    """
+
+    name: str
+    count: int
+    mode: BeamCombination
+    signal_count: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.count < 1:
+            raise ValueError("count must be >= 1")
+        signal = self.signal_bearing_count
+        if not 0 <= signal <= self.count:
+            raise ValueError("signal_count must satisfy 0 <= signal_count <= count")
+        if self.mode is BeamCombination.COHERENT and signal != self.count:
+            raise ValueError(
+                "a coherent CombiningStage cannot have noise-only cells "
+                "(signal_count must equal count)"
+            )
+
+    @property
+    def signal_bearing_count(self) -> int:
+        """Number of cells on this axis that carry target signal."""
+        return self.count if self.signal_count is None else self.signal_count
+
+
+@dataclass(frozen=True)
+class StagedProcessing:
+    """Processing defined by an explicit list of named combining stages.
+
+    A flexible alternative to :class:`StandardProcessing` for combining
+    topologies that do not fit the fixed RX / TX-subband axes: any number of
+    named :class:`CombiningStage` axes, each coherent or non-coherent, with
+    optional noise-only (collapsing) cells.
+
+    The coherent integration gain is the range-FFT * Doppler-FFT product (over
+    ``n_samples`` and ``n_chirps``) times the counts of the coherent stages.
+    Non-coherent stages set the detector look counts: the signal-bearing looks
+    are the product of the stages' ``signal_bearing_count`` and the collapsing
+    cells are the remaining product of ``count``.
+
+    Unlike :class:`StandardProcessing`, this model applies no MIMO-scheme /
+    TDM duty-cycle bookkeeping -- ``n_samples * n_chirps`` is taken as the full
+    coherent base.  For TDM, use :class:`StandardProcessing` (or set
+    ``include_doppler_fft_gain=False`` and fold the integration in elsewhere).
+    """
+
+    combining_stages: tuple[CombiningStage, ...] = ()
+    include_range_fft_gain: bool = True
+    include_doppler_fft_gain: bool = True
+    range_window_loss_db: float = 1.76
+    doppler_window_loss_db: float = 1.76
+    range_straddle_loss_db: float = 0.6
+    doppler_straddle_loss_db: float = 0.6
+    cfar_loss_db: float = 1.0
+    other_loss_db: float = 0.0
+    additional_gain_db: float = 0.0
+
+    def budget(self, waveform: Waveform, n_tx: int, n_rx: int) -> ProcessingBudget:
+        coherent_gain = 1.0
+        if self.include_range_fft_gain:
+            coherent_gain *= waveform.n_samples
+        if self.include_doppler_fft_gain:
+            coherent_gain *= waveform.n_chirps
+
+        n_signal = 1
+        n_total = 1
+        for stage in self.combining_stages:
+            if stage.mode is BeamCombination.COHERENT:
+                coherent_gain *= stage.count
+            else:
+                n_signal *= stage.signal_bearing_count
+                n_total *= stage.count
+
+        losses = {
+            "range_window": self.range_window_loss_db,
+            "doppler_window": self.doppler_window_loss_db,
+            "range_straddle": self.range_straddle_loss_db,
+            "doppler_straddle": self.doppler_straddle_loss_db,
+            "cfar": self.cfar_loss_db,
+            "other": self.other_loss_db,
+        }
+        losses = {name: value for name, value in losses.items() if value != 0.0}
+
+        gain_db = float(linear_to_db(coherent_gain)) + self.additional_gain_db
+        return ProcessingBudget(
+            coherent_gain_db=gain_db,
+            n_noncoherent=int(n_signal),
+            n_collapsing=int(n_total - n_signal),
+            losses_db=losses,
+        )

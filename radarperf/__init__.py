@@ -47,7 +47,13 @@ from .engine import Radar
 from .environment import Atmosphere, CompositeEnvironment, FreeSpace, Rain
 from .frontend import GenericFrontend, cascade
 from .geometry import Geometry
-from .processing import BeamCombination, MimoScheme, StandardProcessing
+from .processing import (
+    BeamCombination,
+    CombiningStage,
+    MimoScheme,
+    StagedProcessing,
+    StandardProcessing,
+)
 from .protocols import (
     Antenna,
     Environment,
@@ -70,6 +76,8 @@ __all__ = [
     "Geometry",
     "FmcwWaveform",
     "StandardProcessing",
+    "StagedProcessing",
+    "CombiningStage",
     "MimoScheme",
     "BeamCombination",
     "GenericFrontend",

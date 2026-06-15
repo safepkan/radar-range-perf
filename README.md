@@ -156,7 +156,9 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 * **Waveform** — `FmcwWaveform` with derived resolution and ambiguity figures.
 * **Processing** — `StandardProcessing` (MIMO scheme, per-axis combination, DDMA
   subbands/collapsing, in-phase coherent transmit, window / straddle / CFAR /
-  beamforming / MIMO losses).
+  beamforming / MIMO losses). `StagedProcessing` is a generic alternative: an
+  explicit list of named coherent/non-coherent `CombiningStage` axes for
+  combining topologies beyond the fixed RX/TX axes.
 * **Target** — `ConstantRcsTarget`, `AspectRcsTarget`, `RcsTableTarget`, presets.
 * **Environment** — `FreeSpace`, `Atmosphere`, `Rain`, `CompositeEnvironment`.
 
@@ -193,8 +195,6 @@ the same checks across Python 3.12 and 3.14.
 
 Near-term, planned:
 
-* A generic, named multi-stage combining model alongside `StandardProcessing`,
-  for combining topologies beyond TDM/DDM/BPM.
 * Controlled, datasheet-backed chipset defaults (replacing the illustrative
   presets) and optional Matplotlib plotting helpers.
 * Direction-dependent antenna/scene noise temperature (the current `T_ant` is a
