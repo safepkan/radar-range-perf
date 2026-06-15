@@ -169,8 +169,10 @@ plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
 
 ## Assumptions and caveats
 
-* **The chipset and RCS presets are illustrative, not authoritative.** Copy a
-  preset and override the fields with datasheet or measured numbers.
+* **Chipset presets use datasheet figures** (TI parts: public headline values
+  from ti.com; Infineon CTRX8188F: controlled-datasheet typical) — verify against
+  the exact revision or your own measurements. **RCS presets are illustrative.**
+  Copy a preset and override the fields with controlled or measured numbers.
 * **Rain clutter is approximate.** Attenuation uses the ITU-R P.838 power law;
   the volume-clutter reflectivity uses a Marshall-Palmer Z-R relation with a
   Rayleigh assumption (at 77 GHz raindrops are in the Mie regime), so calibrate
@@ -195,8 +197,7 @@ the same checks across Python 3.12 and 3.14.
 
 Near-term, planned:
 
-* Controlled, datasheet-backed chipset defaults (replacing the illustrative
-  presets) and optional Matplotlib plotting helpers.
+* Optional Matplotlib plotting helpers.
 * Direction-dependent antenna/scene noise temperature (the current `T_ant` is a
   single scalar per `Radar`), e.g. a colder sky at high elevation and rain
   emission raising the floor.

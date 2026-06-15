@@ -4,19 +4,22 @@ The generic model captures the two parameters that drive the range equation:
 per-channel transmit power and receiver noise figure, plus the channel counts.
 Cascaded configurations are produced with :func:`cascade`.
 
-.. warning::
+.. note::
 
-   The named presets (:func:`awr1243`, :func:`awr2243`, :func:`ctrx8188f`, ...)
-   carry **illustrative ball-park numbers only**.  Output power and noise
-   figure vary with chirp slope, RF band, temperature, EIRP back-off and board
-   losses, and are exactly the kind of thing you should pull from the datasheet
-   or your own measurements.  Treat the presets as templates: copy one and
-   override the fields, or build a :class:`GenericFrontend` directly.
+   The TI presets (:func:`awr1243`, :func:`awr2243`, :func:`awr2e44p`) use public
+   datasheet headline figures from ti.com; :func:`ctrx8188f` uses controlled
+   datasheet typical values.  Output power and noise figure still vary with chirp
+   slope, RF band, temperature, EIRP back-off and board losses, so verify against
+   the exact datasheet revision or your own measurements.  Treat the presets as
+   templates: copy one and override the fields, or build a
+   :class:`GenericFrontend` directly.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+
+from .units import dbm_to_watt
 
 
 @dataclass(frozen=True)
@@ -70,14 +73,20 @@ def cascade(
     )
 
 
-# --- Illustrative presets (verify against datasheet / measurements!) ---------
+# --- Presets (datasheet figures; verify against the exact revision) ----------
 
 
 def awr1243(**overrides: object) -> GenericFrontend:
-    """TI AWR1243 (77-81 GHz, 3 TX / 4 RX) -- illustrative numbers."""
+    """TI AWR1243 (76-81 GHz, 3 TX / 4 RX).
+
+    Public datasheet headline figures (ti.com/product/AWR1243): 12 dBm/ch output
+    power; RX noise figure 14 dB (76-77 GHz) / 15 dB (77-81 GHz). The 76-77 GHz
+    primary-band value (14 dB) is used here. Phase noise -95 dBc/Hz at 1 MHz
+    (76-77 GHz), not yet modelled.
+    """
     base = GenericFrontend(
-        tx_power_w=10.0e-3,  # ~12 dBm/ch, ball-park
-        noise_figure_db=15.0,
+        tx_power_w=dbm_to_watt(12.0),
+        noise_figure_db=14.0,
         n_tx=3,
         n_rx=4,
         name="AWR1243",
@@ -86,9 +95,14 @@ def awr1243(**overrides: object) -> GenericFrontend:
 
 
 def awr2243(**overrides: object) -> GenericFrontend:
-    """TI AWR2243 (76-81 GHz, 3 TX / 4 RX) -- illustrative numbers."""
+    """TI AWR2243 (76-81 GHz, 3 TX / 4 RX).
+
+    Public datasheet headline figures (ti.com/product/AWR2243): 13 dBm/ch output
+    power, 12 dB RX noise figure. Phase noise -96 dBc/Hz at 1 MHz (76-77 GHz),
+    not yet modelled.
+    """
     base = GenericFrontend(
-        tx_power_w=12.6e-3,  # ~11 dBm/ch, ball-park
+        tx_power_w=dbm_to_watt(13.0),
         noise_figure_db=12.0,
         n_tx=3,
         n_rx=4,
@@ -98,9 +112,15 @@ def awr2243(**overrides: object) -> GenericFrontend:
 
 
 def awr2e44p(**overrides: object) -> GenericFrontend:
-    """TI AWR2E44P (4 TX / 4 RX class) -- illustrative numbers."""
+    """TI AWR2E44P (76-81 GHz, 4 TX / 4 RX).
+
+    Public datasheet headline figures (AWR2x44 family datasheet,
+    ti.com/lit/ds/symlink/awr2944p.pdf): 13.5 dBm/ch output power, 11 dB RX noise
+    figure. VCO phase noise -96 dBc/Hz at 1 MHz (76-77 GHz, VCO1), not yet
+    modelled.
+    """
     base = GenericFrontend(
-        tx_power_w=12.6e-3,
+        tx_power_w=dbm_to_watt(13.5),
         noise_figure_db=11.0,
         n_tx=4,
         n_rx=4,
@@ -110,10 +130,16 @@ def awr2e44p(**overrides: object) -> GenericFrontend:
 
 
 def ctrx8188f(**overrides: object) -> GenericFrontend:
-    """Infineon CTRX8188F (76-81 GHz, 8 TX / 8 RX class) -- illustrative."""
+    """Infineon CTRX8188F (76-81 GHz, 8 TX / 8 RX).
+
+    Controlled datasheet typical values: 14.5 dBm/ch output power; RX noise figure
+    10.2 dB (low-noise mode @ 10 MHz, the datasheet headline). Ultra-low-noise
+    mode reaches 9.7 dB @ 10 MHz. TX phase noise -100 dBc/Hz at 1 MHz, not yet
+    modelled.
+    """
     base = GenericFrontend(
-        tx_power_w=12.6e-3,
-        noise_figure_db=11.0,
+        tx_power_w=dbm_to_watt(14.5),
+        noise_figure_db=10.2,
         n_tx=8,
         n_rx=8,
         name="CTRX8188F",
