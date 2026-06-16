@@ -129,9 +129,26 @@ independent cases 2/4 raise an explanatory error.
 
 As an alternative to orthogonal MIMO, `transmit_coherent=True` models all `n_tx`
 transmitters radiating the same waveform in phase -- a transmit phased array
-steered at the target. The on-target power density scales as `n_tx**2`, i.e.
-`+10 log10(n_tx)` over DDM-MIMO and `+20 log10(n_tx)` over a single transmitter,
-for a target in the formed beam. There is no virtual TX aperture in this mode.
+steered at the target. On-target power density is `n_tx**2` over a single
+transmitter (`n_tx` from the summed power, `n_tx` from transmit directivity), so
+for a target in the formed beam the integrated SNR is `+20 log10(n_tx)` over one
+TX.
+
+The comparison with DDM/DDMA MIMO is best made in **post-combination SNR**, not
+in instantaneous on-target power density -- which for orthogonal MIMO isn't even
+a single number, since it varies chirp to chirp with the relative TX phases.
+After TX combining the signal power is the same in both (`n_tx**2`): coherent
+transmit builds it up on the target, before the receiver, while MIMO resolves the
+`n_tx` transmitters and recombines them digitally. The noise is what differs --
+the MIMO path sums `n_tx` independently noisy per-transmitter estimates (receiver
+noise enters `n_tx` times), whereas coherent transmit incurs receiver noise only
+once. So in a receiver-noise-limited model coherent transmit has a further
+`+10 log10(n_tx)` SNR over DDM-MIMO: an `n_tx**2` transmit contribution to the
+SNR versus `n_tx` for the virtual array.
+
+There is no virtual TX aperture in this mode, so covering a wide field of view
+means scanning the transmit beam (more dwell/scan time) -- which this
+per-direction budget does not amortise for you.
 
 ### Detection
 

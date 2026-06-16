@@ -43,10 +43,19 @@ In-phase (coherent) transmit
 ----------------------------
 As an alternative to orthogonal MIMO, ``transmit_coherent=True`` models all
 ``n_tx`` transmitters radiating the same waveform in phase (a transmit phased
-array steered at the target).  The on-target power density then scales as
-``n_tx**2`` -- ``n_tx`` from the summed power and a further ``n_tx`` from the
-transmit array directivity -- i.e. ``+10 log10(n_tx)`` over DDM-MIMO and
-``+20 log10(n_tx)`` over a single transmitter, for a target in the formed beam.
+array steered at the target).  On-target power density is ``n_tx**2`` over a
+single transmitter (``n_tx`` from the summed power, ``n_tx`` from transmit
+directivity), i.e. ``+20 log10(n_tx)`` integrated SNR over one TX.
+
+Against DDM/DDMA MIMO the meaningful comparison is post-combination SNR, not the
+instantaneous on-target power density (which for orthogonal MIMO varies chirp to
+chirp with the relative TX phases).  Both build the signal to the same power
+(``n_tx**2``) after TX combining, but the MIMO path sums ``n_tx`` independently
+noisy per-transmitter estimates (receiver noise enters ``n_tx`` times) while
+coherent transmit incurs receiver noise once -- so in a receiver-noise-limited
+model coherent transmit gains a further ``+10 log10(n_tx)`` over DDM-MIMO
+(``n_tx**2`` transmit contribution versus ``n_tx`` for the virtual array).
+
 There is no virtual TX aperture in this mode; covering a wide field of view
 requires scanning the transmit beam (more dwell/scan time), which this
 per-direction budget does not amortise for you.
