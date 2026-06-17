@@ -168,8 +168,12 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 
 * **Front-end** — `GenericFrontend` plus `cascade()` and datasheet-sourced presets
   (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`).
-* **Antenna** — `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
-  `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full pattern).
+* **Antenna** — element models `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
+  `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full
+  pattern). The engine takes a transmit/receive `AntennaPair`
+  (`AntennaPair.from_element` when the two coincide); `load_pattern_cut_csv` /
+  `load_antenna_pair_csv` build elements from measured/datasheet az/el tables,
+  with packaged Huber+Suhner presets (`sencity_this_ii`, `sencity_farad_iv`).
 * **Waveform** — `FmcwWaveform` with derived resolution and ambiguity figures.
 * **Processing** — `StandardProcessing` (MIMO scheme, per-axis combination, DDMA
   subbands/collapsing, in-phase coherent transmit, window / straddle / CFAR /
@@ -186,8 +190,10 @@ plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
 
 Optional Matplotlib helpers (`radarperf.plotting`, requires the `plot` extra)
 turn those into figures: `plot_snr_vs_range`, `plot_pd_vs_range`, `plot_pd_map`
-(with Pd contours) and `plot_coverage` (polar). Each takes an optional `ax` and
-returns it, so they compose and overlay; see `examples/plotting_demo.py`.
+(with Pd contours) and `plot_coverage` (polar); `plot_pattern_cut` /
+`plot_pattern_cuts` draw an antenna's az/el gain cuts (TX vs RX). Each takes an
+optional `ax` and returns it, so they compose and overlay; see
+`examples/plotting_demo.py` and `examples/antenna_pattern.py`.
 
 ## Assumptions and caveats
 
@@ -200,7 +206,9 @@ returns it, so they compose and overlay; see `examples/plotting_demo.py`.
   Rayleigh assumption (at 77 GHz raindrops are in the Mie regime), so calibrate
   `dielectric_factor` and the Z-R coefficients before trusting absolute numbers.
 * Antenna pattern separability (`PatternCutAntenna`) is exact on the cuts and a
-  reasonable engineering approximation off them.
+  reasonable engineering approximation off them. **The SENCITY presets are
+  digitised** from preliminary datasheet charts (PCB mount, no radome) — verify
+  against the controlled datasheet for your revision.
 
 ## Development
 
