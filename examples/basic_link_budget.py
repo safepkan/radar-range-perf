@@ -8,6 +8,7 @@ Run with::
 from __future__ import annotations
 
 from radarperf import (
+    AntennaPair,
     FmcwWaveform,
     GaussianBeamAntenna,
     Geometry,
@@ -46,8 +47,7 @@ def main() -> None:
         frontend=frontend.awr2243(),
         waveform=waveform,
         processing=StandardProcessing(mimo=MimoScheme.TDM),
-        tx_antenna=element,
-        rx_antenna=element,
+        antenna=AntennaPair.from_element(element),
         default_pfa=1e-6,
     )
 

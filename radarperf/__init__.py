@@ -10,7 +10,7 @@ Example
 -------
 >>> from radarperf import (
 ...     Radar, FmcwWaveform, StandardProcessing, MimoScheme,
-...     GaussianBeamAntenna, frontend, target,
+...     AntennaPair, GaussianBeamAntenna, frontend, target,
 ... )
 >>> wf = FmcwWaveform(center_frequency_hz=77e9, bandwidth_hz=1e9,
 ...                   sample_rate_hz=20e6, n_samples=256, n_chirps=128,
@@ -19,8 +19,7 @@ Example
 ...     frontend=frontend.awr2243(),
 ...     waveform=wf,
 ...     processing=StandardProcessing(mimo=MimoScheme.TDM),
-...     tx_antenna=GaussianBeamAntenna(12.0, 60.0, 12.0),
-...     rx_antenna=GaussianBeamAntenna(12.0, 60.0, 12.0),
+...     antenna=AntennaPair.from_element(GaussianBeamAntenna(12.0, 60.0, 12.0)),
 ... )
 >>> budget = radar.link_budget(target.car(), Geometry(range_m=120.0))
 >>> round(budget.snr_db, 1)  # doctest: +SKIP
@@ -28,8 +27,9 @@ Example
 
 from __future__ import annotations
 
-from . import detection, frontend, sweeps, target, units
+from . import antenna, detection, frontend, sweeps, target, units
 from .antenna import (
+    AntennaPair,
     ConstantGainAntenna,
     GaussianBeamAntenna,
     PatternCutAntenna,
@@ -82,6 +82,7 @@ __all__ = [
     "BeamCombination",
     "GenericFrontend",
     "cascade",
+    "AntennaPair",
     "ConstantGainAntenna",
     "GaussianBeamAntenna",
     "PatternCutAntenna",
@@ -112,4 +113,5 @@ __all__ = [
     "frontend",
     "target",
     "sweeps",
+    "antenna",
 ]

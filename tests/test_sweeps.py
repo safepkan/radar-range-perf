@@ -12,6 +12,7 @@ import pytest
 
 from radarperf import (
     Antenna,
+    AntennaPair,
     ConstantGainAntenna,
     FmcwWaveform,
     GaussianBeamAntenna,
@@ -44,8 +45,7 @@ def make_radar(mimo: MimoScheme = MimoScheme.DDM) -> Radar:
         frontend=frontend.awr2243(),
         waveform=wf,
         processing=StandardProcessing(mimo=mimo),
-        tx_antenna=ant,
-        rx_antenna=ant,
+        antenna=AntennaPair.from_element(ant),
     )
 
 

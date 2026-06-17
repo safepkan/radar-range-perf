@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from radarperf import (
+    AntennaPair,
     FmcwWaveform,
     GaussianBeamAntenna,
     MimoScheme,
@@ -54,8 +55,7 @@ def main() -> None:
         frontend=frontend.awr2243(),
         waveform=waveform,
         processing=StandardProcessing(mimo=MimoScheme.TDM),
-        tx_antenna=element,
-        rx_antenna=element,
+        antenna=AntennaPair.from_element(element),
     )
     car = target.car()
 

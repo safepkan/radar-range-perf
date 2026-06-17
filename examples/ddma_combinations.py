@@ -12,6 +12,7 @@ Run with::
 from __future__ import annotations
 
 from radarperf import (
+    AntennaPair,
     BeamCombination,
     FmcwWaveform,
     GaussianBeamAntenna,
@@ -44,8 +45,7 @@ def radar(processing: StandardProcessing) -> Radar:
         frontend=frontend.awr2e44p(),  # 4 TX / 4 RX (datasheet)
         waveform=waveform,
         processing=processing,
-        tx_antenna=element,
-        rx_antenna=element,
+        antenna=AntennaPair.from_element(element),
         default_pfa=1e-6,
     )
 

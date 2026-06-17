@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from radarperf import (
+    AntennaPair,
     BeamCombination,
     FmcwWaveform,
     GaussianBeamAntenna,
@@ -191,8 +192,7 @@ def test_coherent_combination_detects_better_than_noncoherent() -> None:
             frontend=chip,
             waveform=wf,
             processing=proc,
-            tx_antenna=element,
-            rx_antenna=element,
+            antenna=AntennaPair.from_element(element),
         )
 
     production = radar(

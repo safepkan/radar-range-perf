@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from radarperf import (
+    AntennaPair,
     BeamCombination,
     CombiningStage,
     FmcwWaveform,
@@ -64,8 +65,7 @@ def test_staged_matches_standard_pd_through_engine() -> None:
             frontend=frontend.awr2e44p(),
             waveform=WF,
             processing=processing,  # type: ignore[arg-type]
-            tx_antenna=ANT,
-            rx_antenna=ANT,
+            antenna=AntennaPair.from_element(ANT),
         )
 
     standard = radar(

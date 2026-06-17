@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from radarperf import (
+    AntennaPair,
     FmcwWaveform,
     GaussianBeamAntenna,
     Geometry,
@@ -41,8 +42,7 @@ def make_radar(waveform: FmcwWaveform | None = None) -> Radar:
         frontend=frontend.awr2243(),
         waveform=make_waveform() if waveform is None else waveform,
         processing=StandardProcessing(mimo=MimoScheme.NONE),
-        tx_antenna=ant,
-        rx_antenna=ant,
+        antenna=AntennaPair.from_element(ant),
     )
 
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 import numpy as np
 
 from radarperf import (
+    AntennaPair,
     FmcwWaveform,
     GaussianBeamAntenna,
     MimoScheme,
@@ -40,8 +41,7 @@ def build(mimo: MimoScheme) -> Radar:
         frontend=frontend.awr2243(),
         waveform=waveform,
         processing=StandardProcessing(mimo=mimo),
-        tx_antenna=element,
-        rx_antenna=element,
+        antenna=AntennaPair.from_element(element),
     )
 
 

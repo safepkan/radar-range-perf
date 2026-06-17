@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
 
 from radarperf import (
+    AntennaPair,
     Atmosphere,
     FmcwWaveform,
     GaussianBeamAntenna,
@@ -36,8 +39,30 @@ def make_radar(mimo: MimoScheme = MimoScheme.NONE) -> Radar:
         frontend=frontend.awr2243(),
         waveform=wf,
         processing=StandardProcessing(mimo=mimo),
-        tx_antenna=ant,
-        rx_antenna=ant,
+        antenna=AntennaPair.from_element(ant),
+    )
+
+
+def test_radar_uses_distinct_tx_and_rx_elements() -> None:
+    tx = GaussianBeamAntenna(12.0, 60.0, 12.0)
+    rx = GaussianBeamAntenna(10.0, 80.0, 20.0)
+    pair = make_radar()
+    radar = replace(pair, antenna=AntennaPair(tx=tx, rx=rx, name="pair"))
+    assert radar.antenna.tx is tx
+    assert radar.antenna.rx is rx
+    # The boresight link budget uses both gains (tx 12 + rx 10 dBi): the mean of
+    # using either element alone for both ports.
+    geom = Geometry(range_m=100.0)
+    car = target.car()
+    tx_both = replace(radar, antenna=AntennaPair.from_element(tx))
+    rx_both = replace(radar, antenna=AntennaPair.from_element(rx))
+    snr = radar.link_budget(car, geom).snr_db
+    assert snr == pytest.approx(
+        0.5
+        * (
+            tx_both.link_budget(car, geom).snr_db
+            + rx_both.link_budget(car, geom).snr_db
+        )
     )
 
 

@@ -1,7 +1,8 @@
 """The range-equation engine.
 
-:class:`Radar` bundles a front-end, transmit/receive antennas, a waveform and a
-processing chain.  Given a target, a geometry and an environment it returns a
+:class:`Radar` bundles a front-end, an antenna (a transmit/receive
+:class:`~radarperf.antenna.AntennaPair`), a waveform and a processing chain.
+Given a target, a geometry and an environment it returns a
 :class:`~radarperf.results.LinkBudget` (SNR/SCR/SINR with full breakdown) and,
 on top of that, a single-scan probability of detection.
 
@@ -35,10 +36,11 @@ from typing import Optional
 
 import numpy as np
 
+from .antenna import AntennaPair
 from .detection import probability_of_detection
 from .environment import FreeSpace
 from .geometry import Geometry
-from .protocols import Antenna, Environment, Frontend, Processing, Target, Waveform
+from .protocols import Environment, Frontend, Processing, Target, Waveform
 from .results import LinkBudget
 from .units import (
     BOLTZMANN,
@@ -90,8 +92,7 @@ class Radar:
     frontend: Frontend
     waveform: Waveform
     processing: Processing
-    tx_antenna: Antenna
-    rx_antenna: Antenna
+    antenna: AntennaPair
     default_pfa: float = 1.0e-6
     antenna_noise_temperature_k: float = REFERENCE_TEMPERATURE
 
@@ -106,11 +107,11 @@ class Radar:
         lam = wf.wavelength_m
 
         gt_db = np.asarray(
-            self.tx_antenna.gain_dbi(geometry.azimuth_deg, geometry.elevation_deg),
+            self.antenna.tx.gain_dbi(geometry.azimuth_deg, geometry.elevation_deg),
             dtype=float,
         )
         gr_db = np.asarray(
-            self.rx_antenna.gain_dbi(geometry.azimuth_deg, geometry.elevation_deg),
+            self.antenna.rx.gain_dbi(geometry.azimuth_deg, geometry.elevation_deg),
             dtype=float,
         )
         gt = db_to_linear(gt_db)
@@ -143,7 +144,7 @@ class Radar:
         snr_db = linear_to_db(snr_sample) + gain_minus_loss
 
         sigma_c = np.asarray(
-            environment.clutter_rcs_m2(geometry, wf, self.rx_antenna), dtype=float
+            environment.clutter_rcs_m2(geometry, wf, self.antenna.rx), dtype=float
         )
         has_clutter = sigma_c > 0.0
         cnr_sample = common * sigma_c / noise_per_sample_w

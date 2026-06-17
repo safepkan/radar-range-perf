@@ -30,6 +30,9 @@ dev = [
 where = ["."]
 include = ["radarperf*"]
 
+[tool.setuptools.package-data]
+radarperf = ["data/*.csv"]
+
 [tool.black]
 target-version = ['py312']
 include = '\.pyi?$'

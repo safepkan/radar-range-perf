@@ -29,7 +29,7 @@ make setup_venv VENV_PYTHON=$(command -v python3.12)
 ```python
 from radarperf import (
     Radar, FmcwWaveform, StandardProcessing, MimoScheme,
-    GaussianBeamAntenna, Geometry, frontend, target,
+    AntennaPair, GaussianBeamAntenna, Geometry, frontend, target,
 )
 
 waveform = FmcwWaveform(
@@ -43,7 +43,7 @@ radar = Radar(
     frontend=frontend.awr2243(),                 # datasheet preset
     waveform=waveform,
     processing=StandardProcessing(mimo=MimoScheme.TDM),
-    tx_antenna=element, rx_antenna=element,
+    antenna=AntennaPair.from_element(element),
     default_pfa=1e-6,
 )
 
