@@ -78,9 +78,9 @@ def main() -> None:
     print()
 
     # 3) Track acquisition: cumulative vs sliding M-of-N over successive scans
-    #    as a target closes from 200 m to 120 m at 4 m per scan.
+    #    as a target closes from 200 m to near zero range at 4 m per scan.
     radar = build(MimoScheme.DDM)
-    scan_ranges = np.arange(200.0, 116.0, -4.0)
+    scan_ranges = np.arange(200.0, 0.0, -4.0)
     pd_per_scan = [
         radar.probability_of_detection(pedestrian, _at(r)) for r in scan_ranges
     ]
