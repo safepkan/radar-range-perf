@@ -1,8 +1,8 @@
 """Pd versus range, coverage, a MIMO-scheme comparison and track acquisition.
 
-Prints tables rather than plotting so it runs with no extra dependencies; the
-arrays returned by the sweep functions drop straight into matplotlib if you
-have it (see the commented lines).
+Prints tables and opens a plot window via ``plt.show()``.  Under a
+non-interactive backend (e.g. CI with ``MPLBACKEND=Agg``) it saves a PNG to the
+temp directory instead.
 
 Run with::
 
@@ -11,6 +11,10 @@ Run with::
 
 from __future__ import annotations
 
+import os
+import tempfile
+
+import matplotlib.pyplot as plt
 import numpy as np
 
 from radarperf import (
@@ -25,6 +29,7 @@ from radarperf import (
     target,
 )
 from radarperf.detection import cumulative_pd, probability_of_acquisition_mofn
+from radarperf.plotting import is_non_interactive_backend, plot_pd_vs_range
 
 
 def build(mimo: MimoScheme) -> Radar:
@@ -87,11 +92,33 @@ def main() -> None:
     for r, p, c, t in zip(scan_ranges, pd_per_scan, cumulative, confirm_2of3):
         print(f"{r:10.1f}  {p:8.3f}  {c:8.3f}  {t:8.3f}")
 
-    # To plot instead, use radarperf.plotting (see examples/plotting_demo.py):
-    #   import matplotlib.pyplot as plt
-    #   from radarperf.plotting import plot_pd_vs_range
-    #   plot_pd_vs_range(sweeps_by_scheme[MimoScheme.DDM])
-    #   plt.show()
+    fig, (ax_pd, ax_track) = plt.subplots(1, 2, figsize=(11, 4.5))
+    for scheme in (MimoScheme.NONE, MimoScheme.TDM, MimoScheme.DDM):
+        plot_pd_vs_range(
+            sweeps_by_scheme[scheme],
+            ax=ax_pd,
+            label=scheme.value,
+        )
+    ax_pd.set_title("Pd vs range")
+
+    ax_track.plot(scan_ranges, pd_per_scan, label="Pd/scan")
+    ax_track.plot(scan_ranges, cumulative, label="cum 1+")
+    ax_track.plot(scan_ranges, confirm_2of3, label="2-of-3")
+    ax_track.set_xlabel("range [m]")
+    ax_track.set_ylabel("probability")
+    ax_track.set_ylim(0.0, 1.0)
+    ax_track.grid(True, alpha=0.3)
+    ax_track.legend()
+    ax_track.set_title("Track acquisition")
+
+    fig.tight_layout()
+
+    if is_non_interactive_backend():
+        path = os.path.join(tempfile.gettempdir(), "radarperf_pd_vs_range.png")
+        fig.savefig(path, dpi=120)
+        print(f"non-interactive backend; saved figure to {path}")
+    else:
+        plt.show()
 
 
 def _at(range_m: float):  # type: ignore[no-untyped-def]

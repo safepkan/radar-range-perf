@@ -18,6 +18,7 @@ from radarperf import (
     target,
 )
 from radarperf.plotting import (
+    is_non_interactive_backend,
     plot_coverage,
     plot_pattern_cut,
     plot_pattern_cuts,
@@ -53,6 +54,11 @@ def make_radar() -> Radar:
 
 RANGES = np.linspace(5.0, 250.0, 60)
 AZIMUTHS = np.linspace(-50.0, 50.0, 21)
+
+
+def test_is_non_interactive_backend_matches_matplotlib() -> None:
+    assert plt.get_backend().lower() == "agg"
+    assert is_non_interactive_backend()
 
 
 def test_range_profile_helpers_draw_lines() -> None:

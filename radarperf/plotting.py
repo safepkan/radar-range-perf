@@ -25,12 +25,20 @@ from .sweeps import Map2D, RangeSweep
 
 # Default principal-plane sweep for antenna pattern cuts: +/-90 deg, 0.5 deg step.
 _PATTERN_ANGLES_DEG = np.linspace(-90.0, 90.0, 361)
+_NON_INTERACTIVE_BACKENDS = frozenset(
+    ("agg", "cairo", "pdf", "pgf", "ps", "svg", "template")
+)
 
 
 def _new_ax(ax: Optional[Axes]) -> Axes:
     if ax is None:
         _, ax = plt.subplots()
     return ax
+
+
+def is_non_interactive_backend() -> bool:
+    """Return whether Matplotlib is using a non-interactive backend."""
+    return plt.get_backend().lower() in _NON_INTERACTIVE_BACKENDS
 
 
 def plot_snr_vs_range(

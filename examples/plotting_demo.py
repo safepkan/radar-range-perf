@@ -28,6 +28,7 @@ from radarperf import (
     target,
 )
 from radarperf.plotting import (
+    is_non_interactive_backend,
     plot_coverage,
     plot_pd_map,
     plot_pd_vs_range,
@@ -79,7 +80,7 @@ def main() -> None:
 
     fig.tight_layout()
 
-    if plt.get_backend().lower() == "agg":
+    if is_non_interactive_backend():
         path = os.path.join(tempfile.gettempdir(), "radarperf_plotting_demo.png")
         fig.savefig(path, dpi=120)
         print(f"non-interactive backend; saved figure to {path}")

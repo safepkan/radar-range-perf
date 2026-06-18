@@ -23,7 +23,7 @@ import tempfile
 import matplotlib.pyplot as plt
 
 from radarperf import antenna
-from radarperf.plotting import plot_pattern_cuts
+from radarperf.plotting import is_non_interactive_backend, plot_pattern_cuts
 
 PRESETS = [antenna.sencity_this_ii, antenna.sencity_farad_iv]
 
@@ -42,7 +42,7 @@ def main() -> None:
     fig.suptitle("Huber+Suhner SENCITY element patterns @ 77 GHz (TX vs RX)")
     fig.tight_layout()
 
-    if plt.get_backend().lower() == "agg":
+    if is_non_interactive_backend():
         path = os.path.join(tempfile.gettempdir(), "radarperf_antenna_pattern.png")
         fig.savefig(path, dpi=120)
         print(f"non-interactive backend; saved figure to {path}")
