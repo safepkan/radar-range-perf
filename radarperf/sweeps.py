@@ -1,4 +1,4 @@
-"""Sweeps over range and angle: profiles, 2-D maps and coverage.
+"""Sweeps over range and angle: profiles, 2-D maps, coverage and acquisition.
 
 These produce the arrays you actually plot:
 
@@ -7,6 +7,8 @@ These produce the arrays you actually plot:
   builders for range/azimuth, range/elevation, x/y and x/z.
 * :func:`coverage_range` / :func:`coverage_vs_azimuth` -- the maximum range that
   still meets a target Pd.
+* :func:`acquisition_sweep` -- per-scan, cumulative and M-of-N detection
+  probability as a target moves along a :class:`~radarperf.trajectory.Trajectory`.
 
 Both the link budget and Pd are evaluated vectorised over the whole grid in a
 single call (the engine broadcasts over an array :class:`Geometry`), so large
@@ -21,11 +23,16 @@ from typing import Callable, Optional
 import numpy as np
 import numpy.typing as npt
 
-from .detection import probability_of_detection
+from .detection import (
+    cumulative_pd,
+    probability_of_acquisition_mofn,
+    probability_of_detection,
+)
 from .engine import Radar
 from .environment import FreeSpace
 from .geometry import Geometry
 from .protocols import Environment, Target
+from .trajectory import Trajectory
 
 GeometryBuilder = Callable[[float, float], Geometry]
 
@@ -295,3 +302,147 @@ def coverage_vs_azimuth(
             for az in azimuths
         ]
     )
+
+
+# --- track acquisition ------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class AcquisitionSweep:
+    """Per-scan detection statistics as a target moves over successive scans."""
+
+    scan_index: npt.NDArray[np.int_]
+    time_s: npt.NDArray[np.float64]
+    range_m: npt.NDArray[np.float64]
+    pd: npt.NDArray[np.float64]
+    cumulative_pd: npt.NDArray[np.float64]
+    #: Sliding M-of-N confirmation probability, or ``None`` if ``confirm`` unset.
+    confirmation_pd: Optional[npt.NDArray[np.float64]]
+
+
+def acquisition_sweep(
+    radar: Radar,
+    target: Target,
+    trajectory: Trajectory,
+    *,
+    frame_time_s: Optional[float] = None,
+    n_scans: Optional[int] = None,
+    duration_s: Optional[float] = None,
+    min_range_m: float = 1.0,
+    confirm: Optional[tuple[int, int]] = None,
+    environment: Environment = FreeSpace(),
+    pfa: Optional[float] = None,
+    swerling: Optional[int] = None,
+    use_sinr: bool = True,
+) -> AcquisitionSweep:
+    """Detection probability accumulated over scans as a target moves.
+
+    The radar looks every ``frame_time_s`` seconds and the ``trajectory`` is
+    sampled at those scan times to give the range (and look direction) per scan;
+    the link budget and single-scan Pd are then evaluated for all scans in one
+    vectorised pass.  ``frame_time_s`` defaults to the waveform's CPI duration
+    (a radar that stares and reframes back to back) -- the staring lower bound;
+    set it to the actual revisit interval of the scan schedule.
+
+    The number of scans is taken from ``n_scans`` if given, else from
+    ``duration_s`` (scans at ``0, frame, 2*frame, ...`` up to and including
+    ``duration_s``), else chosen automatically as the target closes: scans run
+    until the range first falls below ``min_range_m``.  Automatic selection
+    needs a closing trajectory; supply ``n_scans`` or ``duration_s`` otherwise.
+
+    With ``confirm=(m, n)`` the sliding M-of-N confirmation probability is also
+    returned (see :func:`~radarperf.detection.probability_of_acquisition_mofn`).
+    The cumulative "at least one detection" curve is always returned.
+    """
+    frame_time = radar.waveform.cpi_duration_s if frame_time_s is None else frame_time_s
+    if not np.isfinite(frame_time) or frame_time <= 0.0:
+        raise ValueError(
+            "frame_time_s must be positive; pass it explicitly or set the "
+            "waveform's chirp_repetition_time_s so cpi_duration_s is defined"
+        )
+
+    count = _resolve_scan_count(
+        trajectory, frame_time, n_scans, duration_s, min_range_m
+    )
+    times = np.arange(count, dtype=float) * frame_time
+    geometry = trajectory.geometry_at(times)
+    ranges = np.broadcast_to(np.asarray(geometry.range_m, dtype=float), times.shape)
+
+    terms = radar._budget_terms(target, geometry, environment)
+    metric = terms.sinr_db if use_sinr else terms.snr_db
+    case = target.swerling if swerling is None else swerling
+    pd = np.asarray(
+        probability_of_detection(
+            np.asarray(metric, dtype=float),
+            radar.default_pfa if pfa is None else pfa,
+            swerling=case,
+            n_pulses=terms.n_noncoherent,
+            n_collapsing=terms.n_collapsing,
+        ),
+        dtype=float,
+    )
+
+    confirmation = None
+    if confirm is not None:
+        m, window = confirm
+        confirmation = probability_of_acquisition_mofn(pd, m=m, n=window)
+
+    return AcquisitionSweep(
+        scan_index=np.arange(count),
+        time_s=times,
+        range_m=np.array(ranges, dtype=float),
+        pd=pd,
+        cumulative_pd=cumulative_pd(pd),
+        confirmation_pd=confirmation,
+    )
+
+
+def _resolve_scan_count(
+    trajectory: Trajectory,
+    frame_time_s: float,
+    n_scans: Optional[int],
+    duration_s: Optional[float],
+    min_range_m: float,
+    *,
+    max_scans: int = 1_000_000,
+) -> int:
+    """Number of scans to evaluate; see :func:`acquisition_sweep` for the rules."""
+    if n_scans is not None:
+        if n_scans < 1:
+            raise ValueError("n_scans must be >= 1")
+        return int(n_scans)
+    if duration_s is not None:
+        if duration_s < 0.0:
+            raise ValueError("duration_s must be non-negative")
+        return int(duration_s // frame_time_s) + 1
+
+    # Automatic: advance scan by scan until the range first drops below
+    # min_range_m.  Geometry rejects a non-positive range, so a step that
+    # overshoots the radar raises -- treat that (None) as having reached the
+    # floor.  The range must keep decreasing, or we would never stop; a
+    # non-closing trajectory is rejected at once rather than ground to the cap.
+    def range_at(scan: int) -> Optional[float]:
+        try:
+            geometry = trajectory.geometry_at(float(scan * frame_time_s))
+        except ValueError:
+            return None
+        return float(np.asarray(geometry.range_m, dtype=float))
+
+    first = range_at(0)
+    if first is None or first < min_range_m:
+        raise ValueError("trajectory begins within min_range_m; no scans to evaluate")
+
+    count, previous = 1, first
+    while count < max_scans:
+        current = range_at(count)
+        if current is None or current < min_range_m:
+            break
+        if current >= previous:
+            raise ValueError(
+                "automatic scan count needs a closing trajectory (range is not "
+                "decreasing) -- pass n_scans or duration_s instead"
+            )
+        count, previous = count + 1, current
+    if count >= max_scans:
+        raise ValueError("automatic scan count hit the cap; pass n_scans or duration_s")
+    return count

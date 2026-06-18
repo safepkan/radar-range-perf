@@ -26,7 +26,7 @@ Example
 
 from __future__ import annotations
 
-from . import antenna, detection, frontend, sweeps, target, units
+from . import antenna, detection, frontend, sweeps, target, trajectory, units
 from .antenna import (
     AntennaPair,
     ConstantGainAntenna,
@@ -74,6 +74,7 @@ from .target import (
     ConstantRcsTarget,
     RcsTableTarget,
 )
+from .trajectory import RadialApproach, Trajectory
 from .waveform import FmcwWaveform
 
 __all__ = [
@@ -101,6 +102,8 @@ __all__ = [
     "ConstantRcsTarget",
     "AspectRcsTarget",
     "RcsTableTarget",
+    "RadialApproach",
+    "Trajectory",
     "FreeSpace",
     "Atmosphere",
     "Rain",
@@ -123,6 +126,7 @@ __all__ = [
     "detection",
     "frontend",
     "target",
+    "trajectory",
     "sweeps",
     "antenna",
 ]

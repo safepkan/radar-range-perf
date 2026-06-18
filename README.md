@@ -194,14 +194,22 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 Sweeps (`radarperf.sweeps`) wrap the per-point link budget into the arrays you
 plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
 `range_elevation_geometry`, `xy_geometry`, `xz_geometry` builders),
-`coverage_range` and `coverage_vs_azimuth`.
+`coverage_range` and `coverage_vs_azimuth`. `acquisition_sweep` extends this to
+multiple scans: a `radarperf.trajectory.Trajectory` (currently `RadialApproach`,
+a target closing straight at the radar) is sampled at the radar's frame /
+revisit cadence and the per-scan, cumulative and sliding M-of-N detection
+probabilities are returned together. The frame time defaults to the waveform's
+CPI duration (a staring radar) and is otherwise the scan schedule's revisit
+interval; it is a scheduling input to the sweep, deliberately kept out of the
+single-CPI `FmcwWaveform`. More general trajectories (crossing, waypoint,
+numerically integrated) are future work — each need only implement `geometry_at`.
 
 Optional Matplotlib helpers (`radarperf.plotting`, requires the `plot` extra)
-turn those into figures: `plot_snr_vs_range`, `plot_pd_vs_range`, `plot_pd_map`
-(with Pd contours) and `plot_coverage` (polar); `plot_pattern_cut` /
-`plot_pattern_cuts` draw an antenna's az/el gain cuts (TX vs RX). Each takes an
-optional `ax` and returns it, so they compose and overlay; see
-`examples/plotting_demo.py` and `examples/antenna_pattern.py`.
+turn those into figures: `plot_snr_vs_range`, `plot_pd_vs_range`,
+`plot_acquisition`, `plot_pd_map` (with Pd contours) and `plot_coverage`
+(polar); `plot_pattern_cut` / `plot_pattern_cuts` draw an antenna's az/el gain
+cuts (TX vs RX). Each takes an optional `ax` and returns it, so they compose and
+overlay; see `examples/plotting_demo.py` and `examples/antenna_pattern.py`.
 
 ## Assumptions and caveats
 

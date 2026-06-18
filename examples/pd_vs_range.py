@@ -23,13 +23,17 @@ from radarperf import (
     GaussianBeamAntenna,
     MimoScheme,
     Radar,
+    RadialApproach,
     StandardProcessing,
     frontend,
     sweeps,
     target,
 )
-from radarperf.detection import cumulative_pd, probability_of_acquisition_mofn
-from radarperf.plotting import is_non_interactive_backend, plot_pd_vs_range
+from radarperf.plotting import (
+    is_non_interactive_backend,
+    plot_acquisition,
+    plot_pd_vs_range,
+)
 
 
 def build(mimo: MimoScheme) -> Radar:
@@ -78,18 +82,16 @@ def main() -> None:
     print()
 
     # 3) Track acquisition: cumulative vs sliding M-of-N over successive scans
-    #    as a target closes from 200 m to near zero range at 4 m per scan.
+    #    as a target closes from 200 m at 4 m/s with a 1 s frame time (4 m/scan).
     radar = build(MimoScheme.DDM)
-    scan_ranges = np.arange(200.0, 0.0, -4.0)
-    pd_per_scan = [
-        radar.probability_of_detection(pedestrian, _at(r)) for r in scan_ranges
-    ]
-    cumulative = cumulative_pd(pd_per_scan)
-    confirm_2of3 = probability_of_acquisition_mofn(pd_per_scan, m=2, n=3)
+    approach = RadialApproach(initial_range_m=200.0, closing_speed_mps=4.0)
+    acq = sweeps.acquisition_sweep(
+        radar, pedestrian, approach, frame_time_s=1.0, confirm=(2, 3)
+    )
 
     print("Track acquisition as target closes (DDM, pedestrian):")
     print(f"{'range [m]':>10}  {'Pd/scan':>8}  {'cum 1+':>8}  {'2-of-3':>8}")
-    for r, p, c, t in zip(scan_ranges, pd_per_scan, cumulative, confirm_2of3):
+    for r, p, c, t in zip(acq.range_m, acq.pd, acq.cumulative_pd, acq.confirmation_pd):
         print(f"{r:10.1f}  {p:8.3f}  {c:8.3f}  {t:8.3f}")
 
     fig, (ax_pd, ax_track) = plt.subplots(1, 2, figsize=(11, 4.5))
@@ -101,14 +103,7 @@ def main() -> None:
         )
     ax_pd.set_title("Pd vs range")
 
-    ax_track.plot(scan_ranges, pd_per_scan, label="Pd/scan")
-    ax_track.plot(scan_ranges, cumulative, label="cum 1+")
-    ax_track.plot(scan_ranges, confirm_2of3, label="2-of-3")
-    ax_track.set_xlabel("range [m]")
-    ax_track.set_ylabel("probability")
-    ax_track.set_ylim(0.0, 1.0)
-    ax_track.grid(True, alpha=0.3)
-    ax_track.legend()
+    plot_acquisition(acq, ax=ax_track, confirm_label="2-of-3")
     ax_track.set_title("Track acquisition")
 
     fig.tight_layout()
@@ -119,12 +114,6 @@ def main() -> None:
         print(f"non-interactive backend; saved figure to {path}")
     else:
         plt.show()
-
-
-def _at(range_m: float):  # type: ignore[no-untyped-def]
-    from radarperf import Geometry
-
-    return Geometry(range_m=float(range_m))
 
 
 if __name__ == "__main__":

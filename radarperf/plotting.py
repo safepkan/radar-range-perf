@@ -21,7 +21,7 @@ from matplotlib.axes import Axes
 from matplotlib.projections.polar import PolarAxes
 
 from .protocols import Antenna
-from .sweeps import Map2D, RangeSweep
+from .sweeps import AcquisitionSweep, Map2D, RangeSweep
 
 # Default principal-plane sweep for antenna pattern cuts: +/-90 deg, 0.5 deg step.
 _PATTERN_ANGLES_DEG = np.linspace(-90.0, 90.0, 361)
@@ -75,6 +75,37 @@ def plot_pd_vs_range(
     ax.grid(True, alpha=0.3)
     if label is not None:
         ax.legend()
+    return ax
+
+
+def plot_acquisition(
+    sweep: AcquisitionSweep,
+    *,
+    ax: Optional[Axes] = None,
+    x: str = "range",
+    confirm_label: str = "M-of-N",
+) -> Axes:
+    """Plot per-scan, cumulative and (if present) M-of-N acquisition curves.
+
+    ``x="range"`` (the default) plots against target range; ``x="time"`` plots
+    against elapsed time since track start.  The sliding M-of-N confirmation
+    curve is drawn only when the sweep carries one (``confirm`` was set).
+    """
+    if x not in ("range", "time"):
+        raise ValueError('x must be "range" or "time"')
+    ax = _new_ax(ax)
+    x_values, xlabel = (
+        (sweep.range_m, "range [m]") if x == "range" else (sweep.time_s, "time [s]")
+    )
+    ax.plot(x_values, sweep.pd, label="Pd/scan")
+    ax.plot(x_values, sweep.cumulative_pd, label="cumulative")
+    if sweep.confirmation_pd is not None:
+        ax.plot(x_values, sweep.confirmation_pd, label=confirm_label)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel("probability")
+    ax.set_ylim(0.0, 1.0)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
     return ax
 
 
