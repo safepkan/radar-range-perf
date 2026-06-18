@@ -232,7 +232,7 @@ overlay; see `examples/plotting_demo.py` and `examples/antenna_pattern.py`.
 make pre_commit   # black (reformats) + flake8 + mypy --strict
 make check        # same, check-only (no reformat) -- what CI runs
 make test         # pytest tests
-make examples     # run example scripts as a smoke check
+make smoke        # run example scripts headless as a smoke check
 ```
 
 mypy runs in **strict** mode here; keep the tree type-clean. flake8 is

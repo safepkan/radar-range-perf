@@ -49,11 +49,11 @@ check:
 test:
 	$(PYTHON) -m pytest tests
 
-.PHONY: examples
-examples:
+.PHONY: smoke
+smoke:
 	$(PYTHON) examples/basic_link_budget.py
 	$(PYTHON) examples/ddma_combinations.py
-	$(PYTHON) examples/pd_vs_range.py
+	MPLBACKEND=Agg $(PYTHON) examples/pd_vs_range.py
 	MPLBACKEND=Agg $(PYTHON) examples/plotting_demo.py
 
 .PHONY: clean

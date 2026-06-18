@@ -44,4 +44,4 @@
 - `make pre_commit` — format + lint + type-check (reformats in place).
 - `make check` — same, but check-only (no reformatting; what CI runs).
 - `make test` — `pytest tests`.
-- `make examples` — run the example scripts as a smoke check.
+- `make smoke` — run the example scripts headless (`MPLBACKEND=Agg`) as a smoke check; run `python examples/<name>.py` directly to view them interactively.
