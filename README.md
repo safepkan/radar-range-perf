@@ -34,7 +34,7 @@ from radarperf import (
 
 waveform = FmcwWaveform(
     center_frequency_hz=77e9, bandwidth_hz=1.0e9, sample_rate_hz=20e6,
-    n_samples=256, n_chirps=128, chirp_repetition_time_s=50e-6,
+    n_samples=256, n_chirps=128,
 )
 element = GaussianBeamAntenna(boresight_gain_dbi=11.0,
                               beamwidth_az_deg=80.0, beamwidth_el_deg=20.0)
@@ -79,6 +79,10 @@ processing losses come from the processing model, so the range equation itself
 stays free of FFT-length bookkeeping. Antenna gains are **element** gains;
 coherent array/beamforming gain lives in the integration gain to avoid double
 counting.
+
+`chirp_repetition_time_s` is optional for range/SNR/Pd calculations. Leave it
+unset for range-only budgets; set it when you need CPI duration, velocity
+resolution or unambiguous velocity figures.
 
 ### MIMO and channel combination
 

@@ -92,6 +92,41 @@ def test_waveform_resolutions() -> None:
     assert wf.max_unambiguous_velocity_mps > 0.0
 
 
+def test_waveform_allows_range_mode_without_chirp_repetition_time() -> None:
+    wf = FmcwWaveform(
+        center_frequency_hz=77e9,
+        bandwidth_hz=1e9,
+        sample_rate_hz=20e6,
+        n_samples=256,
+        n_chirps=128,
+    )
+    assert np.isfinite(wf.range_resolution_m)
+    assert np.isfinite(wf.max_unambiguous_range_m)
+    assert wf.dwell_time_s > 0.0
+    assert np.isnan(wf.cpi_duration_s)
+    assert np.isnan(wf.velocity_resolution_mps)
+    assert np.isnan(wf.max_unambiguous_velocity_mps)
+
+    radar = replace(make_radar(), waveform=wf)
+    budget = radar.link_budget(target.car(), Geometry(range_m=100.0))
+    assert np.isfinite(budget.snr_db)
+
+
+@pytest.mark.parametrize("chirp_repetition_time_s", [0.0, -1.0e-6, np.inf])
+def test_waveform_rejects_invalid_chirp_repetition_time(
+    chirp_repetition_time_s: float,
+) -> None:
+    with pytest.raises(ValueError, match="chirp_repetition_time_s"):
+        FmcwWaveform(
+            center_frequency_hz=77e9,
+            bandwidth_hz=1e9,
+            sample_rate_hz=20e6,
+            n_samples=256,
+            n_chirps=128,
+            chirp_repetition_time_s=chirp_repetition_time_s,
+        )
+
+
 def test_snr_falls_as_r4() -> None:
     radar = make_radar()
     tgt = target.car()

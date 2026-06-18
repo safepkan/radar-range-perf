@@ -2,9 +2,9 @@
 
 A waveform is parametrised by the quantities a fast-chirp FMCW radar actually
 programs -- centre frequency, swept bandwidth, ADC sample rate, samples per
-chirp, chirps per CPI and the chirp repetition time -- and exposes the derived
-range/velocity resolution and ambiguity figures, plus the coherent dwell time
-the range equation needs.
+chirp and chirps per CPI -- and exposes the derived range resolution, coherent
+dwell time and, when a chirp repetition time is supplied, velocity resolution
+and ambiguity figures.
 
 The dwell time used for SNR is the total *active sampling* time,
 ``n_chirps * n_samples / sample_rate``; in the energy form of the FMCW radar
@@ -13,6 +13,7 @@ equation this is exactly the coherent integration time.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from .units import SPEED_OF_LIGHT
@@ -27,7 +28,7 @@ class FmcwWaveform:
     sample_rate_hz: float
     n_samples: int
     n_chirps: int
-    chirp_repetition_time_s: float
+    chirp_repetition_time_s: float = math.nan
     chirp_slope_hz_per_s: float = 0.0
     noise_bandwidth_hz: float = 0.0
 
@@ -36,11 +37,17 @@ class FmcwWaveform:
             "center_frequency_hz": self.center_frequency_hz,
             "bandwidth_hz": self.bandwidth_hz,
             "sample_rate_hz": self.sample_rate_hz,
-            "chirp_repetition_time_s": self.chirp_repetition_time_s,
         }
         for field_name, value in positive.items():
-            if value <= 0.0:
-                raise ValueError(f"{field_name} must be positive")
+            if not math.isfinite(value) or value <= 0.0:
+                raise ValueError(f"{field_name} must be finite and positive")
+        if not math.isnan(self.chirp_repetition_time_s) and (
+            not math.isfinite(self.chirp_repetition_time_s)
+            or self.chirp_repetition_time_s <= 0.0
+        ):
+            raise ValueError(
+                "chirp_repetition_time_s must be positive, or NaN when unused"
+            )
         if self.n_samples < 1 or self.n_chirps < 1:
             raise ValueError("n_samples and n_chirps must be >= 1")
         if self.noise_bandwidth_hz < 0.0:
@@ -64,7 +71,10 @@ class FmcwWaveform:
 
     @property
     def cpi_duration_s(self) -> float:
-        """Coherent processing interval, including chirp dead time [s]."""
+        """Coherent processing interval, including chirp dead time [s].
+
+        Returns NaN when ``chirp_repetition_time_s`` is unset.
+        """
         return self.n_chirps * self.chirp_repetition_time_s
 
     @property
@@ -101,11 +111,12 @@ class FmcwWaveform:
 
     @property
     def velocity_resolution_mps(self) -> float:
+        """Doppler-bin velocity resolution [m/s], or NaN if CRT is unset."""
         return self.wavelength_m / (2.0 * self.cpi_duration_s)
 
     @property
     def max_unambiguous_velocity_mps(self) -> float:
-        """Plus/minus this; full unambiguous span is twice the value [m/s]."""
+        """Plus/minus this; full span is twice the value, or NaN if CRT is unset."""
         return self.wavelength_m / (4.0 * self.chirp_repetition_time_s)
 
     @classmethod
@@ -116,7 +127,7 @@ class FmcwWaveform:
         sample_rate_hz: float,
         n_samples: int,
         n_chirps: int,
-        chirp_repetition_time_s: float,
+        chirp_repetition_time_s: float = math.nan,
     ) -> "FmcwWaveform":
         """Build from chirp slope instead of bandwidth (bandwidth derived)."""
         bandwidth = chirp_slope_hz_per_s * (n_samples / sample_rate_hz)

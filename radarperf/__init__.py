@@ -13,8 +13,7 @@ Example
 ...     AntennaPair, GaussianBeamAntenna, frontend, target,
 ... )
 >>> wf = FmcwWaveform(center_frequency_hz=77e9, bandwidth_hz=1e9,
-...                   sample_rate_hz=20e6, n_samples=256, n_chirps=128,
-...                   chirp_repetition_time_s=50e-6)
+...                   sample_rate_hz=20e6, n_samples=256, n_chirps=128)
 >>> radar = Radar(
 ...     frontend=frontend.awr2243(),
 ...     waveform=wf,

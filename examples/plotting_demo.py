@@ -48,7 +48,6 @@ def main() -> None:
         sample_rate_hz=20e6,
         n_samples=256,
         n_chirps=128,
-        chirp_repetition_time_s=50e-6,
     )
     element = GaussianBeamAntenna(11.0, 80.0, 20.0)
     radar = Radar(
