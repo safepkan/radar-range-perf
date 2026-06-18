@@ -9,27 +9,6 @@
 - This is a standalone repo, deliberately kept out of the `l2-sp` monorepo — it
   is a separate concern with a somewhat different audience.
 
-## Provenance
-
-- The package was selected from two LLM-generated candidates, both frozen under
-  `archive/` (`archive/radarperf`, `archive/radar-range-tools`). `archive/` is
-  **not** linted, type-checked or tested — it is a temporary historical record,
-  to be deleted (along with this Provenance section) once anything useful has
-  been pulled across.
-- `radarperf/` (the working package) started as a copy of `archive/radarperf` and
-  diverges from here.
-
-## Planned next steps (ports from the radar-range-tools candidate)
-
-1. Vectorize the engine core over range/az/el (avoid per-`Geometry` Python loops
-   in sweeps).
-2. Richer noise model: `T_sys = T_ant + (F - 1) * T0`, with a configurable antenna
-   temperature and a noise bandwidth distinct from the ADC sample rate.
-3. A generic `CombiningStage` processing model (alternative `Processing` Protocol
-   implementation) for arbitrary multi-stage combining beyond TDM/DDM/BPM.
-4. Bring in the project's controlled CTRX8188F defaults (14.5 dBm, 9.7 dB NF).
-   Optional: matplotlib plotting helpers (`radarperf[plot]`).
-
 ## Code Guidelines
 
 - Target Python >= 3.12 (CI covers 3.12 and 3.14). Use type hints throughout;

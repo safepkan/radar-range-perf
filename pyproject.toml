@@ -47,7 +47,6 @@ extend-exclude = '''
     | venv
     | build
     | dist
-    | archive
   )/
 )
 '''
@@ -59,7 +58,7 @@ max-line-length = 88
 # E741: ambiguous variable name 'I', 'O' or 'l'
 # W503: line break before binary operator
 extend-ignore = ['E203', 'E501', 'E741', 'W503']
-exclude = ['.git', 'venv', '.venv*', 'build', 'dist', 'archive']
+exclude = ['.git', 'venv', '.venv*', 'build', 'dist']
 
 [tool.mypy]
 python_version = "3.12"
@@ -70,7 +69,7 @@ strict = true
 warn_unused_ignores = false
 warn_unreachable = true
 warn_unused_configs = true
-exclude = ['^archive/', '^build/']
+exclude = ['^build/']
 
 [[tool.mypy.overrides]]
 module = ["scipy.*", "matplotlib.*"]

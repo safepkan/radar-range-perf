@@ -11,9 +11,8 @@ import sys
 from pathlib import Path
 from typing import List
 
-# Directories whose Python files are not subject to our tooling.  ``archive``
-# holds the frozen LLM-generated candidates, which follow their own conventions.
-EXCLUDED_DIRS = {"venv", "archive", "build", "dist"}
+# Directories whose Python files are not subject to our tooling.
+EXCLUDED_DIRS = {"venv", "build", "dist"}
 
 
 def _check_command(cmd: List[str]) -> bool:
