@@ -153,6 +153,13 @@ class Waveform(Protocol):
     def dwell_time_s(self) -> float:
         """Coherent dwell (active sampling) time [s]."""
 
+    @property
+    def cpi_duration_s(self) -> float:
+        """Coherent processing interval, including chirp dead time [s].
+
+        May be NaN when the chirp repetition time is unset.
+        """
+
 
 @runtime_checkable
 class Processing(Protocol):

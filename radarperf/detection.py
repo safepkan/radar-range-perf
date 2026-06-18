@@ -241,14 +241,16 @@ def shnidman_required_snr_db(
     return float(10.0 * np.log10(snr_per_pulse))
 
 
-def cumulative_pd(pd_per_scan: Sequence[float]) -> npt.NDArray[np.float64]:
+def cumulative_pd(
+    pd_per_scan: Sequence[float] | npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """Cumulative probability of *at least one* detection by each scan."""
     miss = 1.0 - np.asarray(pd_per_scan, dtype=float)
     return cast(npt.NDArray[np.float64], 1.0 - np.cumprod(miss))
 
 
 def probability_of_acquisition_mofn(
-    pd_per_scan: Sequence[float], m: int, n: int
+    pd_per_scan: Sequence[float] | npt.NDArray[np.float64], m: int, n: int
 ) -> npt.NDArray[np.float64]:
     """Probability a track is confirmed by each scan under a sliding M-of-N rule.
 

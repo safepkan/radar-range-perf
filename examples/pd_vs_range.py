@@ -91,6 +91,7 @@ def main() -> None:
 
     print("Track acquisition as target closes (DDM, pedestrian):")
     print(f"{'range [m]':>10}  {'Pd/scan':>8}  {'cum 1+':>8}  {'2-of-3':>8}")
+    assert acq.confirmation_pd is not None  # confirm=(2, 3) was requested above
     for r, p, c, t in zip(acq.range_m, acq.pd, acq.cumulative_pd, acq.confirmation_pd):
         print(f"{r:10.1f}  {p:8.3f}  {c:8.3f}  {t:8.3f}")
 
