@@ -119,6 +119,10 @@ by the detector. When the TX axis is combined coherently the transmitters are
 resolved first, so the empty subbands are discarded and there is no collapsing.
 `examples/ddma_combinations.py` prints all of these side by side.
 
+Range and Doppler window losses default to the Hann-window constant
+`WINDOW_LOSS_HANN_DB` (1.76 dB). Common-window constants are also exported for
+rectangular, Hamming, Blackman, Blackman-Harris and flat-top windows.
+
 A note on fluctuation: the cells integrated across the array in one CPI share a
 single RCS realisation, so spatial non-coherent integration is correctly
 modelled with Swerling 1 (Rayleigh) or 3 (chi-4), not the independent-per-look

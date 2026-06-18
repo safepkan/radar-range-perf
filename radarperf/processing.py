@@ -65,6 +65,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Final
 
 from .protocols import ProcessingBudget, Waveform
 from .units import linear_to_db
@@ -87,6 +88,15 @@ class BeamCombination(Enum):
 
 
 _MULTIPLEXED = frozenset({MimoScheme.TDM, MimoScheme.DDM, MimoScheme.BPM})
+
+# Incremental single-bin FFT SNR loss from window ENBW, relative to rectangular.
+# Assumes standard periodic spectral-analysis windows.
+WINDOW_LOSS_RECTANGULAR_DB: Final[float] = 0.0
+WINDOW_LOSS_HANN_DB: Final[float] = 1.76
+WINDOW_LOSS_HAMMING_DB: Final[float] = 1.34
+WINDOW_LOSS_BLACKMAN_DB: Final[float] = 2.37
+WINDOW_LOSS_BLACKMAN_HARRIS_DB: Final[float] = 3.02
+WINDOW_LOSS_FLAT_TOP_DB: Final[float] = 5.76
 
 
 @dataclass(frozen=True)
@@ -114,6 +124,7 @@ class StandardProcessing:
         for the angular straddle / scan loss incurred when a coherently combined
         beam does not point exactly at the target (set to 0 if the beam is
         refined onto the target, up to a few dB for a coarse beam grid).
+        Range and Doppler window losses default to ``WINDOW_LOSS_HANN_DB``.
     """
 
     mimo: MimoScheme = MimoScheme.NONE
@@ -121,8 +132,8 @@ class StandardProcessing:
     tx_combination: BeamCombination = BeamCombination.COHERENT
     n_doppler_subbands: int = 0
     transmit_coherent: bool = False
-    range_window_loss_db: float = 1.76
-    doppler_window_loss_db: float = 1.76
+    range_window_loss_db: float = WINDOW_LOSS_HANN_DB
+    doppler_window_loss_db: float = WINDOW_LOSS_HANN_DB
     range_straddle_loss_db: float = 0.6
     doppler_straddle_loss_db: float = 0.6
     cfar_loss_db: float = 1.0
@@ -253,8 +264,8 @@ class StagedProcessing:
     combining_stages: tuple[CombiningStage, ...] = ()
     include_range_fft_gain: bool = True
     include_doppler_fft_gain: bool = True
-    range_window_loss_db: float = 1.76
-    doppler_window_loss_db: float = 1.76
+    range_window_loss_db: float = WINDOW_LOSS_HANN_DB
+    doppler_window_loss_db: float = WINDOW_LOSS_HANN_DB
     range_straddle_loss_db: float = 0.6
     doppler_straddle_loss_db: float = 0.6
     cfar_loss_db: float = 1.0
