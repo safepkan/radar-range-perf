@@ -84,9 +84,7 @@ def _pd_linear(
     if case == 0:
         return _pd_sw0(snr, thr, n_signal, n_total)
     if case == 1:
-        if collapsing:
-            return _pd_sw_correlated(snr, thr, n_signal, n_total, _GL_W)
-        return _pd_sw1(snr, thr, n_signal)
+        return _pd_sw1(snr, thr, n_signal, n_total)
     if case == 2:
         if collapsing:
             raise NotImplementedError(
@@ -116,15 +114,17 @@ def _pd_sw0(
 
 
 def _pd_sw1(
-    snr: npt.NDArray[np.float64], thr: float, n: int
+    snr: npt.NDArray[np.float64], thr: float, n_signal: int, n_total: int
 ) -> npt.NDArray[np.float64]:
-    if n == 1:
+    if n_total == 1:
         return np.exp(-thr / (1.0 + snr))
-    a = 1.0 + 1.0 / (n * snr)
-    result = (
-        1.0
-        - gammainc(n - 1, thr)
-        + a ** (n - 1) * gammainc(n - 1, thr / a) * np.exp(-thr / (1.0 + n * snr))
+    # A shared Swerling-1 fluctuation gives one elevated eigenmode with mean
+    # 1 + n_signal*SNR; the other n_total - 1 modes are noise-only. This also
+    # covers DDMA collapsing cells without numerical quadrature.
+    a = 1.0 + 1.0 / (n_signal * snr)
+    k = n_total - 1
+    result = gammaincc(k, thr) + a**k * gammainc(k, thr / a) * np.exp(
+        -thr / (1.0 + n_signal * snr)
     )
     return cast(npt.NDArray[np.float64], result)
 
@@ -144,22 +144,6 @@ def _pd_sw3(
     for node, weight in zip(_GL_X, _GL_WEIGHTS):
         instantaneous = node * (snr / 2.0)
         nc = 2.0 * n_signal * instantaneous
-        out += weight * ncx2.sf(2.0 * thr, 2 * n_total, nc)
-    return out
-
-
-def _pd_sw_correlated(
-    snr: npt.NDArray[np.float64],
-    thr: float,
-    n_signal: int,
-    n_total: int,
-    weights: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Swerling 1 with collapsing: average the Swerling-0 result over the shared
-    Rayleigh power g ~ Exp(1) via Gauss-Laguerre quadrature."""
-    out = np.zeros_like(snr)
-    for node, weight in zip(_GL_X, weights):
-        nc = 2.0 * n_signal * snr * node
         out += weight * ncx2.sf(2.0 * thr, 2 * n_total, nc)
     return out
 

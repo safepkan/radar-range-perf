@@ -22,11 +22,8 @@ build/
 # Plots / local working artifacts
 local/
 *.png
-!archive/**/*.png
+!studies/**/deliverables/**/*.png
 
 # Misc
 .DS_Store
 .cache/
-
-# Original design prompt: kept locally for reference, not committed.
-archive/prompt.md

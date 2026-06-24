@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from scipy.special import gammainc, gammaincc
 
 from radarperf import (
     AntennaPair,
@@ -17,7 +18,7 @@ from radarperf import (
     frontend,
     target,
 )
-from radarperf.detection import probability_of_detection
+from radarperf.detection import detection_threshold, probability_of_detection
 
 
 def _waveform() -> FmcwWaveform:
@@ -31,18 +32,39 @@ def _waveform() -> FmcwWaveform:
     )
 
 
-def test_sw1_collapsing_matches_closed_form_without_empties() -> None:
-    # With n_collapsing = 0 the quadrature path must equal the exact closed form.
+def _sw1_correlated_closed_form(
+    snr_db: float, pfa: float, n_signal: int, n_collapsing: int
+) -> float:
+    """Closed-form Swerling-1 Pd for a shared fluctuation and empty cells."""
+    snr = 10.0 ** (snr_db / 10.0)
+    n_total = n_signal + n_collapsing
+    thr = detection_threshold(n_total, pfa)
+    if n_total == 1:
+        return float(np.exp(-thr / (1.0 + snr)))
+    a = 1.0 + 1.0 / (n_signal * snr)
+    k = n_total - 1
+    return float(
+        gammaincc(k, thr)
+        + a**k * gammainc(k, thr / a) * np.exp(-thr / (1.0 + n_signal * snr))
+    )
+
+
+def test_sw1_collapsing_matches_closed_form() -> None:
+    # Shared Swerling-1 amplitude diagonalises to one signal mode plus
+    # n_total - 1 noise modes, so no Gauss-Laguerre quadrature is needed.
     pfa = 1e-4
     for snr_db in (6.0, 12.0):
-        for n in (4, 16):
-            quad = probability_of_detection(
-                snr_db, pfa, swerling=1, n_pulses=n, n_collapsing=0
+        for n_signal, n_collapsing in ((4, 0), (4, 2), (16, 8)):
+            got = probability_of_detection(
+                snr_db,
+                pfa,
+                swerling=1,
+                n_pulses=n_signal,
+                n_collapsing=n_collapsing,
             )
-            assert 0.0 <= quad <= 1.0
-            # internal consistency: monotonic and matches a direct exact eval
-            exact = probability_of_detection(snr_db, pfa, swerling=1, n_pulses=n)
-            assert quad == pytest.approx(exact, abs=1e-9)
+            expected = _sw1_correlated_closed_form(snr_db, pfa, n_signal, n_collapsing)
+            assert 0.0 <= got <= 1.0
+            assert got == pytest.approx(expected, abs=1e-12)
 
 
 def test_collapsing_against_monte_carlo() -> None:
