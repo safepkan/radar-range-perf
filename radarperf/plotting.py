@@ -263,6 +263,83 @@ def plot_pattern_cuts(
     return ax_az, ax_el
 
 
+def plot_pattern_uv(
+    tx_antenna: Antenna,
+    rx_antenna: Optional[Antenna] = None,
+    *,
+    u: Optional[npt.NDArray[np.float64]] = None,
+    v: Optional[npt.NDArray[np.float64]] = None,
+    ax: Optional[Axes] = None,
+    relative: bool = True,
+    two_way: bool = False,
+    dynamic_range_db: float = 50.0,
+    colorbar: bool = True,
+) -> Axes:
+    """Plot a full antenna pattern over the visible direction-cosine disk.
+
+    ``u`` and ``v`` default to 401 samples over [-1, 1]. Values outside
+    ``u**2 + v**2 <= 1`` are masked. With ``relative=True`` (the default), the
+    map is referenced to its sampled peak. ``dynamic_range_db`` controls the
+    displayed range below that peak. With ``two_way=True``, the map contains
+    TX gain plus RX gain; ``rx_antenna`` defaults to ``tx_antenna``. Without
+    ``two_way``, only the TX/first antenna is plotted.
+    """
+    if dynamic_range_db <= 0.0:
+        raise ValueError("dynamic_range_db must be positive")
+    u_axis = np.linspace(-1.0, 1.0, 401) if u is None else np.asarray(u, dtype=float)
+    v_axis = np.linspace(-1.0, 1.0, 401) if v is None else np.asarray(v, dtype=float)
+    if u_axis.ndim != 1 or v_axis.ndim != 1:
+        raise ValueError("u and v must be 1-D grids")
+
+    u_grid, v_grid = np.meshgrid(u_axis, v_axis, indexing="ij")
+    visible = u_grid**2 + v_grid**2 <= 1.0
+    gain = np.full(u_grid.shape, np.nan)
+    cos_elevation = np.sqrt(np.maximum(1.0 - v_grid[visible] ** 2, 0.0))
+    elevation_deg = np.degrees(np.arcsin(v_grid[visible]))
+    sin_azimuth = np.zeros_like(cos_elevation)
+    np.divide(
+        u_grid[visible],
+        cos_elevation,
+        out=sin_azimuth,
+        where=cos_elevation > 0.0,
+    )
+    azimuth_deg = np.degrees(np.arcsin(np.clip(sin_azimuth, -1.0, 1.0)))
+    gain[visible] = np.asarray(
+        tx_antenna.gain_dbi(azimuth_deg, elevation_deg), dtype=float
+    )
+    if two_way:
+        rx = rx_antenna if rx_antenna is not None else tx_antenna
+        gain[visible] += np.asarray(
+            rx.gain_dbi(azimuth_deg, elevation_deg), dtype=float
+        )
+    peak = float(np.nanmax(gain))
+    values = gain - peak if relative else gain
+    vmax = 0.0 if relative else peak
+
+    ax = _new_ax(ax)
+    mesh = ax.pcolormesh(
+        u_axis,
+        v_axis,
+        values.T,
+        shading="auto",
+        vmin=vmax - dynamic_range_db,
+        vmax=vmax,
+    )
+    boundary = np.linspace(0.0, 2.0 * np.pi, 721)
+    ax.plot(np.cos(boundary), np.sin(boundary), color="0.3", lw=0.6)
+    ax.set_xlabel("u [-]")
+    ax.set_ylabel("v [-]")
+    ax.set_aspect("equal")
+    ax.set_xlim(float(u_axis.min()), float(u_axis.max()))
+    ax.set_ylim(float(v_axis.min()), float(v_axis.max()))
+    if colorbar:
+        kind = "two-way gain" if two_way else "gain"
+        unit = f"{'relative ' if relative else ''}{kind} "
+        unit += "[dB]" if relative else "[dBi]"
+        ax.figure.colorbar(mesh, ax=ax, label=unit)
+    return ax
+
+
 def plot_coverage(
     azimuths_deg: npt.NDArray[np.float64],
     coverage_range_m: npt.NDArray[np.float64],

@@ -31,8 +31,11 @@ from .antenna import (
     AntennaPair,
     ConstantGainAntenna,
     GaussianBeamAntenna,
+    MultiBeamUniformArrayAntenna,
     PatternCutAntenna,
     PatternUVAntenna,
+    RectangularArrayAntenna,
+    UniformArrayAntenna,
 )
 from .detection import (
     albersheim_required_snr_db,
@@ -97,8 +100,11 @@ __all__ = [
     "AntennaPair",
     "ConstantGainAntenna",
     "GaussianBeamAntenna",
+    "MultiBeamUniformArrayAntenna",
     "PatternCutAntenna",
     "PatternUVAntenna",
+    "RectangularArrayAntenna",
+    "UniformArrayAntenna",
     "ConstantRcsTarget",
     "AspectRcsTarget",
     "RcsTableTarget",

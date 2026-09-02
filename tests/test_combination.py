@@ -204,6 +204,22 @@ def test_inphase_tx_beats_ddm_by_ntx() -> None:
     )
 
 
+def test_inphase_tx_full_array_pattern_does_not_double_count_directivity() -> None:
+    wf = _waveform()
+    element_pattern = StandardProcessing(
+        transmit_coherent=True,
+        rx_combination=BeamCombination.COHERENT,
+    ).budget(wf, 4, 4)
+    full_array_pattern = StandardProcessing(
+        transmit_coherent=True,
+        tx_array_gain_in_antenna=True,
+        rx_combination=BeamCombination.COHERENT,
+    ).budget(wf, 4, 4)
+    assert element_pattern.coherent_gain_db - full_array_pattern.coherent_gain_db == (
+        pytest.approx(10.0 * np.log10(4.0), abs=1e-9)
+    )
+
+
 def test_coherent_combination_detects_better_than_noncoherent() -> None:
     wf = _waveform()
     element = GaussianBeamAntenna(11.0, 80.0, 20.0)

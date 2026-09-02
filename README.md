@@ -158,6 +158,12 @@ There is no virtual TX aperture in this mode, so covering a wide field of view
 means scanning the transmit beam (more dwell/scan time) -- which this
 per-direction budget does not amortise for you.
 
+That default assumes the antenna object describes one TX element or subarray.
+For a complete coherently fed TX-aperture pattern, set
+`tx_array_gain_in_antenna=True`; the pattern then supplies the actual array
+directivity and processing adds only the `n_tx` increase in total transmitted
+power.
+
 ### Detection
 
 `radarperf.detection` implements a square-law detector integrating `n_pulses`
@@ -176,12 +182,17 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 
 * **Front-end** — `GenericFrontend` plus `cascade()` and datasheet-sourced presets
   (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`).
-* **Antenna** — element models `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
+* **Antenna** — models `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
   `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full
-  pattern). The engine takes a transmit/receive `AntennaPair`
-  (`AntennaPair.from_element` when the two coincide); `load_pattern_cut_csv` /
-  `load_antenna_pair_csv` build elements from measured/datasheet az/el tables,
-  with packaged Huber+Suhner presets (`sencity_this_ii`, `sencity_farad_iv`).
+  pattern), plus `RectangularArrayAntenna` for FFT patterns from arbitrary
+  complex aperture excitations and `UniformArrayAntenna` for a steerable
+  ULA/URA factor layered over any element/subarray pattern.
+  `MultiBeamUniformArrayAntenna` supplies the best-beam envelope and exposes
+  every individual beam for a set of u/v steering points. The engine takes a
+  transmit/receive `AntennaPair` (`AntennaPair.from_element` when the two
+  coincide); `load_pattern_cut_csv` / `load_antenna_pair_csv` build elements
+  from measured/datasheet az/el tables, with packaged Huber+Suhner presets
+  (`sencity_this_ii`, `sencity_farad_iv`).
 * **Waveform** — `FmcwWaveform` with derived resolution and ambiguity figures.
 * **Processing** — `StandardProcessing` (MIMO scheme, per-axis combination, DDMA
   subbands/collapsing, in-phase coherent transmit, window / straddle / CFAR /
@@ -208,8 +219,9 @@ Optional Matplotlib helpers (`radarperf.plotting`, requires the `plot` extra)
 turn those into figures: `plot_snr_vs_range`, `plot_pd_vs_range`,
 `plot_acquisition`, `plot_pd_map` (with Pd contours) and `plot_coverage`
 (polar); `plot_pattern_cut` / `plot_pattern_cuts` draw an antenna's az/el gain
-cuts (TX vs RX). Each takes an optional `ax` and returns it, so they compose and
-overlay; see `examples/plotting_demo.py` and `examples/antenna_pattern.py`.
+cuts (TX vs RX), and `plot_pattern_uv` draws its full direction-cosine pattern.
+Each takes an optional `ax` and returns it, so they compose and overlay; see
+`examples/plotting_demo.py` and `examples/antenna_pattern.py`.
 
 ## Assumptions and caveats
 

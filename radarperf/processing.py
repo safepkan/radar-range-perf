@@ -21,6 +21,12 @@ and ``tx_combination`` independently covers the practical combinations:
   sum subbands non-coherently.
 * RX coherent + TX coherent -- full coherent virtual-array beamforming.
 
+The coherent RX factor is the ideal gain at the formed beam's steering
+direction. To model its directional loss away from that point, wrap the
+per-channel element/subarray pattern in ``UniformArrayAntenna``; its normalized
+array factor is 0 dB at beam center, so the peak ``n_rx`` gain remains here and
+is not double counted.
+
 DDMA empty subbands
 -------------------
 DDMA usually allocates more Doppler subbands than transmitters (e.g. 6 for 4 TX)
@@ -59,6 +65,11 @@ model coherent transmit gains a further ``+10 log10(n_tx)`` over DDM-MIMO
 There is no virtual TX aperture in this mode; covering a wide field of view
 requires scanning the transmit beam (more dwell/scan time), which this
 per-direction budget does not amortise for you.
+
+When the antenna model already describes the complete coherently fed transmit
+aperture, set ``tx_array_gain_in_antenna=True``. The antenna pattern then
+contains the transmit directivity, so this processing model contributes only
+the ``n_tx`` increase in total radiated power, not another array-gain factor.
 """
 
 from __future__ import annotations
@@ -119,6 +130,12 @@ class StandardProcessing:
         If True, model in-phase coherent transmit (a transmit phased array)
         instead of orthogonal MIMO; the TX axis contributes ``n_tx**2`` to the
         coherent gain and there is no virtual TX aperture.
+    tx_array_gain_in_antenna:
+        Set together with ``transmit_coherent`` when the TX antenna pattern is
+        for the complete coherently fed aperture rather than one TX element or
+        subarray. In that case only ``n_tx`` (total transmit power) is added
+        here; the other ``n_tx`` (ideal array directivity) is replaced by the
+        full-aperture antenna model.
     Loss terms:
         Window / straddle / CFAR losses as before, plus ``beamforming_loss_db``
         for the angular straddle / scan loss incurred when a coherently combined
@@ -132,6 +149,7 @@ class StandardProcessing:
     tx_combination: BeamCombination = BeamCombination.COHERENT
     n_doppler_subbands: int = 0
     transmit_coherent: bool = False
+    tx_array_gain_in_antenna: bool = False
     range_window_loss_db: float = WINDOW_LOSS_HANN_DB
     doppler_window_loss_db: float = WINDOW_LOSS_HANN_DB
     range_straddle_loss_db: float = 0.6
@@ -163,7 +181,9 @@ class StandardProcessing:
 
         # TX / subband axis.
         if self.transmit_coherent:
-            coherent_factor *= n_tx**2  # transmit phased-array beamforming
+            # A full-aperture antenna pattern already includes array
+            # directivity; only the increase in total transmitted power remains.
+            coherent_factor *= n_tx if self.tx_array_gain_in_antenna else n_tx**2
             angular_combination = True
         else:
             n_tx_eff = n_tx if self.mimo in _MULTIPLEXED else 1

@@ -18,8 +18,10 @@ The noise power per complex sample is ``k T_sys B_n`` with system temperature
 default ``T0 = 290 K``; ``F`` the receiver noise factor) and noise bandwidth
 ``B_n`` (the waveform's effective noise bandwidth, defaulting to the ADC sample
 rate).  With ``T_ant = T0`` and ``B_n = f_s`` this reduces to ``k T0 F f_s``.
-``coherent_gain`` / losses come from the processing model.  Antenna gains are
-element gains; coherent array gain is in ``coherent_gain``.
+``coherent_gain`` / losses come from the processing model. Antenna gains are
+normally per-channel element/subarray gains, with coherent array gain in
+``coherent_gain``. A complete-aperture antenna pattern can instead carry the
+array directivity when the processing configuration explicitly omits that term.
 
 The core physics is computed once, vectorised, in :meth:`Radar._budget_terms`.
 It broadcasts over the fields of the supplied :class:`~radarperf.geometry.Geometry`,
