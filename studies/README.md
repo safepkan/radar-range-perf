@@ -29,6 +29,10 @@ Run a study from the repo root with the project venv, e.g.:
 
 ## Studies
 
+- `2026-09-02_lannik-psi/` — standalone Lannik Psi baseline, carried forward
+  unchanged from config 3 of the 2026-06-22 comparison. It uses the same
+  boresight closing-target acquisition scenario and is the starting point for
+  further modelling refinements.
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions
