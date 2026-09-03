@@ -30,15 +30,17 @@ Changes from the 2026-06-22 config-3 baseline
   explains the boresight Pd=90% range changing from 614 m to 531 m (range scales
   with the fourth root of power).
 * RX antenna: the previous 17 dBi constant-gain channel placeholder has been
-  replaced by a 21.5 dBi 4 x 8 radiator subarray pattern plus the steered array
-  factor of the 4 x 2 channel URA. Ideal coherent combination of 8 RX channels
-  remains in processing, giving 30.5 dBi effective boresight RX gain. This is
-  4.5 dB above the previous 17 + 10 log10(8) = 26.0 dBi assumption.
+  replaced by an analytical uniform rectangular subarray pattern plus the
+  steered array factor of a parametric eight-channel URA. The current first-cut
+  design uses 2.42-lambda square subarrays in a densely packed 4 x 2 layout.
+  Ideal coherent combination of 8 RX channels remains in processing, giving
+  27.5 dBi effective boresight RX gain.
 * Front end, waveform and evaluation scenario: unchanged.
 * Boresight range checkpoints (Pd=50%/90%; Pacq=50%/90%): the June baseline was
   994/614 m and 1474/1372 m; after introducing only the TX aperture it was
-  859/531 m and 1264/1174 m; with the current TX and RX models it is 1114/688 m
-  and 1662/1549 m. Adding multiple RX beams does not change those boresight
+  859/531 m and 1264/1174 m; with the supplied-size RX subarrays it was 1114/688
+  m and 1662/1549 m; with the current square RX subarray candidate it is 937/578
+  m and 1384/1288 m. Adding multiple RX beams does not change those boresight
   checkpoints; it extends the modeled angular coverage. Extend this list when
   later model changes affect the result.
 
@@ -49,21 +51,22 @@ Modelling notes
   presentation, MATLAB loader and TX/RX data are archived under ``inputs/``.
   The full-aperture pattern uses the supplied complex excitation but does not
   depend on the apparent channel labels in the file. Processing assumes 8
-  coherent, equal-power MMIC channels when calculating total TX power. Whether
-  the file's channel groups represent the physical subaperture geometry remains
-  to be confirmed; see ``NOTES.md``.
+  coherent, equal-full-power MMIC channels when calculating total TX power. The
+  current physical direction is to divide each quadrant excitation into two
+  equal-power feeds without attenuation; the file's channel labels are not
+  treated as the resulting geometry. See ``NOTES.md``.
 * The FFT array factor is normalized to fixed total TX power. A 6.45 dBi
   radiator gain is inferred from the presentation's approximate 23.5 dBi
   tapered sum-beam directivity. Processing adds the power from 8 active TX
   channels but does not add a second ideal TX array-directivity term.
-* RX is modelled in two layers. One uniform 4 x 8 radiator subarray supplies the
-  per-channel element pattern. A 4 x 2 array then forms an interleaved set of
-  u/v-steered beams; the ideal 8-channel coherent peak gain remains in
-  processing. Detection uses the best-gain beam independently at each look
-  direction. This is an optimistic upper bound: multiple-testing Pfa effects,
-  correlated noise between beams and implementation limits are not yet
-  modelled.
-* One 64-beam RX set is used throughout. It consists of an 8 x 4 grid sampling
+* RX is modelled in two layers. An analytical uniformly illuminated rectangular
+  aperture supplies the per-channel subarray pattern. A parametrized channel
+  URA then forms an interleaved set of u/v-steered beams; the ideal 8-channel
+  coherent peak gain remains in processing. Detection uses the best-gain beam
+  independently at each look direction. This is an optimistic upper bound:
+  multiple-testing Pfa effects, correlated noise between beams and
+  implementation limits are not yet modelled.
+* One 128-beam RX set is used throughout. It consists of an 8 x 8 grid sampling
   the boresight-centered fundamental array-factor period plus an equally sized
   half-cell-offset grid. Because steering vectors repeat between periods, this
   set supplies the same best array-factor envelope throughout visible u/v
@@ -88,6 +91,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from matplotlib.axes import Axes
+from matplotlib.colors import Normalize
 from matplotlib.patches import Rectangle
 from matplotlib.projections.polar import PolarAxes
 from scipy.io import loadmat
@@ -105,6 +109,7 @@ from radarperf import (
     RectangularArrayAntenna,
     StandardProcessing,
     UniformArrayAntenna,
+    UniformRectangularApertureAntenna,
     frontend,
     probability_of_detection,
     sweeps,
@@ -137,7 +142,6 @@ SCENARIO_TEXT = (
 
 INPUT_DIR = Path(__file__).parent / "inputs"
 TX_DATA_PATH = INPUT_DIR / "antenna_arr_77_TX_rev_A.mat"
-RX_DATA_PATH = INPUT_DIR / "antenna_arr_77_RX_rev_A.mat"
 # The supplied weights contribute 17.05 dB at boresight. Adding 6.45 dBi per
 # radiator reproduces the presentation's approximate 23.5 dBi tapered sum
 # directivity. It also gives 21.5 dBi for a uniform 32-radiator subarray and
@@ -145,6 +149,20 @@ RX_DATA_PATH = INPUT_DIR / "antenna_arr_77_RX_rev_A.mat"
 # presentation's approximate 21 dBi and 31 dBi figures.
 RADIATOR_GAIN_DBI = 6.45
 APERTURE_FFT_SIZE = 2048
+# Reference values inferred from the supplied RX aperture. Each original
+# channel occupied four by eight radiator pitches. The continuous-aperture
+# efficiency is calibrated to reproduce that model's 21.50 dBi subarray gain.
+RX_SOURCE_RADIATOR_PITCH_M = 2.3513137254901964e-3
+RX_SOURCE_SUBARRAY_WIDTH_M = 4.0 * RX_SOURCE_RADIATOR_PITCH_M
+RX_SOURCE_SUBARRAY_HEIGHT_M = 8.0 * RX_SOURCE_RADIATOR_PITCH_M
+RX_SOURCE_SUBARRAY_GAIN_DBI = RADIATOR_GAIN_DBI + 10.0 * np.log10(32.0)
+RX_APERTURE_EFFICIENCY = 10.0 ** (RX_SOURCE_SUBARRAY_GAIN_DBI / 10.0) / (
+    4.0
+    * np.pi
+    * RX_SOURCE_SUBARRAY_WIDTH_M
+    * RX_SOURCE_SUBARRAY_HEIGHT_M
+    / (SPEED_OF_LIGHT / CENTER_FREQUENCY_HZ) ** 2
+)
 RX_BEAM_SEPARATION_DEG = 3.0
 # Maximum desired spacing. Exact u/v spacings divide the array-factor periods
 # into integer counts so that the grid wraps seamlessly at principal-cell edges.
@@ -172,6 +190,83 @@ class SteeringGrid:
     separation_v: float
     period_u: float
     period_v: float
+
+
+@dataclass(frozen=True)
+class RxAntennaLayout:
+    """Parametric RX subarray and channel-array geometry."""
+
+    subarray_width_m: float
+    subarray_height_m: float
+    horizontal_count: int
+    vertical_count: int
+    horizontal_spacing_m: float | None = None
+    vertical_spacing_m: float | None = None
+
+    def __post_init__(self) -> None:
+        for name, extent_m in (
+            ("subarray_width_m", self.subarray_width_m),
+            ("subarray_height_m", self.subarray_height_m),
+        ):
+            if not np.isfinite(extent_m) or extent_m <= 0.0:
+                raise ValueError(f"{name} must be finite and positive")
+        for name, count in (
+            ("horizontal_count", self.horizontal_count),
+            ("vertical_count", self.vertical_count),
+        ):
+            if count < 1:
+                raise ValueError(f"{name} must be >= 1")
+        for name, spacing_m, extent_m in (
+            (
+                "horizontal_spacing_m",
+                self.horizontal_spacing_m,
+                self.subarray_width_m,
+            ),
+            (
+                "vertical_spacing_m",
+                self.vertical_spacing_m,
+                self.subarray_height_m,
+            ),
+        ):
+            if spacing_m is not None and (
+                not np.isfinite(spacing_m) or spacing_m < extent_m
+            ):
+                raise ValueError(f"{name} must be finite and at least the extent")
+
+    @property
+    def channel_horizontal_spacing_m(self) -> float:
+        """Horizontal channel-center spacing, densely packed by default."""
+        if self.horizontal_spacing_m is None:
+            return self.subarray_width_m
+        return self.horizontal_spacing_m
+
+    @property
+    def channel_vertical_spacing_m(self) -> float:
+        """Vertical channel-center spacing, densely packed by default."""
+        if self.vertical_spacing_m is None:
+            return self.subarray_height_m
+        return self.vertical_spacing_m
+
+    @property
+    def channel_count(self) -> int:
+        """Total number of RX channels."""
+        return self.horizontal_count * self.vertical_count
+
+    @property
+    def overall_width_m(self) -> float:
+        """Edge-to-edge width of the complete RX aperture."""
+        return (
+            self.subarray_width_m
+            + (self.horizontal_count - 1) * self.channel_horizontal_spacing_m
+        )
+
+    @property
+    def overall_height_m(self) -> float:
+        """Edge-to-edge height of the complete RX aperture."""
+        return (
+            self.subarray_height_m
+            + (self.vertical_count - 1) * self.channel_vertical_spacing_m
+        )
 
 
 @dataclass(frozen=True)
@@ -204,6 +299,19 @@ class Product:
     front_end_note: str
     waveform_note: str
     processing_note: str
+
+
+# First-cut ambiguity-reduction candidate: retain the original subarray width,
+# reduce its height to make it square, and retain the 4 x 2 channel layout.
+# Swapping the counts to 2 x 4 rotates the complete rectangular RX aperture but
+# leaves the principal region and subarray-limited envelope unchanged; it
+# rotates the individual beam widths and residual finite-grid scalloping.
+RX_LAYOUT = RxAntennaLayout(
+    subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
+    subarray_height_m=RX_SOURCE_SUBARRAY_WIDTH_M,
+    horizontal_count=4,
+    vertical_count=2,
+)
 
 
 def load_element_list(path: Path) -> npt.NDArray[np.complex128]:
@@ -242,74 +350,22 @@ def load_tx_antenna(path: Path = TX_DATA_PATH) -> RectangularArrayAntenna:
     )
 
 
-def load_rx_antenna(path: Path = RX_DATA_PATH) -> UniformArrayAntenna:
-    """Build one RX subarray pattern and its boresight-steered 4 x 2 URA."""
-    element_list = load_element_list(path)
-    channels = np.asarray(element_list[:, 5].real, dtype=int)
-
-    relative_apertures: list[
-        tuple[
-            npt.NDArray[np.float64],
-            npt.NDArray[np.float64],
-            npt.NDArray[np.complex128],
-        ]
-    ] = []
-    horizontal_centroids: list[float] = []
-    vertical_centroids: list[float] = []
-    for channel in range(1, 9):
-        rows = element_list[channels == channel]
-        horizontal = np.asarray(rows[:, 1].real, dtype=float)
-        vertical = np.asarray(rows[:, 2].real, dtype=float)
-        horizontal_centroid = float(horizontal.mean())
-        vertical_centroid = float(vertical.mean())
-        horizontal_centroids.append(horizontal_centroid)
-        vertical_centroids.append(vertical_centroid)
-        order = np.lexsort((vertical, horizontal))
-        relative_apertures.append(
-            (
-                (horizontal - horizontal_centroid)[order],
-                (vertical - vertical_centroid)[order],
-                np.asarray(rows[:, 4], dtype=np.complex128)[order],
-            )
-        )
-
-    reference_horizontal, reference_vertical, reference_excitations = (
-        relative_apertures[0]
-    )
-    for horizontal, vertical, excitations in relative_apertures[1:]:
-        if not (
-            np.allclose(horizontal, reference_horizontal)
-            and np.allclose(vertical, reference_vertical)
-            and np.allclose(excitations, reference_excitations)
-        ):
-            raise ValueError("RX channels must have identical subarray apertures")
-
-    subarray = RectangularArrayAntenna.from_element_list(
-        reference_horizontal,
-        reference_vertical,
-        reference_excitations,
+def build_rx_antenna(layout: RxAntennaLayout) -> UniformArrayAntenna:
+    """Build the analytical uniform subarray and boresight channel URA."""
+    if layout.channel_count != 8:
+        raise ValueError("Lannik Psi RX layout must contain eight channels")
+    subarray = UniformRectangularApertureAntenna(
+        layout.subarray_width_m,
+        layout.subarray_height_m,
         center_frequency_hz=CENTER_FREQUENCY_HZ,
-        element_gain_dbi=RADIATOR_GAIN_DBI,
-        fft_size=APERTURE_FFT_SIZE,
+        aperture_efficiency=RX_APERTURE_EFFICIENCY,
     )
-
-    horizontal_axis = np.unique(horizontal_centroids)
-    vertical_axis = np.unique(vertical_centroids)
-    if (horizontal_axis.size, vertical_axis.size) != (4, 2):
-        raise ValueError("expected RX channel centroids to form a 4 x 2 URA")
-    horizontal_spacing_m = float(np.diff(horizontal_axis)[0])
-    vertical_spacing_m = float(np.diff(vertical_axis)[0])
-    if not np.allclose(
-        np.diff(horizontal_axis), horizontal_spacing_m
-    ) or not np.allclose(np.diff(vertical_axis), vertical_spacing_m):
-        raise ValueError("RX channel centroids must be uniformly spaced")
-
     return UniformArrayAntenna(
         subarray,
-        horizontal_count=4,
-        vertical_count=2,
-        horizontal_spacing_m=horizontal_spacing_m,
-        vertical_spacing_m=vertical_spacing_m,
+        horizontal_count=layout.horizontal_count,
+        vertical_count=layout.vertical_count,
+        horizontal_spacing_m=layout.channel_horizontal_spacing_m,
+        vertical_spacing_m=layout.channel_vertical_spacing_m,
         center_frequency_hz=CENTER_FREQUENCY_HZ,
     )
 
@@ -426,7 +482,7 @@ def form_rx_beams(
     )
 
 
-def lannik_psi() -> Product:
+def lannik_psi(rx_layout: RxAntennaLayout = RX_LAYOUT) -> Product:
     """Build Lannik Psi with the proposed full-aperture TX model."""
     waveform = FmcwWaveform.from_slope(
         center_frequency_hz=CENTER_FREQUENCY_HZ,
@@ -436,7 +492,7 @@ def lannik_psi() -> Product:
         n_chirps=512,
     )
     tx_antenna = load_tx_antenna()
-    rx_boresight_array = load_rx_antenna()
+    rx_boresight_array = build_rx_antenna(rx_layout)
     rx_antenna = form_rx_beams(rx_boresight_array)
     radar = Radar(
         frontend=frontend.ctrx8188f(),
@@ -560,10 +616,31 @@ def print_diagnostics(product: Product, acq: AcquisitionSweep) -> None:
     rx_antenna = product.radar.antenna.rx
     if isinstance(rx_antenna, MultiBeamUniformArrayAntenna):
         coherent_rx_gain_db = 10.0 * np.log10(rx_antenna.element_count)
+        if isinstance(rx_antenna.element, UniformRectangularApertureAntenna):
+            subarray = rx_antenna.element
+            overall_width_m = (
+                subarray.horizontal_extent_m
+                + (rx_antenna.horizontal_count - 1) * rx_antenna.horizontal_spacing_m
+            )
+            overall_height_m = (
+                subarray.vertical_extent_m
+                + (rx_antenna.vertical_count - 1) * rx_antenna.vertical_spacing_m
+            )
+            print(
+                f"  RX subarray extent   : {1e3 * subarray.horizontal_extent_m:4.1f} x "
+                f"{1e3 * subarray.vertical_extent_m:4.1f} mm "
+                f"({subarray.horizontal_extent_m / waveform.wavelength_m:4.2f} x "
+                f"{subarray.vertical_extent_m / waveform.wavelength_m:4.2f} wavelengths)"
+            )
         print(
             f"  RX channel array     : {rx_antenna.horizontal_count} x "
             f"{rx_antenna.vertical_count} subarrays"
         )
+        if isinstance(rx_antenna.element, UniformRectangularApertureAntenna):
+            print(
+                f"  RX overall extent    : {1e3 * overall_width_m:4.1f} x "
+                f"{1e3 * overall_height_m:4.1f} mm"
+            )
         print(
             f"  RX channel spacing   : "
             f"{rx_antenna.horizontal_spacing_m / waveform.wavelength_m:4.2f} x "
@@ -673,6 +750,240 @@ def plot_product(product: Product, acq: AcquisitionSweep, path: Path) -> None:
     fig.text(0.5, 0.005, SCENARIO_TEXT, ha="center", fontsize=8, color="0.3")
     fig.tight_layout(rect=(0.0, 0.03, 1.0, 1.0))
     fig.savefig(path, dpi=130)
+
+
+def _relative_excitation_db(
+    excitations: npt.NDArray[np.complex128],
+) -> npt.NDArray[np.float64]:
+    """Excitation voltage magnitude in dB relative to its maximum."""
+    relative = np.abs(excitations) / float(np.max(np.abs(excitations)))
+    return np.asarray(20.0 * np.log10(np.maximum(relative, 1.0e-30)), dtype=float)
+
+
+def _plot_discrete_excitations(
+    ax: Axes,
+    horizontal: npt.NDArray[np.float64],
+    vertical: npt.NDArray[np.float64],
+    excitations: npt.NDArray[np.complex128],
+    color_norm: Normalize,
+    *,
+    show_phase: bool,
+) -> None:
+    """Draw discrete excitation magnitudes and optional relative phasors."""
+    relative_db = _relative_excitation_db(excitations)
+    ax.scatter(
+        horizontal,
+        vertical,
+        c=relative_db,
+        norm=color_norm,
+        cmap="viridis",
+        s=62.0,
+        edgecolors="0.2",
+        linewidths=0.25,
+        zorder=2,
+    )
+    if not show_phase:
+        return
+
+    boresight_phase = float(np.angle(np.sum(excitations)))
+    relative_phase = np.angle(excitations * np.exp(-1.0j * boresight_phase))
+    unique_horizontal = np.unique(horizontal)
+    unique_vertical = np.unique(vertical)
+    spacings = np.concatenate((np.diff(unique_horizontal), np.diff(unique_vertical)))
+    phasor_length = 0.30 * float(np.min(spacings))
+    ax.quiver(
+        horizontal,
+        vertical,
+        phasor_length * np.cos(relative_phase),
+        phasor_length * np.sin(relative_phase),
+        angles="xy",
+        scale_units="xy",
+        scale=1.0,
+        pivot="middle",
+        color="white",
+        edgecolor="black",
+        linewidth=0.3,
+        width=0.004,
+        headwidth=3.5,
+        headlength=4.0,
+        headaxislength=3.5,
+        zorder=3,
+    )
+
+
+def _center_axis(count: int, spacing_wavelengths: float) -> npt.NDArray[np.float64]:
+    """Centered uniform channel coordinates in wavelengths."""
+    return np.asarray(
+        (np.arange(count, dtype=float) - 0.5 * (count - 1)) * spacing_wavelengths,
+        dtype=float,
+    )
+
+
+def plot_antenna_geometry(
+    tx_antenna: RectangularArrayAntenna,
+    rx_antenna: MultiBeamUniformArrayAntenna,
+    path: Path,
+) -> None:
+    """Plot the modeled TX excitations and RX subarray/channel geometry."""
+    wavelength_m = SPEED_OF_LIGHT / CENTER_FREQUENCY_HZ
+    color_norm = Normalize(vmin=-30.0, vmax=0.0)
+    fig, (tx_ax, rx_ax) = plt.subplots(1, 2, figsize=(12.5, 5.8))
+
+    tx_horizontal, tx_vertical = np.meshgrid(
+        tx_antenna.horizontal_positions_m / wavelength_m,
+        tx_antenna.vertical_positions_m / wavelength_m,
+        indexing="ij",
+    )
+    _plot_discrete_excitations(
+        tx_ax,
+        np.asarray(tx_horizontal.ravel(), dtype=float),
+        np.asarray(tx_vertical.ravel(), dtype=float),
+        np.asarray(tx_antenna.excitations.ravel(), dtype=np.complex128),
+        color_norm,
+        show_phase=True,
+    )
+    tx_ax.set_title(
+        f"TX: {tx_antenna.excitations.shape[0]} × "
+        f"{tx_antenna.excitations.shape[1]} discrete radiators"
+    )
+
+    rx_horizontal_spacing = rx_antenna.horizontal_spacing_m / wavelength_m
+    rx_vertical_spacing = rx_antenna.vertical_spacing_m / wavelength_m
+    rx_centers_horizontal = _center_axis(
+        rx_antenna.horizontal_count, rx_horizontal_spacing
+    )
+    rx_centers_vertical = _center_axis(rx_antenna.vertical_count, rx_vertical_spacing)
+    rx_center_horizontal, rx_center_vertical = np.meshgrid(
+        rx_centers_horizontal, rx_centers_vertical, indexing="ij"
+    )
+
+    if isinstance(rx_antenna.element, UniformRectangularApertureAntenna):
+        subarray_width = rx_antenna.element.horizontal_extent_m / wavelength_m
+        subarray_height = rx_antenna.element.vertical_extent_m / wavelength_m
+        uniform_color = plt.get_cmap("viridis")(color_norm(0.0))
+        for center_horizontal, center_vertical in zip(
+            rx_center_horizontal.ravel(),
+            rx_center_vertical.ravel(),
+            strict=True,
+        ):
+            rx_ax.add_patch(
+                Rectangle(
+                    (
+                        center_horizontal - 0.5 * subarray_width,
+                        center_vertical - 0.5 * subarray_height,
+                    ),
+                    subarray_width,
+                    subarray_height,
+                    facecolor=uniform_color,
+                    edgecolor="0.25",
+                    linewidth=1.0,
+                )
+            )
+        rx_description = (
+            f"uniform {subarray_width:.2f}λ × {subarray_height:.2f}λ subarrays"
+        )
+    elif isinstance(rx_antenna.element, RectangularArrayAntenna):
+        element = rx_antenna.element
+        relative_horizontal = (
+            element.horizontal_positions_m
+            - float(np.mean(element.horizontal_positions_m))
+        ) / wavelength_m
+        relative_vertical = (
+            element.vertical_positions_m - float(np.mean(element.vertical_positions_m))
+        ) / wavelength_m
+        point_horizontal, point_vertical = np.meshgrid(
+            relative_horizontal, relative_vertical, indexing="ij"
+        )
+        horizontal_pitch = float(np.diff(relative_horizontal)[0])
+        vertical_pitch = float(np.diff(relative_vertical)[0])
+        subarray_width = relative_horizontal.size * horizontal_pitch
+        subarray_height = relative_vertical.size * vertical_pitch
+        for center_horizontal, center_vertical in zip(
+            rx_center_horizontal.ravel(),
+            rx_center_vertical.ravel(),
+            strict=True,
+        ):
+            rx_ax.add_patch(
+                Rectangle(
+                    (
+                        center_horizontal - 0.5 * subarray_width,
+                        center_vertical - 0.5 * subarray_height,
+                    ),
+                    subarray_width,
+                    subarray_height,
+                    facecolor="none",
+                    edgecolor="0.35",
+                    linewidth=0.8,
+                )
+            )
+            _plot_discrete_excitations(
+                rx_ax,
+                np.asarray(point_horizontal.ravel() + center_horizontal, dtype=float),
+                np.asarray(point_vertical.ravel() + center_vertical, dtype=float),
+                np.asarray(element.excitations.ravel(), dtype=np.complex128),
+                color_norm,
+                show_phase=True,
+            )
+        rx_description = (
+            f"{relative_horizontal.size} × {relative_vertical.size} "
+            "discrete radiators per subarray"
+        )
+    else:
+        subarray_width = rx_horizontal_spacing
+        subarray_height = rx_vertical_spacing
+        rx_description = "subarray pattern not geometrically resolved"
+
+    rx_ax.scatter(
+        rx_center_horizontal,
+        rx_center_vertical,
+        s=45.0,
+        facecolors="white",
+        edgecolors="black",
+        linewidths=1.3,
+        label="channel phase centers",
+        zorder=5,
+    )
+    rx_ax.set_xlim(
+        float(np.min(rx_centers_horizontal) - 0.65 * subarray_width),
+        float(np.max(rx_centers_horizontal) + 0.65 * subarray_width),
+    )
+    rx_ax.set_ylim(
+        float(np.min(rx_centers_vertical) - 0.65 * subarray_height),
+        float(np.max(rx_centers_vertical) + 0.65 * subarray_height),
+    )
+    rx_ax.set_title(
+        f"RX: {rx_antenna.horizontal_count} × {rx_antenna.vertical_count} channels\n"
+        f"{rx_description}"
+    )
+    rx_ax.legend(loc="upper right", fontsize=8)
+
+    for axis in (tx_ax, rx_ax):
+        axis.set_xlabel("horizontal aperture coordinate / λ (u axis)")
+        axis.set_ylabel("vertical aperture coordinate / λ (v axis)")
+        axis.set_aspect("equal")
+        axis.grid(True, alpha=0.2)
+
+    scalar_mappable = plt.cm.ScalarMappable(norm=color_norm, cmap="viridis")
+    colorbar_ax = fig.add_axes((0.31, 0.13, 0.38, 0.035))
+    fig.colorbar(
+        scalar_mappable,
+        cax=colorbar_ax,
+        orientation="horizontal",
+        label="excitation voltage magnitude [dB relative to maximum]",
+    )
+    fig.suptitle("Lannik Psi modeled TX and RX antenna geometries", fontsize=14)
+    fig.text(
+        0.5,
+        0.025,
+        "TX arrow direction: excitation phase relative to the coherent boresight "
+        "sum | RX white circles: channel phase centers | local aperture coordinates",
+        ha="center",
+        fontsize=8,
+        color="0.3",
+    )
+    fig.subplots_adjust(left=0.07, right=0.98, bottom=0.27, top=0.84, wspace=0.24)
+    fig.savefig(path, dpi=150)
+    print(f"  saved {path}")
 
 
 def plot_antenna_patterns(
@@ -1099,9 +1410,9 @@ def compute_pd_coverage_maps(
 
     The study has constant RCS, free space and no clutter, so its SINR separates
     exactly into a ``-40 log10(range)`` term and a direction-only two-way gain
-    term. Evaluating the 64-beam pattern once on a fine angular grid and then
-    interpolating it avoids repeating the same beam calculation at every 2-D
-    range/position cell.
+    term. Evaluating the periodic best-beam pattern once on a fine angular grid
+    and then interpolating it avoids repeating the same beam calculation at
+    every 2-D range/position cell.
     """
     maximum_range_m = min(
         PD_MAP_RANGE_LIMIT_M, product.waveform.max_unambiguous_range_m
@@ -1297,6 +1608,10 @@ def plot_pd_coverage_cut(
         linestyle="--",
         linewidth=1.1,
     )
+    cartesian_ax.set_ylim(
+        -PD_MAP_TRANSVERSE_LIMIT_M,
+        PD_MAP_TRANSVERSE_LIMIT_M,
+    )
     cartesian_ax.legend(loc="upper right", fontsize=8)
 
     colorbar_ax = polar_ax.inset_axes((0.18, 0.07, 0.64, 0.045))
@@ -1315,8 +1630,20 @@ def plot_pd_coverage_cut(
         "Assumptions: 1 m² RCS, Swerling 1 | Pfa=1e-6 | free space; "
         f"no clutter or phase noise | display limited to {PD_MAP_RANGE_LIMIT_M:.0f} m\n"
         f"{product.front_end_note} | {product.waveform_note} | "
-        f"ideal coherent best of {rx_antenna.beam_count} periodic RX beams"
+        f"ideal coherent best of {rx_antenna.beam_count} periodic RX beams\n"
+        f"RX principal edges: ±{principal_angle_deg:.1f}° in this cut | "
+        f"effective boresight gain "
+        f"{rx_antenna.boresight_gain_dbi + 10.0 * np.log10(rx_antenna.element_count):.1f} dBi"
     )
+    if isinstance(rx_antenna.element, UniformRectangularApertureAntenna):
+        wavelength_m = SPEED_OF_LIGHT / rx_antenna.center_frequency_hz
+        assumptions_text += (
+            f" | uniform subarray "
+            f"{rx_antenna.element.horizontal_extent_m / wavelength_m:.2f}λ × "
+            f"{rx_antenna.element.vertical_extent_m / wavelength_m:.2f}λ "
+            f"({1e3 * rx_antenna.element.horizontal_extent_m:.2f} × "
+            f"{1e3 * rx_antenna.element.vertical_extent_m:.2f} mm)"
+        )
     fig.text(0.5, 0.035, assumptions_text, ha="center", fontsize=8, color="0.3")
 
     path = directory / f"pd_coverage_{cut.name}.png"
@@ -1350,6 +1677,11 @@ def main() -> None:
     rx_antenna = product.radar.antenna.rx
     if not isinstance(rx_antenna, MultiBeamUniformArrayAntenna):
         raise TypeError("Lannik Psi RX must be a MultiBeamUniformArrayAntenna")
+    plot_antenna_geometry(
+        tx_antenna,
+        rx_antenna,
+        generated_dir / "antenna_geometry_excitations.png",
+    )
     boresight_index = int(
         np.argmin(rx_antenna.steering_u**2 + rx_antenna.steering_v**2)
     )

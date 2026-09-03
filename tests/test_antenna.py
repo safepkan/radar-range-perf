@@ -17,6 +17,7 @@ from radarperf.antenna import (
     PatternCutAntenna,
     RectangularArrayAntenna,
     UniformArrayAntenna,
+    UniformRectangularApertureAntenna,
     load_antenna_pair_csv,
     load_pattern_cut_csv,
 )
@@ -182,6 +183,77 @@ def test_rectangular_array_rejects_incomplete_or_irregular_grid() -> None:
             [0.0, 1.0],
             np.ones((3, 2)),
             center_frequency_hz=SPEED_OF_LIGHT,
+        )
+
+
+def test_uniform_rectangular_aperture_gain_and_nulls() -> None:
+    antenna_model = UniformRectangularApertureAntenna(
+        2.0,
+        4.0,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        aperture_efficiency=0.8,
+    )
+    expected_boresight_dbi = 10.0 * np.log10(0.8 * 4.0 * np.pi * 2.0 * 4.0)
+    assert antenna_model.boresight_gain_dbi == pytest.approx(expected_boresight_dbi)
+    assert antenna_model.gain_dbi_uv(0.0, 0.0) == pytest.approx(expected_boresight_dbi)
+    assert antenna_model.gain_dbi_uv(0.5, 0.0) < -280.0
+    assert antenna_model.gain_dbi_uv(0.0, 0.25) < -280.0
+
+
+def test_uniform_rectangular_subarrays_reconstruct_dense_complete_aperture() -> None:
+    subarray = UniformRectangularApertureAntenna(
+        0.4,
+        0.6,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        aperture_efficiency=0.75,
+    )
+    channel_array = UniformArrayAntenna(
+        subarray,
+        horizontal_count=3,
+        vertical_count=2,
+        horizontal_spacing_m=subarray.horizontal_extent_m,
+        vertical_spacing_m=subarray.vertical_extent_m,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    complete_aperture = UniformRectangularApertureAntenna(
+        3.0 * subarray.horizontal_extent_m,
+        2.0 * subarray.vertical_extent_m,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        aperture_efficiency=subarray.aperture_efficiency,
+    )
+    azimuth_deg = np.array([0.0, 4.0, 9.0, 17.0])
+    elevation_deg = np.array([0.0, -3.0, 7.0, 12.0])
+    combined_gain = np.asarray(
+        channel_array.gain_dbi(azimuth_deg, elevation_deg)
+    ) + 10.0 * np.log10(channel_array.element_count)
+    assert combined_gain == pytest.approx(
+        complete_aperture.gain_dbi(azimuth_deg, elevation_deg), abs=1.0e-10
+    )
+
+
+@pytest.mark.parametrize(
+    "horizontal, vertical, frequency, efficiency, message",
+    [
+        (0.0, 1.0, 1.0, 1.0, "horizontal_extent_m"),
+        (1.0, -1.0, 1.0, 1.0, "vertical_extent_m"),
+        (1.0, 1.0, 0.0, 1.0, "center_frequency_hz"),
+        (1.0, 1.0, 1.0, 0.0, "aperture_efficiency"),
+        (1.0, 1.0, 1.0, 1.1, "aperture_efficiency"),
+    ],
+)
+def test_uniform_rectangular_aperture_validates_parameters(
+    horizontal: float,
+    vertical: float,
+    frequency: float,
+    efficiency: float,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        UniformRectangularApertureAntenna(
+            horizontal,
+            vertical,
+            center_frequency_hz=frequency,
+            aperture_efficiency=efficiency,
         )
 
 

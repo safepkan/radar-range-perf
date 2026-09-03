@@ -184,9 +184,10 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
   (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`).
 * **Antenna** — models `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
   `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full
-  pattern), plus `RectangularArrayAntenna` for FFT patterns from arbitrary
-  complex aperture excitations and `UniformArrayAntenna` for a steerable
-  ULA/URA factor layered over any element/subarray pattern.
+  pattern), plus `UniformRectangularApertureAntenna` for an analytical uniform
+  rectangular-aperture sinc pattern, `RectangularArrayAntenna` for FFT patterns
+  from arbitrary complex aperture excitations and `UniformArrayAntenna` for a
+  steerable ULA/URA factor layered over any element/subarray pattern.
   `MultiBeamUniformArrayAntenna` supplies the best-beam envelope and exposes
   every individual beam for a set of u/v steering points. The engine takes a
   transmit/receive `AntennaPair` (`AntennaPair.from_element` when the two

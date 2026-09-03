@@ -97,9 +97,10 @@ boresight SNR is independent of it in this model.
 
 - The supplied data describes 256 radiators on a 16 × 16 rectangular grid.
 - The table supplies a complex excitation for every radiator.
-- The presentation and table depict or label eight TX subapertures, but it is
-  not yet confirmed that these groups are the actual physical MMIC-channel
-  boundaries.
+- The excitation is now understood primarily as the desired distribution over
+  the complete aperture for the antenna supplier. The presentation's apparent
+  eight equal subapertures and the table's group labels should not be treated as
+  authoritative physical MMIC-port boundaries.
 
 **Result:** The modeled pattern agrees visually with the TX plots in the
 presentation.
@@ -116,6 +117,8 @@ presentation.
   approximately 23.5 dBi boresight gain.
 - Processing adds `10 log10(8)` for the total power of eight active TX channels,
   but does not add another ideal TX-array directivity term.
+- The model assumes all eight ports contribute equal full power, but does not
+  represent the intended two-equal-power-feeds-per-quadrant partition.
 - Mutual coupling, feed-network loss, embedded element patterns, and installed
   antenna effects are not represented.
 
@@ -125,40 +128,57 @@ giving 23.5 dBi after adding the inferred radiator gain. The principal-plane
 
 ### RX
 
-**Source/model interpretation:**
+**Supplied reference geometry:**
 
 - Each RX channel is a uniform 4 × 8 radiator subarray.
 - The eight channel centroids form a 4 × 2 uniform rectangular array.
-- Channel spacing is approximately 2.42 wavelengths horizontally and 4.83
-  wavelengths vertically at 77 GHz.
+- The corresponding subarray extents and densely packed channel spacings are
+  approximately 2.42 wavelengths horizontally and 4.83 wavelengths vertically
+  at 77 GHz.
 
-**Current model:**
+**Current first-cut design candidate:**
 
-- The 4 × 8 radiator aperture supplies the element/subarray pattern.
-- A steerable 4 × 2 array factor is applied on top of that pattern.
+- Each channel is an analytical, uniformly illuminated rectangular aperture.
+- The subarray width remains 9.41 mm (2.42 wavelengths), while its height is
+  reduced from 18.81 mm to 9.41 mm, making the subarray square.
+- The default 4 × 2 channel layout is packed without gaps, giving a complete RX
+  extent of 37.62 × 18.81 mm. The layout is parametrized and can instead be
+  changed to 2 × 4 or given explicit larger channel spacings. With square,
+  densely packed subarrays, 2 × 4 would rotate the RX footprint to 18.81 ×
+  37.62 mm and may reduce the required width of the combined TX/RX package.
+- The analytical aperture efficiency is 0.963. This is calibrated so that the
+  original 9.41 × 18.81 mm aperture reproduces the previous 21.50 dBi
+  32-radiator model; it is a modeling calibration, not a measured efficiency.
 - The ideal coherent gain of the eight RX channels remains in processing.
-- Effective boresight RX gain is approximately 30.5 dBi: 21.5 dBi subarray gain
-  plus `10 log10(8)` coherent gain.
-- Individual formed-beam 3 dB widths are approximately 5.2° in azimuth and
-  elevation.
+- The square subarray gain is approximately 18.5 dBi. Effective boresight RX
+  gain is approximately 27.5 dBi after `10 log10(8)` coherent gain.
+- With the 4 × 2 layout, an individual formed beam is approximately 5.2° wide
+  in azimuth and 10.5° in elevation.
+
+Swapping 4 × 2 to 2 × 4 does not change the principal-cell extents or the
+square-subarray envelope. It rotates the individual channel-array beamwidths
+and the small residual finite-grid scalloping between u and v; with sufficiently
+dense best-beam coverage, the resulting coverage envelope is effectively the
+same apart from that ripple.
 
 The RX channel-array steering vector is periodic in u and v. At 77 GHz the
-periods implied by the supplied channel spacings are approximately:
+periods with the square, densely packed subarrays are approximately:
 
 - 0.4140 in u.
-- 0.2070 in v.
+- 0.4140 in v.
 
 The boresight-centered fundamental steering cell therefore spans approximately
-`u = ±0.2070` and `v = ±0.1035`. In the principal azimuth and elevation cuts,
-these edges occur at approximately ±11.9° and ±5.9°, respectively. Steering to
-a point outside this cell exactly duplicates an array-factor steering vector
+`u = ±0.2070` and `v = ±0.2070`. In both principal cuts these edges occur at
+approximately ±11.9°, outside the TX half-power points at approximately ±6.25°.
+The TX principal-cut gain is about 11 dB below boresight at the new RX cell
+edges. Steering outside this cell duplicates an array-factor steering vector
 inside it, modulo an integer period. The complete RX gain does not repeat
-exactly because the 4 × 8 subarray element pattern still weights each replica.
+exactly because the subarray pattern still weights each replica.
 
-The current model forms 64 RX beams:
+The current model forms 128 RX beams:
 
-- An 8 × 4 primary grid covering one fundamental u/v cell.
-- A second 8 × 4 grid offset by half a cell in both u and v.
+- An 8 × 8 primary grid covering one fundamental u/v cell.
+- A second 8 × 8 grid offset by half a cell in both u and v.
 - Exact spacings of approximately 0.0517 in both u and v, corresponding to
   2.97° at boresight. The spacing divides each array-factor period into an
   integer number of cells, so the grid wraps without a seam.
@@ -167,18 +187,15 @@ The current model forms 64 RX beams:
 This is an optimistic envelope: it does not yet include multiple-testing Pfa,
 correlated beam noise, computational limits, or scheduling cost.
 
-The same 64-beam set is now used for every calculation. Its periodic aliases
+The same 128-beam set is used for every calculation. Its periodic aliases
 repeat its best array-factor sampling over the visible u/v disk. This removes
 the former distinction between the product and full-visible beam sets.
 
-The earlier 2305-beam grid was not made entirely of exact duplicates: its
-`sin(3°)` spacing did not divide the array-factor periods, so reducing all its
-points modulo those periods accidentally produced a much denser set of unique
-steering vectors. The new 64-beam result is therefore close to, but not exactly
-the same as, that near-continuous-steering result. In ±15° principal cuts, the
-largest observed reduction relative to the former grid is approximately 0.51
-dB RX gain / 2.9% range horizontally, 0.47 dB / 2.7% vertically, and 0.32 dB /
-1.8% diagonally. Boresight is unchanged.
+The earlier 2305-beam experiment remains useful historical context: because its
+`sin(3°)` spacing did not divide the array-factor periods, it accidentally
+provided a much denser set of unique steering vectors when reduced modulo the
+periods. It should not be compared numerically with the present result without
+also accounting for the changed subarray geometry.
 
 ## Range checkpoints
 
@@ -189,7 +206,8 @@ Pd=50%/90% and Pacq=50%/90% respectively.
 |---|---:|---:|
 | June config-3 placeholder model | 994 / 614 m | 1474 / 1372 m |
 | Proposed TX aperture, old RX placeholder | 859 / 531 m | 1264 / 1174 m |
-| Proposed TX and RX aperture models | 1114 / 688 m | 1662 / 1549 m |
+| Proposed TX and supplied-size RX aperture | 1114 / 688 m | 1662 / 1549 m |
+| Square RX subarray first-cut candidate | 937 / 578 m | 1384 / 1288 m |
 
 Adding multiple RX look directions does not change the boresight checkpoints;
 it changes off-boresight coverage.
@@ -198,30 +216,41 @@ it changes off-boresight coverage.
 
 ### RX beam spacing
 
-**Result:** Within one fundamental steering cell, the 64-beam interleaved RX
-grid has a worst sampled beam-straddling loss of approximately 0.70 dB. In a
-free-space radar equation this corresponds to approximately 3.9% range loss.
+**Result:** Within one fundamental steering cell, the 128-beam interleaved RX
+grid has a worst sampled beam-straddling loss of approximately 0.30 dB. In a
+free-space radar equation this corresponds to approximately 1.7% range loss.
 
 **Interpretation:** The chosen grid samples every distinct array-factor
 steering vector at the desired density. Adding nominal beam directions in
-neighboring cells would only duplicate these weights; 64 beams are sufficient
+neighboring cells would only duplicate these weights; 128 beams are sufficient
 to reproduce the same periodic best-beam array-factor envelope over all visible
 directions.
 
 ### RX angular ambiguity
 
-**Result:** The 4 × 2 channel array alone cannot distinguish directions that
-differ by integer multiples of 0.4140 in u or 0.2070 in v. A detection in an
+**Requirement:** RX ambiguities within the useful TX mainlobe are not
+acceptable. The simplest current design direction is to shrink the uniformly
+illuminated subarrays until the fundamental-cell edges lie outside the region
+where useful detections are expected.
+
+**Result:** The square-subarray channel array alone cannot distinguish
+directions that differ by integer multiples of 0.4140 in either u or v. A
+detection in an
 outer periodic replica has an exactly equivalent steering-vector direction in
 the fundamental cell in a single RX measurement.
 
-**Interpretation:** The subarray and TX patterns change detection strength but
-do not remove the channel-array ambiguity. If useful range performance is
-confined to the principal region, this may be acceptable operationally. If
-targets can be detected in a replicated region, resolving the direction would
-require information beyond this single narrowband channel-array measurement,
-such as a different physical baseline or frequency-dependent/multi-mode
-diversity. The current study does not model such disambiguation.
+**Interpretation:** Reducing the subarray height from 4.83 to 2.42 wavelengths
+moves the vertical principal-region edge from ±5.9° to ±11.9°. The current
+square candidate therefore puts both u and v edges well outside the TX 3 dB
+region. The subarray and TX patterns reduce detection strength in replicated
+regions but do not mathematically remove the channel-array ambiguity. Residual
+sidelobe detections at sufficiently short range remain a later problem.
+
+**Deferred design ideas:** An RCS-consistency test or a guard-channel response
+may eventually help identify detections likely to originate in an ambiguous
+sidelobe region. Neither approach is assumed in the current performance model,
+and the immediate task is only to keep principal-region aliases out of the
+useful mainlobe.
 
 ### Static directional Pd coverage
 
@@ -245,13 +274,13 @@ R_Pd(theta) = R_Pd(0) * 10**(
 
 **Results:**
 
-- The 64-beam grid leaves visible but modest inter-beam scalloping, repeated
+- The 128-beam grid leaves visible but modest inter-beam scalloping, repeated
   periodically across visible u/v space.
 - Explicitly steering additional beams outside the fundamental cell would not
   improve this envelope because those steering vectors are duplicates.
 - The effective best-beam RX envelope is the periodic array-factor ripple
-  weighted by the single-subarray pattern. Its narrower vertical pattern is a
-  limiting contribution.
+  weighted by the square single-subarray pattern. The former narrow vertical
+  subarray limitation has been removed in this first-cut candidate.
 - The remaining angular coverage restriction follows the TX and RX subarray
   patterns. Some close-range horizontal/vertical fine structure follows TX
   sidelobes.
@@ -267,101 +296,70 @@ Far-out sidelobes should not be treated as installed-antenna predictions because
 the TX radiator pattern is constant and coupling, radome, vehicle installation,
 polarization, clutter, and phase noise are absent.
 
-## Critical open question: physical TX excitation normalization
+## TX feed realization and remaining uncertainty
 
-### What the current interpretation says
+### Current design direction
 
-Treating `abs(w)**2` as radiator power and treating the apparent eight groups in
-the supplied material as the physical MMIC-channel subarrays, the supplied TX
-weights allocate power as follows:
+**Design expectation:** All eight MMIC TX ports operate at equal full power;
+there is no port backoff and the desired aperture taper must not be produced by
+dissipative attenuation. The antenna supplier will receive a specification of
+the desired excitation over the complete aperture and will perform the detailed
+feed and radiator design.
 
-| TX subarrays | Power per subarray | Share per subarray | Relative to equal 1/8 share |
-|---|---:|---:|---:|
-| Outer: 1, 4, 5, 8 | 2.135 | 3.89% | -5.07 dB |
-| Inner: 2, 3, 6, 7 | 11.583 | 21.11% | +2.28 dB |
+The main implementation direction is now:
 
-The inner four subarrays therefore carry 84.4% of the modeled aperture power;
-the outer four carry 15.6%. Each inner subarray has 7.34 dB more modeled power
-than each outer subarray.
+- Divide the TX aperture into four quadrants.
+- Partition each quadrant's prescribed excitation into two parts with equal
+  integrated power.
+- Feed those two parts from two independent full-power MMIC TX ports.
+- Use the passive antenna/feed geometry to distribute each port's power into
+  the required aperture field.
 
-### Design expectation to verify
+The supplied excitation table should therefore be treated as the desired
+whole-aperture distribution, not as authoritative physical eight-port
+subarray boundaries. In particular, the last column and the illustrated equal
+subapertures remain misleading if interpreted as the final feed partition.
 
-The MMIC is expected to deliver equal power to all eight TX channels, without
-TX backoff. The feed was described as redistributing power within each
-subarray, rather than achieving taper through attenuation.
+The current TX model is compatible with the intended total-power accounting:
+it normalizes the complete excitation pattern to fixed total aperture power and
+processing adds the power of eight equal active TX ports. It does not yet prove
+that the desired field can be partitioned into eight equal-power, independently
+fed, physically realizable regions without material feed loss or pattern error.
 
-Under an uncoupled, identical-radiator model, a lossless feed confined to one
-subarray can redistribute its radiator amplitudes but cannot change that
-subarray's total `sum(abs(w)**2)`. With the apparent grouping in column 6, the
-supplied globally tapered weights are therefore not directly compatible with
-eight independent, equal-power, lossless subarray feeds. If those labels are
-only conceptual and the physical partitions instead contain approximately
-equal integrated aperture power, this apparent incompatibility may disappear.
+### Alternative: combine pairs of MMIC ports
 
-Possible explanations—not conclusions—include:
+Combining two TX outputs and then feeding one quadrant was discussed with
+Infineon. The reported response was that they knew of no other implementation
+doing this, but expected that it would probably work. This is useful evidence
+that the idea is not obviously invalid, but it is not yet a sufficiently firm
+device-level commitment to make it a low-risk product direction.
 
-- The illustrated subaperture boundaries and/or grouping column are conceptual
-  rather than the actual feed geometry. The physical inner subapertures could be
-  narrower than the outer ones, with a boundary chosen near the 50% excitation
-  level so that equal channel powers produce the desired whole-aperture taper.
-- The excitation table was intended as a desired continuous distribution over
-  the complete TX aperture for the antenna supplier, not as a definition of the
-  physical subaperture geometry or channel mapping.
-- The outer subarray networks attenuate, dissipate, or reflect excess power.
-- Excess power is radiated into other directions, modes, or polarization.
-- Power can cross nominal subarray boundaries.
-- The table contains desired aperture-field weights rather than literal
-  radiator currents or feed voltages.
-- Mutual coupling or embedded element behavior invalidates the simple
-  `sum(abs(w)**2)` channel-power interpretation.
-- A per-subarray normalization factor is omitted from the table.
+This alternative also introduces substantial implementation work around port
+isolation, phase/amplitude balance, mismatch behavior, startup/shutdown states,
+load-pull/stability, thermal behavior, and qualification. It is therefore not
+the main direction at present, though the original correspondence and chipset
+documentation may still be worth reviewing if the split-quadrant solution
+proves impractical.
 
-If the inner channels define full available power and the outer channels follow
-the supplied relative levels, the desired aperture field uses the equivalent of
-approximately 4.74 full-power channels. Relative to eight full-power channels,
-that is a 2.28 dB implementation loss and approximately 12% range loss. This is
-only a diagnostic interpretation, not a product result.
+### Remaining questions
 
-Separately normalizing every subarray to equal power while retaining its
-internal relative weights gives an illustrative model with approximately:
+1. Can the antenna supplier partition each desired quadrant distribution into
+   two equal-power feeds while preserving the required complete-aperture field?
+2. What realized gain, feed loss, amplitude/phase tolerance, and pattern error
+   follow from that implementation?
+3. What are the actual port-to-aperture boundaries and phase centers? These are
+   needed before MMIC-port phase offsets can be modeled credibly for TX steering
+   or defocusing.
+4. Is Infineon's position on combining TX ports strong enough to support product
+   use, and under exactly what combiner, isolation, calibration, mismatch, and
+   operating constraints?
+5. Is the presentation's approximately 23.5 dBi value directivity, gain, or
+   realized gain, and what total input-power reference was used?
 
-- 22.83 dBi boresight gain using the same inferred radiator gain.
-- 14.95° horizontal 3 dB beamwidth.
-- 12.55° vertical 3 dB beamwidth.
-
-That aperture no longer has the globally supplied Taylor excitation, and the
-inferred radiator gain may not remain appropriate.
-
-### Questions for the antenna designer
-
-1. What exactly is column 5 of the `.mat` table: port voltage, radiator current,
-   field contribution, or a normalized desired excitation?
-2. Does the last column (column 6) represent the actual physical mapping from
-   radiators to MMIC channels, or only a conceptual subaperture grouping?
-3. Do the illustrated subaperture boundaries represent the actual physical
-   mapping from radiators to the eight MMIC channels?
-4. Are the inner physical subapertures narrower than the outer ones, perhaps
-   with boundaries chosen near the 50% excitation level?
-5. Was the table primarily intended to specify a desired excitation distribution
-   over the whole antenna to the antenna supplier rather than the physical feed
-   geometry?
-6. Are weights normalized globally or independently within each TX subarray?
-7. Is equal power delivered to and accepted by all eight subarray feed networks?
-8. Can power move between subarrays, or only within one subarray?
-9. How is the within-subarray amplitude taper physically produced?
-10. What happens to power that does not appear in the desired outer-subarray
-   aperture field?
-11. Does the antenna analysis include mutual coupling, feed loss, mismatch, and
-   radiation efficiency?
-12. Is the presentation's approximately 23.5 dBi value directivity, gain, or
-   realized gain, and what input-power reference was used?
-
-The actual radiator-to-channel geometry is required before TX-channel phase
-offsets can be modeled credibly for steering or defocusing. The apparent groups
-in the current files should not be used for that purpose without confirmation.
-
-No TX normalization change should be treated as authoritative until these
-questions are resolved.
+The previous calculation based on the apparent eight equal geometric groups
+gave very unequal group powers. That remains evidence that those labels should
+not be used as the physical port mapping; it is no longer the assumed product
+architecture.
 
 ## Possible TX and coverage directions
 
@@ -454,8 +452,8 @@ Before optimizing the antenna or schedule, clarify at least:
 - Whether short-range mode selection may assume an established track.
 - Maximum number of simultaneous tracks and scheduling/resource constraints.
 - Required waveform ambiguity limits and velocity coverage.
-- Acceptable angular-alias region and whether detections outside the RX
-  principal steering cell must be suppressed or disambiguated.
+- Quantitative outer boundary beyond which RX angular aliases are acceptable,
+  expressed in detection range/RCS as well as angle.
 - Acceptable loss of long-range boresight performance in exchange for angular
   coverage.
 - Practical number of RX beams and TX modes supported by signal processing.
@@ -464,14 +462,19 @@ Before optimizing the antenna or schedule, clarify at least:
 
 - TX gain is calibrated using an inferred constant radiator gain rather than a
   controlled realized-gain model.
-- TX power normalization does not enforce independent equal-power subarrays.
+- TX power normalization does not enforce or validate the intended partition
+  into two equal-power feeds per quadrant.
+- The RX subarray is an ideal continuous uniform aperture. Its efficiency is
+  calibrated from the earlier discrete model; feed loss, edge effects and
+  embedded radiator behavior are not modeled.
 - No mutual coupling, feed-network efficiency, mismatch, radome, or installed
   element patterns.
 - No phase noise or clutter.
 - Best-over-RX-beams detection ignores beam correlation and multiple-testing
   Pfa.
-- RX angle estimates are ambiguous between periodic channel-array replicas;
-  no disambiguation mechanism is modeled.
+- RX angle estimates remain ambiguous between periodic channel-array replicas;
+  the current square candidate moves the principal edges outside the TX 3 dB
+  mainlobe but does not model suppression or disambiguation of sidelobe returns.
 - Current Pacq is evaluated only for the inherited boresight radial approach.
 - Static directional coverage currently shows Pd only; Pacq requires an
   explicit trajectory and revisit schedule.
@@ -484,27 +487,34 @@ Before optimizing the antenna or schedule, clarify at least:
 No order is implied; requirements and the TX clarification should drive the
 choice.
 
-1. Clarify TX excitation normalization, feed topology, and the meaning of the
-   presentation gain with the antenna designer.
-2. Write a small set of acquisition and track-maintenance use cases and coverage
+1. Have the antenna supplier assess an equal-power two-feed partition of each
+   desired TX quadrant and provide realized-gain/pattern tolerances.
+2. Sweep RX subarray width and height against a quantitative allowable-alias
+   boundary; compare 4 × 2 and 2 × 4 packaging layouts.
+3. Write a small set of acquisition and track-maintenance use cases and coverage
    objectives.
-3. Decide whether the next analysis should focus on physical antenna tapering,
+4. Decide whether the next analysis should focus on physical antenna tapering,
    TX phase-mode feasibility, waveform/resource trades, or tracking metrics.
-4. If justified, introduce an explicit per-subarray TX model with independently
+5. If justified, introduce an explicit per-subarray TX model with independently
    represented internal weights, channel powers, and phase offsets.
-5. Derive an ideal TX pattern from one or more desired Cartesian coverage
+6. Derive an ideal TX pattern from one or more desired Cartesian coverage
    boundaries before optimizing physical weights.
-6. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
+7. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
    and revisit penalties.
-7. Add Pacq or track-maintenance coverage only after the relevant trajectory and
+8. Add Pacq or track-maintenance coverage only after the relevant trajectory and
    scheduling assumptions are defined.
+9. Once the Lannik Psi design settles, promote it to a reusable toolbox-level
+   preset while retaining this dated study as the rationale and reproducible
+   design history.
 
 ## Key generated figures
 
 - `pd_pacq_vs_range.png` — inherited boresight Pd/Pacq baseline.
+- `antenna_geometry_excitations.png` — modeled TX radiator amplitudes and
+  relative phases beside the RX subarray geometry and channel phase centers.
 - `tx_sum_beam_uv.png`, `tx_sum_beam_cuts.png` — proposed TX aperture.
 - `rx_boresight_beam_uv.png`, `rx_boresight_beam_cuts.png` — one RX beam.
-- `rx_multibeam_grid_uv.png` — 64-beam fundamental-cell grid and straddling
+- `rx_multibeam_grid_uv.png` — 128-beam fundamental-cell grid and straddling
   loss.
 - `rx_multibeam_max_uv.png`, `rx_multibeam_max_cuts.png` — best RX beam.
 - `two_way_multibeam_detail_uv.png` — detailed two-way pattern in the steering
@@ -516,7 +526,7 @@ choice.
 - `multibeam_pd90_range_cuts.png` — range scalloping relative to ideal continuous
   RX steering.
 - `pd_coverage_horizontal.png`, `pd_coverage_vertical.png`, and
-  `pd_coverage_diagonal.png` — static Pd coverage using the periodic 64-beam RX
+  `pd_coverage_diagonal.png` — static Pd coverage using the periodic 128-beam RX
   set. Dashed red lines mark the principal-region edges.
 
 ## Decision log
@@ -541,3 +551,12 @@ choice.
   grid: 8 × 4 samples of the fundamental steering cell plus an equally sized
   half-cell-offset grid. Added principal-region markers to multi-beam pattern,
   range, and coverage plots to expose the associated angular ambiguity.
+- **2026-09-03:** Clarified the main TX feed direction: specify the desired
+  whole-aperture field to the antenna supplier and split each quadrant into two
+  equal-power feeds, using all available power from all eight MMIC ports without
+  attenuation. Pairwise TX-port combining remains a higher-risk alternative.
+- **2026-09-03:** Made RX subarray extent, channel layout and optional spacings
+  explicit study parameters. Adopted a first-cut 2.42 × 2.42 wavelength square
+  subarray in a densely packed 4 × 2 layout, moving both principal-region edges
+  to ±11.9°. This produces a 128-beam periodic grid with the retained half-cell
+  offset.

@@ -32,9 +32,11 @@ Run a study from the repo root with the project venv, e.g.:
 - `2026-09-02_lannik-psi/` — Lannik Psi design study, carried forward from
   config 3 of the 2026-06-22 comparison. It retains the same closing-target
   evaluation scenario and now models the proposed tapered 16 x 16 TX aperture,
-  each uniform 4 x 8 RX subarray and a periodic 64-beam steering set for the
-  4 x 2 RX channel URA. The set samples one fundamental array-factor cell with
-  an 8 x 4 grid plus an equally sized half-cell-offset grid; it reproduces the
+  an analytical uniform rectangular RX subarray and a parametric eight-channel
+  RX URA. The current ambiguity-reduction candidate uses 2.42-wavelength square
+  subarrays in a densely packed 4 x 2 layout and a periodic 128-beam steering
+  set. The set samples one fundamental array-factor cell with an 8 x 8 grid plus
+  an equally sized half-cell-offset grid; it reproduces the
   best array-factor envelope throughout visible u/v space through periodic
   aliases. Static single-scan Pd coverage is shown in polar and Cartesian
   horizontal, vertical and diagonal cuts, with principal-region edges marked

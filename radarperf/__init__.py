@@ -36,6 +36,7 @@ from .antenna import (
     PatternUVAntenna,
     RectangularArrayAntenna,
     UniformArrayAntenna,
+    UniformRectangularApertureAntenna,
 )
 from .detection import (
     albersheim_required_snr_db,
@@ -105,6 +106,7 @@ __all__ = [
     "PatternUVAntenna",
     "RectangularArrayAntenna",
     "UniformArrayAntenna",
+    "UniformRectangularApertureAntenna",
     "ConstantRcsTarget",
     "AspectRcsTarget",
     "RcsTableTarget",

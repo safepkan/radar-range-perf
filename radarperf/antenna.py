@@ -9,6 +9,8 @@
   plot).
 * :class:`PatternUVAntenna` -- a full gain map over (azimuth, elevation),
   bilinearly interpolated, for when the complete pattern is available.
+* :class:`UniformRectangularApertureAntenna` -- the analytical sinc pattern of
+  a uniformly illuminated continuous rectangular aperture.
 * :class:`RectangularArrayAntenna` -- a uniformly spaced rectangular aperture
   with arbitrary complex element excitations. Its full 2-D array factor is
   evaluated from a zero-padded FFT.
@@ -93,6 +95,99 @@ class GaussianBeamAntenna:
         )
         gain = np.maximum(self.boresight_gain_dbi - roll_off, self.sidelobe_floor_dbi)
         return cast(FloatOrArray, gain)
+
+
+class UniformRectangularApertureAntenna:
+    """Uniformly illuminated continuous rectangular aperture.
+
+    Parameters
+    ----------
+    horizontal_extent_m, vertical_extent_m:
+        Physical aperture extents corresponding to direction cosines ``u``
+        (positive left) and ``v`` (positive up).
+    center_frequency_hz:
+        Frequency at which the pattern and directivity are evaluated.
+    aperture_efficiency:
+        Fraction of the ideal uniformly illuminated aperture directivity. The
+        boresight gain is ``efficiency * 4*pi*area/wavelength**2``.
+
+    The normalized power pattern is separable:
+    ``sinc(extent_u*u/wavelength)**2 * sinc(extent_v*v/wavelength)**2``, where
+    NumPy's normalized sinc convention is used. This is an ideal aperture
+    model; it does not include element patterns, coupling, edge effects or
+    scan-dependent embedded-element behavior.
+    """
+
+    def __init__(
+        self,
+        horizontal_extent_m: float,
+        vertical_extent_m: float,
+        *,
+        center_frequency_hz: float,
+        aperture_efficiency: float = 1.0,
+    ) -> None:
+        if not np.isfinite(horizontal_extent_m) or horizontal_extent_m <= 0.0:
+            raise ValueError("horizontal_extent_m must be finite and positive")
+        if not np.isfinite(vertical_extent_m) or vertical_extent_m <= 0.0:
+            raise ValueError("vertical_extent_m must be finite and positive")
+        if not np.isfinite(center_frequency_hz) or center_frequency_hz <= 0.0:
+            raise ValueError("center_frequency_hz must be finite and positive")
+        if (
+            not np.isfinite(aperture_efficiency)
+            or aperture_efficiency <= 0.0
+            or aperture_efficiency > 1.0
+        ):
+            raise ValueError("aperture_efficiency must be within (0, 1]")
+
+        self.horizontal_extent_m = float(horizontal_extent_m)
+        self.vertical_extent_m = float(vertical_extent_m)
+        self.center_frequency_hz = float(center_frequency_hz)
+        self.aperture_efficiency = float(aperture_efficiency)
+        self._wavelength_m = SPEED_OF_LIGHT / self.center_frequency_hz
+
+        directivity = (
+            self.aperture_efficiency
+            * 4.0
+            * np.pi
+            * self.horizontal_extent_m
+            * self.vertical_extent_m
+            / self._wavelength_m**2
+        )
+        self.boresight_gain_dbi = float(linear_to_db(directivity))
+        angles = np.linspace(-90.0, 90.0, 7201)
+        zeros = np.zeros_like(angles)
+        self.beamwidth_az_deg = _estimate_beamwidth(
+            angles, np.asarray(self.gain_dbi(angles, zeros), dtype=float)
+        )
+        self.beamwidth_el_deg = _estimate_beamwidth(
+            angles, np.asarray(self.gain_dbi(zeros, angles), dtype=float)
+        )
+
+    def gain_dbi_uv(self, u: FloatOrArray, v: FloatOrArray) -> FloatOrArray:
+        """Gain [dBi] at broadcastable direction cosines ``u`` and ``v``."""
+        u_array, v_array = np.broadcast_arrays(
+            np.asarray(u, dtype=float), np.asarray(v, dtype=float)
+        )
+        horizontal_voltage = np.sinc(
+            self.horizontal_extent_m * u_array / self._wavelength_m
+        )
+        vertical_voltage = np.sinc(
+            self.vertical_extent_m * v_array / self._wavelength_m
+        )
+        relative_power = (horizontal_voltage * vertical_voltage) ** 2
+        gain = self.boresight_gain_dbi + linear_to_db(
+            np.maximum(relative_power, 1.0e-30)
+        )
+        return float(gain) if gain.ndim == 0 else cast(FloatOrArray, gain)
+
+    def gain_dbi(
+        self, azimuth_deg: FloatOrArray, elevation_deg: FloatOrArray
+    ) -> FloatOrArray:
+        azimuth = np.radians(np.asarray(azimuth_deg, dtype=float))
+        elevation = np.radians(np.asarray(elevation_deg, dtype=float))
+        u = np.sin(azimuth) * np.cos(elevation)
+        v = np.sin(elevation)
+        return self.gain_dbi_uv(cast(FloatOrArray, u), cast(FloatOrArray, v))
 
 
 @dataclass(frozen=True)
