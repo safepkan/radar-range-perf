@@ -35,6 +35,8 @@ The immediate goals are to:
    and RX apertures and their directional behavior.
 3. Understand what limits useful coverage before optimizing antenna weights,
    waveforms, beam schedules, or tracking behavior.
+4. Determine whether track-directed MIMO can resolve RX channel-array aliases
+   well enough to retain the larger RX aperture and its gain.
 
 The study is still exploratory. Requirements, operating modes, angular coverage
 objectives, and acquisition-versus-tracking use cases are not yet sufficiently
@@ -54,6 +56,15 @@ Run the complete study from the repository root:
 ```text
 venv/bin/python studies/2026-09-02_lannik-psi/lannik_psi.py
 ```
+
+Run the separate idealized four-quadrant MIMO ambiguity experiment with:
+
+```text
+venv/bin/python studies/2026-09-02_lannik-psi/quadrant_mimo.py
+```
+
+Its architectural rationale, results and follow-up questions are maintained in
+the dedicated [`MIMO.md`](MIMO.md) note.
 
 Working figures are written to [`generated/`](generated/) and are intentionally
 not treated as reviewed deliverables.
@@ -136,7 +147,7 @@ giving 23.5 dBi after adding the inferred radiator gain. The principal-plane
   approximately 2.42 wavelengths horizontally and 4.83 wavelengths vertically
   at 77 GHz.
 
-**Current first-cut design candidate:**
+**Current computational baseline:**
 
 - Each channel is an analytical, uniformly illuminated rectangular aperture.
 - The subarray width remains 9.41 mm (2.42 wavelengths), while its height is
@@ -154,6 +165,12 @@ giving 23.5 dBi after adding the inferred radiator gain. The principal-plane
   gain is approximately 27.5 dBi after `10 log10(8)` coherent gain.
 - With the 4 × 2 layout, an individual formed beam is approximately 5.2° wide
   in azimuth and 10.5° in elevation.
+
+This square layout remains the configuration used by `lannik_psi.py`; it is no
+longer the only leading physical-design candidate. Preliminary interlaced-MIMO
+results make the supplied 2.42λ × 4.83λ rectangle and intermediate heights
+viable again because their aliases may be resolved in signal processing while
+retaining more RX aperture gain.
 
 Swapping 4 × 2 to 2 × 4 does not change the principal-cell extents or the
 square-subarray envelope. It rotates the individual channel-array beamwidths
@@ -228,29 +245,54 @@ directions.
 
 ### RX angular ambiguity
 
-**Requirement:** RX ambiguities within the useful TX mainlobe are not
-acceptable. The simplest current design direction is to shrink the uniformly
-illuminated subarrays until the fundamental-cell edges lie outside the region
-where useful detections are expected.
+**Requirement:** RX ambiguities within the useful detection region must either
+be prevented by antenna geometry or resolved with sufficient confidence before
+an unambiguous angle is published.
 
 **Result:** The square-subarray channel array alone cannot distinguish
-directions that differ by integer multiples of 0.4140 in either u or v. A
-detection in an
-outer periodic replica has an exactly equivalent steering-vector direction in
-the fundamental cell in a single RX measurement.
+directions that differ by integer multiples of 0.4140 in either u or v. In a
+single RX measurement, a detection in an outer periodic replica has an exactly
+equivalent steering-vector direction in the fundamental cell.
 
-**Interpretation:** Reducing the subarray height from 4.83 to 2.42 wavelengths
-moves the vertical principal-region edge from ±5.9° to ±11.9°. The current
-square candidate therefore puts both u and v edges well outside the TX 3 dB
-region. The subarray and TX patterns reduce detection strength in replicated
-regions but do not mathematically remove the channel-array ambiguity. Residual
-sidelobe detections at sufficiently short range remain a later problem.
+**Geometry-only option:** Reducing the subarray height from 4.83 to 2.42
+wavelengths moves the vertical principal-region edge from ±5.9° to ±11.9°.
+The current square candidate therefore puts both u and v edges well outside the
+TX 3 dB region. The subarray and TX patterns reduce detection strength in
+replicated regions but do not mathematically remove the channel-array
+ambiguity. Residual sidelobe detections at sufficiently short range remain a
+later problem.
 
-**Deferred design ideas:** An RCS-consistency test or a guard-channel response
-may eventually help identify detections likely to originate in an ambiguous
-sidelobe region. Neither approach is assumed in the current performance model,
-and the immediate task is only to keep principal-region aliases out of the
-useful mainlobe.
+**Signal-processing option:** Interlaced MIMO can distinguish periodic RX
+aliases through the complex TX-subaperture signatures. Gain/RCS plausibility,
+tracker priors and a guard-channel response may supply additional evidence.
+This option may permit the larger supplied-height RX subarrays to be retained.
+
+### MIMO-assisted ambiguity resolution
+
+**Current architectural option:** Retain coherent TX for sensitivity and use
+occasional four-quadrant MIMO measurements to resolve the discrete RX ambiguity
+cell. The tracker can maintain several hypotheses, accumulate evidence over
+multiple MIMO updates and apply the resolved cell to intervening coherent
+measurements.
+
+The initial ideal experiment is promising for both RX candidates. With the
+2.42λ square subarrays, 99% binary resolution at a principal edge reaches
+approximately 253/407/541 m after one/two/four MIMO updates. With the supplied
+2.42λ × 4.83λ rectangle, the corresponding nominal vertical-edge ranges are
+approximately 421/673/884 m, while retaining 3 dB more RX gain. The square is
+therefore still the main script's computational baseline, not a selected
+physical design; MIMO has reopened the supplied-height rectangle and
+intermediate heights as viable candidates.
+
+The experiment began by treating MIMO as an independent `Pfa=1e-6` detector
+with the existing waveform. A more natural product use is a track-directed
+ambiguity measurement with range/Doppler gating, soft cell likelihoods,
+adaptive scheduling and potentially a different waveform. Pattern/calibration
+tolerance and the complete set of aliases remain to be studied.
+
+See the dedicated [MIMO ambiguity-resolution note](MIMO.md) for the model,
+results, waveform and tracker ideas, calibration questions, eight-TX extension,
+figures and next steps.
 
 ### Static directional Pd coverage
 
@@ -411,8 +453,9 @@ w[c,n] = sqrt(P[c]) * a[c,n] * exp(j*phi[c])
 sum_n abs(a[c,n])**2 = 1
 ```
 
-This decomposition cannot be finalized until the physical meaning and
-normalization of the supplied TX excitations are clarified.
+This decomposition cannot be finalized until the antenna supplier defines the
+physical two-port partition inside each quadrant and supplies the resulting
+complex embedded subaperture patterns.
 
 ## Operating-mode and waveform ideas
 
@@ -426,6 +469,11 @@ These are open design directions, not current requirements.
   interlacing them.
 - Alternatively, cycling TX directions may trade CPI duration and coherent gain
   for angular coverage and revisit rate.
+- Interlaced MIMO may be scheduled sparsely, triggered as a short burst after an
+  ambiguous coherent detection, or run as a temporary track-directed mode.
+- A track-directed MIMO waveform can use a higher gated Pfa, longer illumination
+  and soft subthreshold likelihoods rather than acting as a second independent
+  full-search detector. See [`MIMO.md`](MIMO.md).
 - Halving range adds 12 dB before beamshape effects, equivalent to a factor of
   16 in coherent integration time. Some short-range margin could therefore fund
   shorter CPIs, more TX directions, faster revisit, or a broader TX pattern.
@@ -454,6 +502,10 @@ Before optimizing the antenna or schedule, clarify at least:
 - Required waveform ambiguity limits and velocity coverage.
 - Quantitative outer boundary beyond which RX angular aliases are acceptable,
   expressed in detection range/RCS as well as angle.
+- Maximum probability of publishing the wrong ambiguity cell and acceptable
+  time from first detection to a resolved angle.
+- Whether provisional ambiguous tracks may be retained or published, and what
+  posterior confidence is required for unambiguous publication.
 - Acceptable loss of long-range boresight performance in exchange for angular
   coverage.
 - Practical number of RX beams and TX modes supported by signal processing.
@@ -473,8 +525,10 @@ Before optimizing the antenna or schedule, clarify at least:
 - Best-over-RX-beams detection ignores beam correlation and multiple-testing
   Pfa.
 - RX angle estimates remain ambiguous between periodic channel-array replicas;
-  the current square candidate moves the principal edges outside the TX 3 dB
-  mainlobe but does not model suppression or disambiguation of sidelobe returns.
+  the main coherent-TX script moves the square baseline's principal edges
+  outside the TX 3 dB mainlobe but does not resolve sidelobe aliases.
+- The separate MIMO experiment remains idealized and binary. Its assumptions
+  and limitations are maintained in [`MIMO.md`](MIMO.md).
 - Current Pacq is evaluated only for the inherited boresight radial approach.
 - Static directional coverage currently shows Pd only; Pacq requires an
   explicit trajectory and revisit schedule.
@@ -489,21 +543,26 @@ choice.
 
 1. Have the antenna supplier assess an equal-power two-feed partition of each
    desired TX quadrant and provide realized-gain/pattern tolerances.
-2. Sweep RX subarray width and height against a quantitative allowable-alias
-   boundary; compare 4 × 2 and 2 × 4 packaging layouts.
-3. Write a small set of acquisition and track-maintenance use cases and coverage
-   objectives.
-4. Decide whether the next analysis should focus on physical antenna tapering,
-   TX phase-mode feasibility, waveform/resource trades, or tracking metrics.
-5. If justified, introduce an explicit per-subarray TX model with independently
+2. Select RX subarray height by comparing coherent coverage, MIMO resolution
+   robustness and packaging; retain 4 × 2 versus 2 × 4 as a mechanical choice.
+3. Write acquisition, track-maintenance and time-to-unambiguous-publication use
+   cases with an allowable wrong-cell probability.
+4. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
+   combine complex-signature correlation with gain/RCS plausibility and pattern
+   uncertainty; see [`MIMO.md`](MIMO.md).
+5. Once the physical eight-port split is available, compare coherent,
+   four-quadrant MIMO and eight-TX MIMO at equal power, time and processing cost.
+6. If justified, introduce an explicit per-subarray TX model with independently
    represented internal weights, channel powers, and phase offsets.
-6. Derive an ideal TX pattern from one or more desired Cartesian coverage
+7. Derive an ideal TX pattern from one or more desired Cartesian coverage
    boundaries before optimizing physical weights.
-7. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
+8. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
    and revisit penalties.
-8. Add Pacq or track-maintenance coverage only after the relevant trajectory and
-   scheduling assumptions are defined.
-9. Once the Lannik Psi design settles, promote it to a reusable toolbox-level
+9. Add joint acquisition, maintenance and ambiguity-resolution coverage once
+   the relevant trajectory, publication and scheduling assumptions are defined.
+10. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
+    tracker model and compare fixed, triggered and adaptive MIMO scheduling.
+11. Once the Lannik Psi design settles, promote it to a reusable toolbox-level
    preset while retaining this dated study as the rationale and reproducible
    design history.
 
@@ -528,6 +587,8 @@ choice.
 - `pd_coverage_horizontal.png`, `pd_coverage_vertical.png`, and
   `pd_coverage_diagonal.png` — static Pd coverage using the periodic 128-beam RX
   set. Dashed red lines mark the principal-region edges.
+- MIMO-specific figures are grouped under `generated/mimo/` and catalogued in
+  the dedicated [`MIMO.md`](MIMO.md) note.
 
 ## Decision log
 
@@ -560,3 +621,15 @@ choice.
   subarray in a densely packed 4 × 2 layout, moving both principal-region edges
   to ±11.9°. This produces a 128-beam periodic grid with the retained half-cell
   offset.
+- **2026-09-03:** Added a separate ideal four-quadrant orthogonal-MIMO
+  experiment. Exact prescribed quadrant patterns break many RX aliases, but
+  correlation remains strongly direction-dependent and reaches -3.14 dB for
+  opposite edges of the current square RX principal cell.
+- **2026-09-03:** Added ideal MIMO detection and binary ambiguity-resolution
+  range cuts for an illustrative one-in-four interlace. At a current-square
+  principal edge, 99% binary resolution reaches approximately 253, 407 and
+  541 m after one, two and four independent MIMO updates respectively.
+- **2026-09-03:** Swept RX height for the interlaced-MIMO case. The supplied
+  4.83λ height is highly favorable in the nominal model: its opposite vertical
+  edge signatures correlate by approximately -29.3 dB and reach 99% binary
+  resolution at approximately 421/673/884 m after one/two/four updates.

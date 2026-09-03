@@ -33,18 +33,25 @@ Run a study from the repo root with the project venv, e.g.:
   config 3 of the 2026-06-22 comparison. It retains the same closing-target
   evaluation scenario and now models the proposed tapered 16 x 16 TX aperture,
   an analytical uniform rectangular RX subarray and a parametric eight-channel
-  RX URA. The current ambiguity-reduction candidate uses 2.42-wavelength square
+  RX URA. The current coherent-study baseline uses 2.42-wavelength square
   subarrays in a densely packed 4 x 2 layout and a periodic 128-beam steering
-  set. The set samples one fundamental array-factor cell with an 8 x 8 grid plus
+  set. Interlaced-MIMO results have reopened the larger supplied-height
+  rectangle as a viable physical candidate. The beam set samples one
+  fundamental array-factor cell with an 8 x 8 grid plus
   an equally sized half-cell-offset grid; it reproduces the
   best array-factor envelope throughout visible u/v space through periodic
   aliases. Static single-scan Pd coverage is shown in polar and Cartesian
   horizontal, vertical and diagonal cuts, with principal-region edges marked
   to expose the resulting angular ambiguity. The supplied
   presentation, MATLAB loader and TX/RX aperture data are archived under the
-  study's `inputs/`. The living system-design record, conclusions and open
-  questions are maintained in
-  [`NOTES.md`](2026-09-02_lannik-psi/NOTES.md).
+  study's `inputs/`. A separate `quadrant_mimo.py` experiment evaluates how
+  well four ideal orthogonal TX-quadrant signatures distinguish the RX
+  grating-lobe aliases, compares coherent and MIMO detection range, and models
+  accumulation of binary ambiguity evidence in an illustrative interlaced
+  schedule without adding experimental architecture to the main coherent-TX
+  script. The living system-design record is maintained in
+  [`NOTES.md`](2026-09-02_lannik-psi/NOTES.md), with the MIMO investigation in
+  [`MIMO.md`](2026-09-02_lannik-psi/MIMO.md).
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions
