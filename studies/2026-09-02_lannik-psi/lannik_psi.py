@@ -31,16 +31,16 @@ Changes from the 2026-06-22 config-3 baseline
   with the fourth root of power).
 * RX antenna: the previous 17 dBi constant-gain channel placeholder has been
   replaced by an analytical uniform rectangular subarray pattern plus the
-  steered array factor of a parametric eight-channel URA. The current first-cut
-  design uses 2.42-lambda square subarrays in a densely packed 4 x 2 layout.
-  Ideal coherent combination of 8 RX channels remains in processing, giving
-  27.5 dBi effective boresight RX gain.
+  steered array factor of a parametric eight-channel URA. The baseline uses the
+  supplied 2.42 x 4.83-lambda rectangular subarrays in a densely packed 4 x 2
+  layout. Ideal coherent combination of 8 RX channels remains in processing,
+  giving 30.5 dBi effective boresight RX gain.
 * Front end, waveform and evaluation scenario: unchanged.
 * Boresight range checkpoints (Pd=50%/90%; Pacq=50%/90%): the June baseline was
   994/614 m and 1474/1372 m; after introducing only the TX aperture it was
-  859/531 m and 1264/1174 m; with the supplied-size RX subarrays it was 1114/688
-  m and 1662/1549 m; with the current square RX subarray candidate it is 937/578
-  m and 1384/1288 m. Adding multiple RX beams does not change those boresight
+  859/531 m and 1264/1174 m; with the current supplied-size RX subarrays it is
+  1114/688 m and 1662/1549 m. The 2.42-lambda square candidate gave 937/578 m
+  and 1384/1288 m. Adding multiple RX beams does not change those boresight
   checkpoints; it extends the modeled angular coverage. Extend this list when
   later model changes affect the result.
 
@@ -66,7 +66,7 @@ Modelling notes
   independently at each look direction. This is an optimistic upper bound:
   multiple-testing Pfa effects, correlated noise between beams and
   implementation limits are not yet modelled.
-* One 128-beam RX set is used throughout. It consists of an 8 x 8 grid sampling
+* One 64-beam RX set is used throughout. It consists of an 8 x 4 grid sampling
   the boresight-centered fundamental array-factor period plus an equally sized
   half-cell-offset grid. Because steering vectors repeat between periods, this
   set supplies the same best array-factor envelope throughout visible u/v
@@ -301,17 +301,22 @@ class Product:
     processing_note: str
 
 
-# First-cut ambiguity-reduction candidate: retain the original subarray width,
-# reduce its height to make it square, and retain the 4 x 2 channel layout.
-# Swapping the counts to 2 x 4 rotates the complete rectangular RX aperture but
-# leaves the principal region and subarray-limited envelope unchanged; it
-# rotates the individual beam widths and residual finite-grid scalloping.
-RX_LAYOUT = RxAntennaLayout(
+# Explicit alternatives retained for study comparisons. The supplied rectangle
+# is again the main baseline now that track-directed MIMO appears capable of
+# resolving its closer vertical aliases without giving up 3 dB of RX gain.
+RX_SUPPLIED_LAYOUT = RxAntennaLayout(
+    subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
+    subarray_height_m=RX_SOURCE_SUBARRAY_HEIGHT_M,
+    horizontal_count=4,
+    vertical_count=2,
+)
+RX_SQUARE_LAYOUT = RxAntennaLayout(
     subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
     subarray_height_m=RX_SOURCE_SUBARRAY_WIDTH_M,
     horizontal_count=4,
     vertical_count=2,
 )
+RX_LAYOUT = RX_SUPPLIED_LAYOUT
 
 
 def load_element_list(path: Path) -> npt.NDArray[np.complex128]:

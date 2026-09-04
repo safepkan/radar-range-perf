@@ -39,9 +39,10 @@ from lannik_psi import (
     DETECTION_LEVELS,
     PFA,
     RADIATOR_GAIN_DBI,
-    RX_LAYOUT,
+    RX_SQUARE_LAYOUT,
     RX_SOURCE_SUBARRAY_HEIGHT_M,
     RX_SOURCE_SUBARRAY_WIDTH_M,
+    RX_SUPPLIED_LAYOUT,
     TARGET,
     CoverageCut,
     RxAntennaLayout,
@@ -135,16 +136,8 @@ class RxHeightTrade:
 
 
 ALIAS_CASES = (
-    AliasCase(
-        "Supplied-height RX subarrays",
-        RxAntennaLayout(
-            subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
-            subarray_height_m=RX_SOURCE_SUBARRAY_HEIGHT_M,
-            horizontal_count=4,
-            vertical_count=2,
-        ),
-    ),
-    AliasCase("Current square RX subarrays", RX_LAYOUT),
+    AliasCase("Supplied-height RX subarrays", RX_SUPPLIED_LAYOUT),
+    AliasCase("Square RX subarrays", RX_SQUARE_LAYOUT),
 )
 
 
@@ -719,7 +712,7 @@ def plot_mimo_detection_range_cuts(cuts: tuple[MimoRangeCut, ...], path: Path) -
         ax.set_title(cut.definition.title)
         ax.set_xlabel("signed off-boresight angle [deg]")
         ax.set_xlim(-RANGE_CUT_LIMIT_DEG, RANGE_CUT_LIMIT_DEG)
-        ax.set_ylim(0.0, 1050.0)
+        ax.set_ylim(0.0, 1200.0)
         ax.grid(True, alpha=0.25)
     axes_array[0].set_ylabel("single-CPI detection range [m]")
     handles, labels = axes_array[0].get_legend_handles_labels()
@@ -732,7 +725,10 @@ def plot_mimo_detection_range_cuts(cuts: tuple[MimoRangeCut, ...], path: Path) -
         bbox_to_anchor=(0.5, 0.075),
     )
     figure_legend.get_frame().set_alpha(0.9)
-    fig.suptitle("Lannik Psi coherent-TX and ideal four-quadrant MIMO detection range")
+    fig.suptitle(
+        "Lannik Psi coherent-TX and ideal four-quadrant MIMO detection range\n"
+        "Supplied-height rectangular RX baseline"
+    )
     fig.text(
         0.5,
         0.018,
@@ -797,7 +793,7 @@ def plot_mimo_resolution_range_cuts(cuts: tuple[MimoRangeCut, ...], path: Path) 
                 ),
             )
         range_ax.set_title(cut.definition.title)
-        range_ax.set_ylim(0.0, 850.0)
+        range_ax.set_ylim(0.0, 1000.0)
         range_ax.grid(True, alpha=0.25)
         correlation_ax.plot(
             cut.angle_deg,
@@ -822,7 +818,8 @@ def plot_mimo_resolution_range_cuts(cuts: tuple[MimoRangeCut, ...], path: Path) 
     )
     figure_legend.get_frame().set_alpha(0.9)
     fig.suptitle(
-        "Ideal four-quadrant MIMO detection and binary ambiguity-resolution range"
+        "Ideal four-quadrant MIMO detection and binary ambiguity-resolution range\n"
+        "Supplied-height rectangular RX baseline"
     )
     fig.text(
         0.5,
@@ -968,7 +965,7 @@ def print_range_diagnostics(
     """Print boresight sensitivity and representative resolution ranges."""
     coherent_gain_db = float(tx_antenna.gain_dbi_uv(0.0, 0.0))
     mimo_gain_db = float(mimo_tx_gain_dbi(quadrants, np.asarray(0.0), np.asarray(0.0)))
-    print("\nInterlaced four-quadrant MIMO range model")
+    print("\nInterlaced four-quadrant MIMO range model (supplied-height RX)")
     print(
         f"  boresight MIMO sensitivity : {mimo_gain_db - coherent_gain_db:6.2f} "
         "dB vs coherent TX"
@@ -1000,17 +997,18 @@ def print_range_diagnostics(
             f"{AMBIGUITY_SUCCESS_PROBABILITY:.0%} binary resolution: "
             f"{ranges_text}"
         )
-    supplied_index = -1
-    supplied_ranges_text = ", ".join(
-        f"{count} update{'s' if count != 1 else ''}: " f"{ranges[supplied_index]:.0f} m"
+    square_index = 0
+    square_ranges_text = ", ".join(
+        f"{count} update{'s' if count != 1 else ''}: " f"{ranges[square_index]:.0f} m"
         for count, ranges in zip(
             MIMO_UPDATE_COUNTS, height_trade.ambiguity_ranges_m, strict=True
         )
     )
     print(
-        f"  supplied-height vertical edge ({height_trade.principal_edge_deg[-1]:.1f} "
-        f"deg, {height_trade.alias_correlation_db[-1]:.1f} dB): "
-        f"{supplied_ranges_text}"
+        f"  square comparison vertical edge "
+        f"({height_trade.principal_edge_deg[square_index]:.1f} deg, "
+        f"{height_trade.alias_correlation_db[square_index]:.1f} dB): "
+        f"{square_ranges_text}"
     )
 
 
@@ -1051,10 +1049,14 @@ def main() -> None:
         )
         for cut in COVERAGE_CUTS
     )
+    square_product = lannik_psi(RX_SQUARE_LAYOUT)
+    square_boresight_snr_db = square_product.radar.link_budget(
+        TARGET, Geometry(range_m=RANGE_REFERENCE_M)
+    ).snr_db
     height_trade = compute_rx_height_trade(
         tx_antenna,
         quadrants,
-        coherent_boresight_snr_db,
+        square_boresight_snr_db,
         detection_snr_db,
     )
     print_range_diagnostics(tx_antenna, quadrants, range_cuts, height_trade)

@@ -33,12 +33,12 @@ Run a study from the repo root with the project venv, e.g.:
   config 3 of the 2026-06-22 comparison. It retains the same closing-target
   evaluation scenario and now models the proposed tapered 16 x 16 TX aperture,
   an analytical uniform rectangular RX subarray and a parametric eight-channel
-  RX URA. The current coherent-study baseline uses 2.42-wavelength square
-  subarrays in a densely packed 4 x 2 layout and a periodic 128-beam steering
-  set. Interlaced-MIMO results have reopened the larger supplied-height
-  rectangle as a viable physical candidate. The beam set samples one
-  fundamental array-factor cell with an 8 x 8 grid plus
-  an equally sized half-cell-offset grid; it reproduces the
+  RX URA. The current coherent-study baseline again uses the supplied
+  2.42 x 4.83-wavelength rectangular subarrays in a densely packed 4 x 2
+  layout and a periodic 64-beam steering set. The square RX geometry remains
+  an explicit comparison candidate. The beam set samples one fundamental
+  array-factor cell with an 8 x 4 grid plus an equally sized half-cell-offset
+  grid; it reproduces the
   best array-factor envelope throughout visible u/v space through periodic
   aliases. Static single-scan Pd coverage is shown in polar and Cartesian
   horizontal, vertical and diagonal cuts, with principal-region edges marked

@@ -9,7 +9,7 @@ design document. It is deliberately not a transcript. Numerical configuration
 in [`lannik_psi.py`](lannik_psi.py) is authoritative when this document and the
 code differ.
 
-Last substantial update: 2026-09-03.
+Last substantial update: 2026-09-04.
 
 ## Status labels
 
@@ -35,12 +35,35 @@ The immediate goals are to:
    and RX apertures and their directional behavior.
 3. Understand what limits useful coverage before optimizing antenna weights,
    waveforms, beam schedules, or tracking behavior.
-4. Determine whether track-directed MIMO can resolve RX channel-array aliases
-   well enough to retain the larger RX aperture and its gain.
+4. Develop the track-directed MIMO approach needed to resolve RX channel-array
+   aliases while retaining as much RX aperture and gain as practical.
 
 The study is still exploratory. Requirements, operating modes, angular coverage
 objectives, and acquisition-versus-tracking use cases are not yet sufficiently
-defined to select an antenna or scheduling architecture.
+defined to finish the antenna or scheduling architecture. The broad direction
+is nevertheless established: the system design will rely on MIMO measurements
+to resolve the coherent-mode angular ambiguities.
+
+### End-of-week project status
+
+**Design direction, 2026-09-04:** The project is proceeding on the assumption
+that RX ambiguities will be resolved using the MIMO approach developed here.
+The present analysis establishes the broad feasibility and identifies the
+required architecture, but the waveform, calibration, processing, tracker,
+scheduling and confidence details remain design work rather than demonstrated
+product performance.
+
+Two antenna prototypes with different RX subarray dimensions are planned. The
+two geometries have not yet been selected and are expected to be decided early
+the following week. Until then, the supplied 2.42λ × 4.83λ rectangle remains a
+computational reference only; its use as the current script baseline does not
+identify it as either prototype choice.
+
+Once the dimensions are known, the study should gain a simple two-variant
+runner that produces directly comparable versions of the existing plots. The
+two selected antennas should also be promoted to toolbox-level presets with
+names that clearly identify them as the first Lannik Psi prototype antennas.
+There is no need to build that infrastructure before the choices are known.
 
 ## Sources and reproduction
 
@@ -150,61 +173,58 @@ giving 23.5 dBi after adding the inferred radiator gain. The principal-plane
 **Current computational baseline:**
 
 - Each channel is an analytical, uniformly illuminated rectangular aperture.
-- The subarray width remains 9.41 mm (2.42 wavelengths), while its height is
-  reduced from 18.81 mm to 9.41 mm, making the subarray square.
+- The supplied subarray width and height are retained: 9.41 × 18.81 mm, or
+  approximately 2.42 × 4.83 wavelengths.
 - The default 4 × 2 channel layout is packed without gaps, giving a complete RX
-  extent of 37.62 × 18.81 mm. The layout is parametrized and can instead be
-  changed to 2 × 4 or given explicit larger channel spacings. With square,
-  densely packed subarrays, 2 × 4 would rotate the RX footprint to 18.81 ×
-  37.62 mm and may reduce the required width of the combined TX/RX package.
+  extent of 37.62 × 37.62 mm. The layout is parametrized and can instead be
+  changed to 2 × 4 or given explicit larger channel spacings.
 - The analytical aperture efficiency is 0.963. This is calibrated so that the
   original 9.41 × 18.81 mm aperture reproduces the previous 21.50 dBi
   32-radiator model; it is a modeling calibration, not a measured efficiency.
 - The ideal coherent gain of the eight RX channels remains in processing.
-- The square subarray gain is approximately 18.5 dBi. Effective boresight RX
-  gain is approximately 27.5 dBi after `10 log10(8)` coherent gain.
+- The subarray gain is approximately 21.5 dBi. Effective boresight RX gain is
+  approximately 30.5 dBi after `10 log10(8)` coherent gain.
 - With the 4 × 2 layout, an individual formed beam is approximately 5.2° wide
-  in azimuth and 10.5° in elevation.
+  in both azimuth and elevation because the complete RX aperture is square.
 
-This square layout remains the configuration used by `lannik_psi.py`; it is no
-longer the only leading physical-design candidate. Preliminary interlaced-MIMO
-results make the supplied 2.42λ × 4.83λ rectangle and intermediate heights
-viable again because their aliases may be resolved in signal processing while
-retaining more RX aperture gain.
+The supplied rectangle is again the configuration used by `lannik_psi.py`.
+Preliminary interlaced-MIMO results suggest that its closer vertical aliases
+may be resolvable in signal processing, allowing the extra 3 dB of RX aperture
+gain to be retained. The 2.42λ square and intermediate heights remain explicit
+comparison candidates rather than discarded designs.
 
-Swapping 4 × 2 to 2 × 4 does not change the principal-cell extents or the
-square-subarray envelope. It rotates the individual channel-array beamwidths
-and the small residual finite-grid scalloping between u and v; with sufficiently
-dense best-beam coverage, the resulting coverage envelope is effectively the
-same apart from that ripple.
+Swapping 4 × 2 to 2 × 4 while retaining the same subarray orientation changes
+which phase-center spacing is repeated two or four times, but not the
+fundamental-cell extents or the single-subarray envelope. It rotates the
+individual channel-array beamwidths and residual finite-grid scalloping.
 
 The RX channel-array steering vector is periodic in u and v. At 77 GHz the
-periods with the square, densely packed subarrays are approximately:
+periods with the supplied, densely packed subarrays are approximately:
 
 - 0.4140 in u.
-- 0.4140 in v.
+- 0.2070 in v.
 
 The boresight-centered fundamental steering cell therefore spans approximately
-`u = ±0.2070` and `v = ±0.2070`. In both principal cuts these edges occur at
-approximately ±11.9°, outside the TX half-power points at approximately ±6.25°.
-The TX principal-cut gain is about 11 dB below boresight at the new RX cell
-edges. Steering outside this cell duplicates an array-factor steering vector
-inside it, modulo an integer period. The complete RX gain does not repeat
-exactly because the subarray pattern still weights each replica.
+`u = ±0.2070` and `v = ±0.1035`. The horizontal edge occurs at approximately
+±11.9° and the vertical edge at approximately ±5.9°. The latter is inside the
+TX half-power angle of approximately ±6.25°, which is why unresolved vertical
+aliases are a concern. Steering outside this cell duplicates an array-factor
+steering vector inside it, modulo an integer period. The complete RX gain does
+not repeat exactly because the subarray pattern still weights each replica.
 
-The current model forms 128 RX beams:
+The current model forms 64 RX beams:
 
-- An 8 × 8 primary grid covering one fundamental u/v cell.
-- A second 8 × 8 grid offset by half a cell in both u and v.
+- An 8 × 4 primary grid covering one fundamental u/v cell.
+- A second 8 × 4 grid offset by half a cell in both u and v.
 - Exact spacings of approximately 0.0517 in both u and v, corresponding to
-  2.97° at boresight. The spacing divides each array-factor period into an
+  2.97° at boresight. Each spacing divides its array-factor period into an
   integer number of cells, so the grid wraps without a seam.
 
 `MultiBeamUniformArrayAntenna` returns the best-gain beam at each direction.
 This is an optimistic envelope: it does not yet include multiple-testing Pfa,
 correlated beam noise, computational limits, or scheduling cost.
 
-The same 128-beam set is used for every calculation. Its periodic aliases
+The same 64-beam set is used for every calculation. Its periodic aliases
 repeat its best array-factor sampling over the visible u/v disk. This removes
 the former distinction between the product and full-visible beam sets.
 
@@ -223,7 +243,7 @@ Pd=50%/90% and Pacq=50%/90% respectively.
 |---|---:|---:|
 | June config-3 placeholder model | 994 / 614 m | 1474 / 1372 m |
 | Proposed TX aperture, old RX placeholder | 859 / 531 m | 1264 / 1174 m |
-| Proposed TX and supplied-size RX aperture | 1114 / 688 m | 1662 / 1549 m |
+| Proposed TX and supplied-size RX aperture (current) | 1114 / 688 m | 1662 / 1549 m |
 | Square RX subarray first-cut candidate | 937 / 578 m | 1384 / 1288 m |
 
 Adding multiple RX look directions does not change the boresight checkpoints;
@@ -233,13 +253,13 @@ it changes off-boresight coverage.
 
 ### RX beam spacing
 
-**Result:** Within one fundamental steering cell, the 128-beam interleaved RX
-grid has a worst sampled beam-straddling loss of approximately 0.30 dB. In a
-free-space radar equation this corresponds to approximately 1.7% range loss.
+**Result:** Within one fundamental steering cell, the 64-beam interleaved RX
+grid has a worst sampled beam-straddling loss of approximately 0.70 dB. In a
+free-space radar equation this corresponds to approximately 3.9% range loss.
 
 **Interpretation:** The chosen grid samples every distinct array-factor
 steering vector at the desired density. Adding nominal beam directions in
-neighboring cells would only duplicate these weights; 128 beams are sufficient
+neighboring cells would only duplicate these weights; 64 beams are sufficient
 to reproduce the same periodic best-beam array-factor envelope over all visible
 directions.
 
@@ -249,18 +269,18 @@ directions.
 be prevented by antenna geometry or resolved with sufficient confidence before
 an unambiguous angle is published.
 
-**Result:** The square-subarray channel array alone cannot distinguish
-directions that differ by integer multiples of 0.4140 in either u or v. In a
-single RX measurement, a detection in an outer periodic replica has an exactly
-equivalent steering-vector direction in the fundamental cell.
+**Result:** The supplied-rectangle channel array alone cannot distinguish
+directions that differ by integer multiples of 0.4140 in u or 0.2070 in v. In
+a single RX measurement, a detection in an outer periodic replica has an
+exactly equivalent steering-vector direction in the fundamental cell.
 
 **Geometry-only option:** Reducing the subarray height from 4.83 to 2.42
 wavelengths moves the vertical principal-region edge from ±5.9° to ±11.9°.
-The current square candidate therefore puts both u and v edges well outside the
-TX 3 dB region. The subarray and TX patterns reduce detection strength in
-replicated regions but do not mathematically remove the channel-array
-ambiguity. Residual sidelobe detections at sufficiently short range remain a
-later problem.
+That square candidate puts both u and v edges well outside the TX 3 dB region,
+at the cost of 3 dB boresight RX gain. The subarray and TX patterns reduce
+detection strength in replicated regions but do not mathematically remove the
+channel-array ambiguity. Residual sidelobe detections at sufficiently short
+range remain a later problem.
 
 **Signal-processing option:** Interlaced MIMO can distinguish periodic RX
 aliases through the complex TX-subaperture signatures. Gain/RCS plausibility,
@@ -280,9 +300,9 @@ The initial ideal experiment is promising for both RX candidates. With the
 approximately 253/407/541 m after one/two/four MIMO updates. With the supplied
 2.42λ × 4.83λ rectangle, the corresponding nominal vertical-edge ranges are
 approximately 421/673/884 m, while retaining 3 dB more RX gain. The square is
-therefore still the main script's computational baseline, not a selected
-physical design; MIMO has reopened the supplied-height rectangle and
-intermediate heights as viable candidates.
+therefore retained as a comparison rather than the main computational
+baseline; MIMO has reopened the supplied-height rectangle and intermediate
+heights as viable candidates.
 
 The experiment began by treating MIMO as an independent `Pfa=1e-6` detector
 with the existing waveform. A more natural product use is a track-directed
@@ -316,13 +336,13 @@ R_Pd(theta) = R_Pd(0) * 10**(
 
 **Results:**
 
-- The 128-beam grid leaves visible but modest inter-beam scalloping, repeated
+- The 64-beam grid leaves visible but modest inter-beam scalloping, repeated
   periodically across visible u/v space.
 - Explicitly steering additional beams outside the fundamental cell would not
   improve this envelope because those steering vectors are duplicates.
 - The effective best-beam RX envelope is the periodic array-factor ripple
-  weighted by the square single-subarray pattern. The former narrow vertical
-  subarray limitation has been removed in this first-cut candidate.
+  weighted by the rectangular single-subarray pattern. Its narrower vertical
+  pattern again limits vertical coverage relative to horizontal coverage.
 - The remaining angular coverage restriction follows the TX and RX subarray
   patterns. Some close-range horizontal/vertical fine structure follows TX
   sidelobes.
@@ -332,7 +352,8 @@ R_Pd(theta) = R_Pd(0) * 10**(
 
 **Conclusion:** Under the current assumptions, additional RX beam coverage is
 not the main lever for increasing short-range angular coverage. TX illumination
-is the dominant limitation.
+remains the dominant horizontal limitation, while the taller rectangular RX
+subarray materially narrows vertical coverage.
 
 Far-out sidelobes should not be treated as installed-antenna predictions because
 the TX radiator pattern is constant and coupling, radome, vehicle installation,
@@ -525,8 +546,8 @@ Before optimizing the antenna or schedule, clarify at least:
 - Best-over-RX-beams detection ignores beam correlation and multiple-testing
   Pfa.
 - RX angle estimates remain ambiguous between periodic channel-array replicas;
-  the main coherent-TX script moves the square baseline's principal edges
-  outside the TX 3 dB mainlobe but does not resolve sidelobe aliases.
+  the supplied rectangle's vertical principal edges lie near the TX 3 dB
+  mainlobe boundary. The main coherent-TX script does not resolve these aliases.
 - The separate MIMO experiment remains idealized and binary. Its assumptions
   and limitations are maintained in [`MIMO.md`](MIMO.md).
 - Current Pacq is evaluated only for the inherited boresight radial approach.
@@ -543,28 +564,31 @@ choice.
 
 1. Have the antenna supplier assess an equal-power two-feed partition of each
    desired TX quadrant and provide realized-gain/pattern tolerances.
-2. Select RX subarray height by comparing coherent coverage, MIMO resolution
-   robustness and packaging; retain 4 × 2 versus 2 × 4 as a mechanical choice.
-3. Write acquisition, track-maintenance and time-to-unambiguous-publication use
+2. Select the two prototype RX subarray geometries by comparing coherent
+   coverage, MIMO resolution robustness and packaging; retain 4 × 2 versus
+   2 × 4 as a mechanical choice.
+3. Once selected, add a simple study runner for both prototype variants and
+   promote them to clearly named toolbox-level Lannik Psi prototype presets.
+4. Write acquisition, track-maintenance and time-to-unambiguous-publication use
    cases with an allowable wrong-cell probability.
-4. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
+5. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
    combine complex-signature correlation with gain/RCS plausibility and pattern
    uncertainty; see [`MIMO.md`](MIMO.md).
-5. Once the physical eight-port split is available, compare coherent,
+6. Once the physical eight-port split is available, compare coherent,
    four-quadrant MIMO and eight-TX MIMO at equal power, time and processing cost.
-6. If justified, introduce an explicit per-subarray TX model with independently
+7. If justified, introduce an explicit per-subarray TX model with independently
    represented internal weights, channel powers, and phase offsets.
-7. Derive an ideal TX pattern from one or more desired Cartesian coverage
+8. Derive an ideal TX pattern from one or more desired Cartesian coverage
    boundaries before optimizing physical weights.
-8. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
+9. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
    and revisit penalties.
-9. Add joint acquisition, maintenance and ambiguity-resolution coverage once
+10. Add joint acquisition, maintenance and ambiguity-resolution coverage once
    the relevant trajectory, publication and scheduling assumptions are defined.
-10. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
+11. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
     tracker model and compare fixed, triggered and adaptive MIMO scheduling.
-11. Once the Lannik Psi design settles, promote it to a reusable toolbox-level
-   preset while retaining this dated study as the rationale and reproducible
-   design history.
+12. Once the Lannik Psi product design settles, promote the final configuration
+    to a reusable toolbox-level preset while retaining this dated study as the
+    rationale and reproducible design history.
 
 ## Key generated figures
 
@@ -573,7 +597,7 @@ choice.
   relative phases beside the RX subarray geometry and channel phase centers.
 - `tx_sum_beam_uv.png`, `tx_sum_beam_cuts.png` — proposed TX aperture.
 - `rx_boresight_beam_uv.png`, `rx_boresight_beam_cuts.png` — one RX beam.
-- `rx_multibeam_grid_uv.png` — 128-beam fundamental-cell grid and straddling
+- `rx_multibeam_grid_uv.png` — 64-beam fundamental-cell grid and straddling
   loss.
 - `rx_multibeam_max_uv.png`, `rx_multibeam_max_cuts.png` — best RX beam.
 - `two_way_multibeam_detail_uv.png` — detailed two-way pattern in the steering
@@ -585,7 +609,7 @@ choice.
 - `multibeam_pd90_range_cuts.png` — range scalloping relative to ideal continuous
   RX steering.
 - `pd_coverage_horizontal.png`, `pd_coverage_vertical.png`, and
-  `pd_coverage_diagonal.png` — static Pd coverage using the periodic 128-beam RX
+  `pd_coverage_diagonal.png` — static Pd coverage using the periodic 64-beam RX
   set. Dashed red lines mark the principal-region edges.
 - MIMO-specific figures are grouped under `generated/mimo/` and catalogued in
   the dedicated [`MIMO.md`](MIMO.md) note.
@@ -624,12 +648,22 @@ choice.
 - **2026-09-03:** Added a separate ideal four-quadrant orthogonal-MIMO
   experiment. Exact prescribed quadrant patterns break many RX aliases, but
   correlation remains strongly direction-dependent and reaches -3.14 dB for
-  opposite edges of the current square RX principal cell.
+  opposite edges of the then-current square RX principal cell.
 - **2026-09-03:** Added ideal MIMO detection and binary ambiguity-resolution
-  range cuts for an illustrative one-in-four interlace. At a current-square
+  range cuts for an illustrative one-in-four interlace. At a square-RX
   principal edge, 99% binary resolution reaches approximately 253, 407 and
   541 m after one, two and four independent MIMO updates respectively.
 - **2026-09-03:** Swept RX height for the interlaced-MIMO case. The supplied
   4.83λ height is highly favorable in the nominal model: its opposite vertical
   edge signatures correlate by approximately -29.3 dB and reach 99% binary
   resolution at approximately 421/673/884 m after one/two/four updates.
+- **2026-09-04:** Restored the supplied 2.42 × 4.83λ rectangular RX subarray as
+  the main coherent-study baseline because preliminary track-directed MIMO may
+  resolve its vertical aliases while retaining 3 dB more boresight RX gain.
+  The periodic beam set is consequently 8 × 4 plus its half-cell-offset copy,
+  or 64 beams total. The square geometry remains an explicit comparison.
+- **2026-09-04:** Adopted MIMO-assisted ambiguity resolution as the broad system
+  direction. Planned two antenna prototypes with different, not-yet-selected RX
+  subarray dimensions. Once chosen, both will be supported as comparable study
+  variants and named toolbox-level presets for the first Lannik Psi prototype
+  antennas.

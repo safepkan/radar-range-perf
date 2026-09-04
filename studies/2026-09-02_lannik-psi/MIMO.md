@@ -9,7 +9,7 @@ The results here are early feasibility results, not a selected architecture.
 They nevertheless indicate that interlaced MIMO is a promising way to retain a
 larger RX aperture without accepting unresolved channel-array ambiguities.
 
-Last substantial update: 2026-09-03.
+Last substantial update: 2026-09-04.
 
 ## Motivation and current conclusion
 
@@ -31,6 +31,17 @@ surprisingly, the nominal results also make the original 2.42λ × 4.83λ RX
 rectangle viable: its troublesome vertical boundary has particularly strong
 TX-quadrant discrimination and retains 3 dB more RX gain. This result needs a
 pattern/calibration tolerance study before it can drive the physical design.
+The supplied rectangle is therefore again the main coherent-study baseline as
+of 2026-09-04; the square remains an explicit comparison candidate.
+
+**Project status, 2026-09-04:** MIMO-assisted ambiguity resolution is now the
+intended broad system direction rather than merely an optional alternative.
+This is a decision to develop the concept, not a claim that the remaining
+waveform, calibration, processing, tracking and confidence problems are
+solved. Two antenna prototypes with different RX subarray dimensions are
+planned; their exact geometries remain undecided. Once selected, both should be
+run through this study and represented by clearly named Lannik Psi prototype
+antenna presets.
 
 ## Mode and virtual-array model
 
@@ -124,7 +135,14 @@ detector. It uses the main study's 1 m² Swerling-1 target, `Pfa=1e-6`, the same
 full-length 1024-sample × 512-chirp CPI, unchanged total eight-port TX power,
 ideal coherent RX and resolved-TX processing, and no MIMO implementation loss.
 
-For the current square RX baseline at boresight:
+For the current supplied rectangular RX baseline at boresight:
+
+| Mode | Pd=50% | Pd=90% |
+|---|---:|---:|
+| Coherent TX | 1115 m | 688 m |
+| Four-quadrant MIMO | 788 m | 487 m |
+
+For the 2.42λ square RX comparison at boresight:
 
 | Mode | Pd=50% | Pd=90% |
 |---|---:|---:|
@@ -149,7 +167,7 @@ complex target amplitudes. Noise and Swerling-1 amplitude are independent
 between MIMO updates; projection-energy evidence is accumulated without
 coherent phase integration between CPIs.
 
-For the current 2.42λ square RX boundary, where `rho` is approximately -3.14
+For the 2.42λ square RX boundary, where `rho` is approximately -3.14
 dB, the modeled ranges for a 99% correct binary decision are:
 
 | MIMO updates | 99% resolution range |
@@ -354,9 +372,10 @@ MIMO figures are written under [`generated/mimo/`](generated/mimo/):
 
 - `quadrant_mimo_alias_correlation.png` — folded-alias correlation for the
   square and supplied-height RX geometries.
-- `mimo_detection_range_cuts.png` — coherent and four-quadrant MIMO Pd range.
-- `mimo_ambiguity_resolution_range_cuts.png` — square-RX detection and 99%
-  binary resolution after one, two and four MIMO updates.
+- `mimo_detection_range_cuts.png` — coherent and four-quadrant MIMO Pd range
+  for the supplied rectangular RX baseline.
+- `mimo_ambiguity_resolution_range_cuts.png` — supplied-rectangle detection
+  and 99% binary resolution after one, two and four MIMO updates.
 - `mimo_rx_height_trade.png` — vertical-edge performance from square to
   supplied RX height.
 
