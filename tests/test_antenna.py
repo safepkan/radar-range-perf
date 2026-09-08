@@ -92,6 +92,64 @@ def test_rectangular_array_uniform_boresight_gain() -> None:
     assert antenna_model.gain_dbi(90.0, 0.0) < -200.0
 
 
+@pytest.mark.parametrize("plane", ["azimuth", "elevation"])
+@pytest.mark.parametrize("spacing_m", [1.0, 1.2])
+def test_rectangular_array_beamwidth_excludes_grating_lobes(
+    plane: str, spacing_m: float
+) -> None:
+    horizontal_count, vertical_count = (8, 2) if plane == "azimuth" else (2, 8)
+    horizontal_spacing, vertical_spacing = (
+        (spacing_m, 0.5) if plane == "azimuth" else (0.5, spacing_m)
+    )
+    array = RectangularArrayAntenna(
+        np.arange(horizontal_count) * horizontal_spacing,
+        np.arange(vertical_count) * vertical_spacing,
+        np.ones((horizontal_count, vertical_count)),
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=2048,
+    )
+    reference = UniformArrayAntenna(
+        antenna.ConstantGainAntenna(0.0),
+        horizontal_count=horizontal_count,
+        vertical_count=vertical_count,
+        horizontal_spacing_m=horizontal_spacing,
+        vertical_spacing_m=vertical_spacing,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    # At one wavelength, equally high replicas occur at the cut endpoints.
+    # Select the boresight lobe, not an endpoint lobe or the span across lobes.
+    if plane == "azimuth":
+        width = array.beamwidth_az_deg
+        expected_width = reference.beamwidth_az_deg
+    else:
+        width = array.beamwidth_el_deg
+        expected_width = reference.beamwidth_el_deg
+    assert 4.0 < width < 8.0
+    assert width == pytest.approx(expected_width, abs=0.05)
+
+
+def test_rectangular_array_beamwidth_follows_phase_steered_peak() -> None:
+    horizontal = np.arange(8) * 0.5
+    weights = np.broadcast_to(np.exp(2.0j * np.pi * horizontal[:, None] * 0.5), (8, 2))
+    array = RectangularArrayAntenna(
+        horizontal,
+        [0.0, 0.5],
+        weights,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=2048,
+    )
+    reference = UniformArrayAntenna(
+        antenna.ConstantGainAntenna(0.0),
+        horizontal_count=8,
+        vertical_count=2,
+        horizontal_spacing_m=0.5,
+        vertical_spacing_m=0.5,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        steering_azimuth_deg=30.0,
+    )
+    assert array.beamwidth_az_deg == pytest.approx(reference.beamwidth_az_deg, abs=0.05)
+
+
 def test_rectangular_array_fft_matches_direct_array_factor() -> None:
     horizontal = np.array([-0.75, -0.25, 0.25, 0.75])
     vertical = np.array([-0.25, 0.25])

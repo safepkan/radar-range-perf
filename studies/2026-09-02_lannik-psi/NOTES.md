@@ -355,11 +355,12 @@ correlations without changing the main range baseline.
 
 ### MIMO-assisted ambiguity resolution
 
-**Current architectural option:** Retain coherent TX for sensitivity and use
+**Selected broad system direction:** Retain coherent TX for sensitivity and use
 occasional four-quadrant MIMO measurements to resolve the discrete RX ambiguity
 cell. The tracker can maintain several hypotheses, accumulate evidence over
 multiple MIMO updates and apply the resolved cell to intervening coherent
-measurements.
+measurements. The detailed implementation and achievable performance remain
+to be validated.
 
 The initial ideal experiment is promising for both RX candidates. With the
 2.42λ square subarrays, 99% binary resolution at a principal edge reaches

@@ -353,6 +353,10 @@ class RectangularArrayAntenna:
     periodic result when evaluating visible direction cosines outside the
     principal FFT interval, which is needed when element spacing exceeds half
     a wavelength.
+
+    Beamwidths describe the contiguous 3 dB lobe around the strongest sampled
+    peak in each principal cut, not the span across separate grating lobes.
+    Equal-height peaks are resolved by choosing the one closest to boresight.
     """
 
     def __init__(
@@ -408,10 +412,10 @@ class RectangularArrayAntenna:
         )
         angles = np.linspace(-90.0, 90.0, 7201)
         zeros = np.zeros_like(angles)
-        self.beamwidth_az_deg = _estimate_beamwidth(
+        self.beamwidth_az_deg = _estimate_main_lobe_beamwidth(
             angles, np.asarray(self.gain_dbi(angles, zeros), dtype=float)
         )
-        self.beamwidth_el_deg = _estimate_beamwidth(
+        self.beamwidth_el_deg = _estimate_main_lobe_beamwidth(
             angles, np.asarray(self.gain_dbi(zeros, angles), dtype=float)
         )
 
@@ -878,11 +882,25 @@ def _validate_uniform_axis(axis: npt.NDArray[np.float64], name: str) -> None:
 def _estimate_main_lobe_beamwidth(
     angles_deg: npt.NDArray[np.float64],
     gain_db: npt.NDArray[np.float64],
-    center_deg: float,
+    center_deg: float | None = None,
 ) -> float:
-    """3 dB width of the contiguous lobe containing ``center_deg``."""
-    above = gain_db >= gain_db.max() - 3.0
-    center_index = int(np.argmin(np.abs(angles_deg - center_deg)))
+    """Contiguous, peak-relative 3 dB width at a chosen angle or the cut peak.
+
+    Without ``center_deg``, choose the strongest peak; break numerical ties
+    by proximity to boresight. With a center, return NaN if it is below the
+    cut's peak-relative 3 dB threshold.
+    """
+    peak_gain_db = gain_db.max()
+    above = gain_db >= peak_gain_db - 3.0
+    if center_deg is None:
+        peak_indices = np.flatnonzero(
+            np.isclose(gain_db, peak_gain_db, rtol=0.0, atol=1.0e-12)
+        )
+        if peak_indices.size == 0:
+            return float("nan")
+        center_index = int(peak_indices[np.argmin(np.abs(angles_deg[peak_indices]))])
+    else:
+        center_index = int(np.argmin(np.abs(angles_deg - center_deg)))
     if not above[center_index]:
         return float("nan")
     left = center_index

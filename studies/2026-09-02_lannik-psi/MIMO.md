@@ -5,9 +5,11 @@ separate from the [main system-design notes](NOTES.md) and the main coherent-TX
 study. Refer to those notes for the product scenario, antenna baseline, TX feed
 realization, general coverage results and requirements context.
 
-The results here are early feasibility results, not a selected architecture.
-They nevertheless indicate that interlaced MIMO is a promising way to retain a
-larger RX aperture without accepting unresolved channel-array ambiguities.
+MIMO-assisted ambiguity resolution is the selected broad system direction.
+The results here remain early feasibility results: the detailed implementation
+and achievable performance have not yet been validated. They indicate a
+promising way to retain a larger RX aperture without accepting unresolved
+channel-array ambiguities.
 
 Last substantial update: 2026-09-08.
 
