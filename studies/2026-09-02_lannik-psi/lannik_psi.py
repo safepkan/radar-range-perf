@@ -202,6 +202,7 @@ class RxAntennaLayout:
     vertical_count: int
     horizontal_spacing_m: float | None = None
     vertical_spacing_m: float | None = None
+    vertical_offsets_by_horizontal_m: tuple[float, ...] | None = None
 
     def __post_init__(self) -> None:
         for name, extent_m in (
@@ -232,6 +233,14 @@ class RxAntennaLayout:
                 not np.isfinite(spacing_m) or spacing_m < extent_m
             ):
                 raise ValueError(f"{name} must be finite and at least the extent")
+        if self.vertical_offsets_by_horizontal_m is not None:
+            if len(self.vertical_offsets_by_horizontal_m) != self.horizontal_count:
+                raise ValueError(
+                    "vertical_offsets_by_horizontal_m must contain one offset "
+                    "per horizontal channel position"
+                )
+            if not bool(np.all(np.isfinite(self.vertical_offsets_by_horizontal_m))):
+                raise ValueError("vertical_offsets_by_horizontal_m must be finite")
 
     @property
     def channel_horizontal_spacing_m(self) -> float:
@@ -253,20 +262,41 @@ class RxAntennaLayout:
         return self.horizontal_count * self.vertical_count
 
     @property
+    def channel_center_positions_m(
+        self,
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        """Return flattened horizontal and vertical channel phase centers."""
+        horizontal_axis = (
+            np.arange(self.horizontal_count, dtype=float)
+            - 0.5 * (self.horizontal_count - 1)
+        ) * self.channel_horizontal_spacing_m
+        vertical_axis = (
+            np.arange(self.vertical_count, dtype=float)
+            - 0.5 * (self.vertical_count - 1)
+        ) * self.channel_vertical_spacing_m
+        horizontal, vertical = np.meshgrid(
+            horizontal_axis, vertical_axis, indexing="ij"
+        )
+        if self.vertical_offsets_by_horizontal_m is not None:
+            vertical += np.asarray(self.vertical_offsets_by_horizontal_m, dtype=float)[
+                :, None
+            ]
+        return (
+            np.asarray(horizontal.ravel(), dtype=float),
+            np.asarray(vertical.ravel(), dtype=float),
+        )
+
+    @property
     def overall_width_m(self) -> float:
         """Edge-to-edge width of the complete RX aperture."""
-        return (
-            self.subarray_width_m
-            + (self.horizontal_count - 1) * self.channel_horizontal_spacing_m
-        )
+        horizontal, _ = self.channel_center_positions_m
+        return float(np.ptp(horizontal) + self.subarray_width_m)
 
     @property
     def overall_height_m(self) -> float:
         """Edge-to-edge height of the complete RX aperture."""
-        return (
-            self.subarray_height_m
-            + (self.vertical_count - 1) * self.channel_vertical_spacing_m
-        )
+        _, vertical = self.channel_center_positions_m
+        return float(np.ptp(vertical) + self.subarray_height_m)
 
 
 @dataclass(frozen=True)
@@ -313,8 +343,24 @@ RX_SUPPLIED_LAYOUT = RxAntennaLayout(
 RX_SQUARE_LAYOUT = RxAntennaLayout(
     subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
     subarray_height_m=RX_SOURCE_SUBARRAY_WIDTH_M,
+    horizontal_count=2,
+    vertical_count=4,
+)
+# Provisional supplier concept: alternate the vertical position of adjacent
+# two-channel columns. The difference between the two column positions is one
+# eighth of the rectangular subarray height; symmetric offsets keep the whole
+# layout centered without affecting its array-factor power.
+RX_EXPERIMENTAL_STAGGERED_LAYOUT = RxAntennaLayout(
+    subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
+    subarray_height_m=RX_SOURCE_SUBARRAY_HEIGHT_M,
     horizontal_count=4,
     vertical_count=2,
+    vertical_offsets_by_horizontal_m=(
+        RX_SOURCE_SUBARRAY_HEIGHT_M / 16.0,
+        -RX_SOURCE_SUBARRAY_HEIGHT_M / 16.0,
+        RX_SOURCE_SUBARRAY_HEIGHT_M / 16.0,
+        -RX_SOURCE_SUBARRAY_HEIGHT_M / 16.0,
+    ),
 )
 RX_LAYOUT = RX_SUPPLIED_LAYOUT
 
@@ -359,6 +405,11 @@ def build_rx_antenna(layout: RxAntennaLayout) -> UniformArrayAntenna:
     """Build the analytical uniform subarray and boresight channel URA."""
     if layout.channel_count != 8:
         raise ValueError("Lannik Psi RX layout must contain eight channels")
+    if layout.vertical_offsets_by_horizontal_m is not None:
+        raise ValueError(
+            "the main range model does not yet support staggered RX phase centers; "
+            "use rx_layout_experiment.py for the provisional layout analysis"
+        )
     subarray = UniformRectangularApertureAntenna(
         layout.subarray_width_m,
         layout.subarray_height_m,

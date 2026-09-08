@@ -51,7 +51,11 @@ Run a study from the repo root with the project venv, e.g.:
   schedule without adding experimental architecture to the main coherent-TX
   script. The living system-design record is maintained in
   [`NOTES.md`](2026-09-02_lannik-psi/NOTES.md), with the MIMO investigation in
-  [`MIMO.md`](2026-09-02_lannik-psi/MIMO.md).
+  [`MIMO.md`](2026-09-02_lannik-psi/MIMO.md). The separate experimental
+  `rx_layout_experiment.py` script shows the likely fixed rotated-square
+  geometry and focuses the active electrical trade on staggered versus
+  unstaggered rectangular RX phase-center layouts, without changing the main
+  range baseline.
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions

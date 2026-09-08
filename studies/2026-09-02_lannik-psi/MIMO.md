@@ -9,7 +9,7 @@ The results here are early feasibility results, not a selected architecture.
 They nevertheless indicate that interlaced MIMO is a promising way to retain a
 larger RX aperture without accepting unresolved channel-array ambiguities.
 
-Last substantial update: 2026-09-04.
+Last substantial update: 2026-09-08.
 
 ## Motivation and current conclusion
 
@@ -42,6 +42,19 @@ solved. Two antenna prototypes with different RX subarray dimensions are
 planned; their exact geometries remain undecided. Once selected, both should be
 run through this study and represented by clearly named Lannik Psi prototype
 antenna presets.
+
+Two provisional layouts were received on 2026-09-08. The square-subarray
+candidate is now oriented as a 2 × 4 channel array and appears likely to be
+fixed. The active second-prototype comparison is therefore the original 4 × 2
+rectangular topology with versus without alternating two-channel columns
+staggered vertically by one eighth of the subarray height. Initial RX-only analysis shows
+that this stagger changes the old vertical exact alias into a very strong
+near-alias: the channel-array squared correlation across `Δv = 0.2070` is about
+-0.69 dB. For the nominal opposite vertical-edge MIMO comparison, this would
+only add about 0.69 dB to the TX-quadrant discrimination already modeled. The
+stagger therefore needs a full multi-alias evaluation and should not yet be
+credited as independent ambiguity resolution. See the provisional-layout
+section in [`NOTES.md`](NOTES.md) and [`rx_layout_experiment.py`](rx_layout_experiment.py).
 
 ## Mode and virtual-array model
 

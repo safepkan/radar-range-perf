@@ -9,7 +9,7 @@ design document. It is deliberately not a transcript. Numerical configuration
 in [`lannik_psi.py`](lannik_psi.py) is authoritative when this document and the
 code differ.
 
-Last substantial update: 2026-09-04.
+Last substantial update: 2026-09-08.
 
 ## Status labels
 
@@ -53,11 +53,12 @@ required architecture, but the waveform, calibration, processing, tracker,
 scheduling and confidence details remain design work rather than demonstrated
 product performance.
 
-Two antenna prototypes with different RX subarray dimensions are planned. The
-two geometries have not yet been selected and are expected to be decided early
-the following week. Until then, the supplied 2.42λ × 4.83λ rectangle remains a
-computational reference only; its use as the current script baseline does not
-identify it as either prototype choice.
+Two antenna prototypes with different RX subarray dimensions are planned.
+Candidate square and staggered-rectangle concepts were received on 2026-09-08,
+but remain provisional pending the design meeting and final dimensions. Until
+that decision, the supplied 2.42λ × 4.83λ rectangle remains a computational
+reference only; its use as the current script baseline does not identify it as
+either prototype choice.
 
 Once the dimensions are known, the study should gain a simple two-variant
 runner that produces directly comparable versions of the existing plots. The
@@ -73,6 +74,10 @@ Supplied antenna material is archived in [`inputs/`](inputs/):
 - `antenna_arr_77_TX_rev_A.mat`
 - `antenna_arr_77_RX_rev_A.mat`
 - `main_read.m`
+- `new_aperture_IFX_rot_small_RX.png` — provisional square-subarray layout,
+  rotated to a 2 × 4 RX channel arrangement for a more compact PCB.
+- `Aperture_large_staggeredered_IFX.png` — provisional supplied-size
+  rectangular layout with alternating vertical channel-pair offsets.
 
 Run the complete study from the repository root:
 
@@ -88,6 +93,12 @@ venv/bin/python studies/2026-09-02_lannik-psi/quadrant_mimo.py
 
 Its architectural rationale, results and follow-up questions are maintained in
 the dedicated [`MIMO.md`](MIMO.md) note.
+
+Run the provisional RX geometry and channel-array-factor comparison with:
+
+```text
+venv/bin/python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
+```
 
 Working figures are written to [`generated/`](generated/) and are intentionally
 not treated as reviewed deliverables.
@@ -286,6 +297,61 @@ range remain a later problem.
 aliases through the complex TX-subaperture signatures. Gain/RCS plausibility,
 tracker priors and a guard-channel response may supply additional evidence.
 This option may permit the larger supplied-height RX subarrays to be retained.
+
+### Provisional prototype layouts received 2026-09-08
+
+Two updated supplier concepts have been added as experimental layouts without
+changing the main range-performance baseline or promoting either to a preset.
+The square design now appears likely to be fixed; the active trade for the
+second prototype is the rectangular geometry with versus without stagger:
+
+- The 2.42λ square subarrays are arranged as 2 channels horizontally by 4
+  vertically. Because the subarrays and dense center spacings are square, the
+  principal alias periods remain 0.4140 in both u and v. The rotation changes
+  the finite-array beam shape and makes the physical RX/PCB layout narrower;
+  this is now the orientation used for the square comparison.
+- The 2.42λ × 4.83λ rectangles remain in a 4 × 2 arrangement. Based on the
+  supplied image, the current model interprets adjacent two-channel columns as
+  differing in vertical position by one eighth of a subarray height, with
+  symmetric ±height/16 offsets about the array center. This interpretation
+  should be confirmed at the design meeting.
+
+The staggered channel array is not separable into independent u and v factors.
+For an offset `s = height/8`, its equal-weight response can be viewed as the
+original vertical two-channel factor multiplied by a four-column horizontal
+sum whose column phases also depend on v. The result is a sheared grating-lobe
+lattice rather than removal of grating lobes.
+
+**Preliminary array-factor result:** The former first vertical replica at
+`Δv = 0.2070` is only 0.69 dB below the main response. The nearby vertical-cut
+peak is approximately -0.68 dB at `v = 0.2036`. Pure horizontal replicas at
+integer multiples of `Δu = 0.4140` are unchanged. Exact two-dimensional
+replicas remain; a useful reciprocal-lattice basis is approximately
+`(Δu,Δv) = (0.4140,0)` and `(0.2070,0.8279)`. Thus the exact-alias cell has four
+times the area of the unstaggered rectangle's cell, but the strong near-alias
+at the old vertical spacing remains the more relevant ambiguity metric.
+
+If the staggered geometry is selected, the current independent u/v period,
+rectangular steering-grid and coordinate-wise alias-folding helpers will no
+longer be valid. Beam placement should use the skew reciprocal cell or a fully
+general steering grid, and MIMO processing should enumerate hypotheses with
+the exact eight phase-center coordinates. The off-boresight channel-array
+factor also becomes coupled in u and v, so horizontal and vertical cuts alone
+will not characterize it.
+
+This modest RX-only decorrelation would add only about 0.69 dB to the nominal
+MIMO separation of the opposite vertical-edge hypotheses, while giving no
+benefit to the pure horizontal alias. It may help in combination with other
+evidence, and other alias pairs must still be enumerated, but the present
+height/8 stagger should not by itself be regarded as resolving the ambiguity.
+It preserves coherent boresight gain; its effects are directional rather than
+a peak-gain trade.
+
+The new [`rx_layout_experiment.py`](rx_layout_experiment.py) script shows the
+likely fixed square geometry for context, but focuses the electrical comparison
+plots on the staggered and unstaggered rectangles. It compares their boresight
+channel-array factors and complete ideal four-quadrant-MIMO folded-alias
+correlations without changing the main range baseline.
 
 ### MIMO-assisted ambiguity resolution
 
@@ -564,29 +630,32 @@ choice.
 
 1. Have the antenna supplier assess an equal-power two-feed partition of each
    desired TX quadrant and provide realized-gain/pattern tolerances.
-2. Select the two prototype RX subarray geometries by comparing coherent
-   coverage, MIMO resolution robustness and packaging; retain 4 × 2 versus
-   2 × 4 as a mechanical choice.
-3. Once selected, add a simple study runner for both prototype variants and
+2. Confirm the square prototype selection and choose staggered versus
+   unstaggered geometry for the rectangular prototype by comparing MIMO
+   resolution robustness, packaging and calibration sensitivity.
+3. Confirm the intended stagger convention and judge candidate offsets using
+   worst-case multi-hypothesis ambiguity discrimination, not only the exact
+   reciprocal-cell size.
+4. Once selected, add a simple study runner for both prototype variants and
    promote them to clearly named toolbox-level Lannik Psi prototype presets.
-4. Write acquisition, track-maintenance and time-to-unambiguous-publication use
+5. Write acquisition, track-maintenance and time-to-unambiguous-publication use
    cases with an allowable wrong-cell probability.
-5. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
+6. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
    combine complex-signature correlation with gain/RCS plausibility and pattern
    uncertainty; see [`MIMO.md`](MIMO.md).
-6. Once the physical eight-port split is available, compare coherent,
+7. Once the physical eight-port split is available, compare coherent,
    four-quadrant MIMO and eight-TX MIMO at equal power, time and processing cost.
-7. If justified, introduce an explicit per-subarray TX model with independently
+8. If justified, introduce an explicit per-subarray TX model with independently
    represented internal weights, channel powers, and phase offsets.
-8. Derive an ideal TX pattern from one or more desired Cartesian coverage
+9. Derive an ideal TX pattern from one or more desired Cartesian coverage
    boundaries before optimizing physical weights.
-9. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
-   and revisit penalties.
-10. Add joint acquisition, maintenance and ambiguity-resolution coverage once
-   the relevant trajectory, publication and scheduling assumptions are defined.
-11. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
+10. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
+    and revisit penalties.
+11. Add joint acquisition, maintenance and ambiguity-resolution coverage once
+    the relevant trajectory, publication and scheduling assumptions are defined.
+12. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
     tracker model and compare fixed, triggered and adaptive MIMO scheduling.
-12. Once the Lannik Psi product design settles, promote the final configuration
+13. Once the Lannik Psi product design settles, promote the final configuration
     to a reusable toolbox-level preset while retaining this dated study as the
     rationale and reproducible design history.
 
@@ -613,6 +682,14 @@ choice.
   set. Dashed red lines mark the principal-region edges.
 - MIMO-specific figures are grouped under `generated/mimo/` and catalogued in
   the dedicated [`MIMO.md`](MIMO.md) note.
+- `generated/experimental/rx_provisional_geometries.png` — the two provisional
+  RX layouts and the unstaggered rectangular reference.
+- `generated/experimental/rx_channel_array_factor_uv.png` and
+  `rx_channel_array_factor_cuts.png` — channel-array-factor comparison without
+  the common subarray or TX patterns.
+- `generated/experimental/rx_rectangle_alias_correlation.png` — direct
+  staggered-versus-unstaggered comparison of complete ideal four-quadrant-MIMO
+  alias correlation, plus the RX decorrelation contributed by the stagger.
 
 ## Decision log
 
@@ -667,3 +744,12 @@ choice.
   subarray dimensions. Once chosen, both will be supported as comparable study
   variants and named toolbox-level presets for the first Lannik Psi prototype
   antennas.
+- **2026-09-08:** Added the provisional rotated 2 × 4 square layout and 4 × 2
+  rectangular layout with alternating height/8 vertical column stagger. Kept
+  both experimental and left the main range baseline unchanged. Initial
+  channel-array-factor analysis finds that the stagger shears the exact alias
+  lattice but suppresses the first vertical near-alias by only about 0.69 dB.
+- **2026-09-08:** Recorded that the square prototype is likely fixed and
+  refocused the active evaluation on staggered versus unstaggered versions of
+  the rectangular prototype. Added a direct ideal-MIMO alias-correlation
+  comparison for those two geometries.
