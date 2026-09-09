@@ -277,12 +277,44 @@ publication probability per track, rather than full-search per-cell Pfa.
 
 ## Waveform and scheduling degrees of freedom
 
-The current figures use one unchanged full-length MIMO CPI every fourth 20 Hz
+### Likely path: tracker-requested MIMO bursts
+
+**Working direction, 2026-09-09:** Use on-demand MIMO in sparse scenarios with
+few simultaneous tracks. Once a track's uncertainty and association gate are
+narrow enough not to overlap their alias-shifted copies, its prediction can
+unwrap subsequent coherent measurements. Request additional MIMO evidence for
+new unresolved tracks, reacquisition or deteriorating ambiguity confidence.
+The request rate is governed by such events, not just the number of tracks.
+
+**User-supplied implementation expectation:** Radar control, SP and tracking
+will share the Aurix TC457. Treat tracker requests and the required sequencer
+flexibility as feasible design assumptions. Sparse-target association and
+filtering are expected to be relatively cheap; there are no platform timing or
+compute measurements yet. Much SP must await the received CPI, and request,
+processing, sequencer-boundary, switching and illumination delays remain real.
+Do not equate active illumination time with end-to-end resolution latency.
+
+The on-demand burst can use a different waveform, longer coherent illumination
+or repeated CPIs, and a small range/Doppler gate. It need not pass an independent
+full-search detection threshold: soft complex measurements can update the
+remaining hypotheses directly. A relaxed gated Pfa can help thresholded
+extraction, but does not create extra signature information at fixed SNR.
+
+Compare time/energy to a sufficiently reliable unambiguous result, rather than
+assuming the fixed-CPI coherent-to-MIMO SNR difference is a permanent range
+penalty. Longer illumination is useful only within target-coherence and
+range/Doppler-motion constraints; confirmed-track revisit requirements still
+apply while the burst runs. These details remain architecture work.
+
+### Historical reference and remaining alternatives
+
+The existing `quadrant_mimo.py` figures use one unchanged full-length MIMO CPI every fourth 20 Hz
 frame: a 5 Hz MIMO update and 15 coherent updates per second. The corresponding
 worst-case times from appearance to one, two and four scheduled MIMO updates
 are approximately 0.2, 0.4 and 0.8 seconds.
 
-This is illustrative, not a recommendation. Candidate strategies include:
+This remains an illustrative reference/fallback, not the likely product
+schedule. Candidate strategies include:
 
 - Fixed sparse interlacing.
 - A triggered burst after an ambiguous coherent detection.

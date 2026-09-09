@@ -34,6 +34,22 @@ calibration, together with an acceptable implementation and supplier cost.
 If that evidence cannot be obtained before ordering, retain the URA as a
 deliberate schedule-risk choice, recording the possible benefit being forgone.
 
+### Updated operating assumption: on-demand MIMO
+
+Assume a sparse scene with few tracks. For a confirmed track with sufficiently
+narrow prediction/association gates, coherent measurements can be unwrapped
+without routine MIMO updates. The likely path is a tracker-requested burst for
+an unresolved new track or lost ambiguity confidence, not every-Nth-frame
+interlacing. Shared Aurix TC457 control/SP/tracking and sequencer flexibility
+are taken as feasible design assumptions; actual latency is not yet measured.
+See [MIMO.md](MIMO.md) for the detailed scope of this assumption.
+
+This changes the geometry trade: staggering might avoid or shorten an
+occasional burst, rather than continuously saving scheduled MIMO resources.
+The comparison must allow a targeted gate and additional MIMO illumination;
+a fixed per-CPI SNR disadvantage is not a permanent system range penalty.
+Periodic-interlace examples below remain illustrative, not the decision metric.
+
 ## What is established in the current model
 
 Let `W = 9.405 mm`, `H = 18.811 mm` and `lambda = 3.893 mm` at 77 GHz.
@@ -192,10 +208,12 @@ benefit claimed from improving vertical discrimination.
 
 ### 2. Compare evidence at equal time and energy
 
-For the surviving difficult cases, compare URA and stagger with the same
-three-coherent/one-MIMO schedule. Use one block (0.2 s) and, if useful, four
-blocks (0.8 s). Retain the eight complex RX channels; do not reduce the
-coherent-mode input to a winning-beam index or scalar detection.
+For the surviving difficult cases, start both layouts with the same nominal
+coherent observation and allow an on-demand MIMO burst with variable
+illumination. Include coherent-only processing to show whether staggering can
+avoid the burst. Retain the eight complex RX channels; do not reduce the
+coherent-mode input to a winning-beam index or scalar detection. Compare equal
+additional energy, and treat switching/SP delay separately from illumination.
 
 First hold instantaneous target RCS/SNR fixed, allow an unknown complex amplitude
 per update, and vary SNR. This answers the conditional noise-limited question

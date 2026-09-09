@@ -343,11 +343,22 @@ sets or accumulated coherent-plus-MIMO evidence.
 ### MIMO-assisted ambiguity resolution
 
 **Selected broad system direction:** Retain coherent TX for sensitivity and use
-occasional four-quadrant MIMO measurements to resolve the discrete RX ambiguity
+on-demand four-quadrant MIMO measurements to resolve the discrete RX ambiguity
 cell. The tracker can maintain several hypotheses, accumulate evidence over
 multiple MIMO updates and apply the resolved cell to intervening coherent
 measurements. The detailed implementation and achievable performance remain
 to be validated.
+
+**Working architecture, 2026-09-09:** Assume sparse scenarios with few tracks.
+Confirmed tracks whose prediction/association gates do not overlap their
+alias-shifted copies normally need no further MIMO assistance. Request a burst
+for unresolved new tracks or when ambiguity confidence is lost. Radar control,
+SP and tracking are expected to share the Aurix TC457 platform; tracker requests
+and flexible sequencing are assumed feasible, not demonstrated or benchmarked.
+CPI reception, processing, switching and burst duration still contribute to
+latency. Fixed every-Nth-frame interlacing remains a reference/fallback, not
+the likely operational schedule. See [MIMO.md](MIMO.md) for the architecture
+and [RX_LAYOUT.md](RX_LAYOUT.md) for the geometry comparison.
 
 The initial ideal experiment is promising for both RX candidates. With the
 2.42λ square subarrays, 99% binary resolution at a principal edge reaches
@@ -746,3 +757,7 @@ choice.
   rectangular-prototype decision. Recorded the schedule-driven URA preference,
   potential stagger evidence in coherent updates, gain/RCS plausibility and
   fluctuation uncertainty. The geometry decision remains open.
+- **2026-09-09:** Adopted on-demand MIMO as the likely scheduling direction for
+  sparse scenarios. Assume tracker-to-control requests and flexible sequencing
+  can be implemented on the shared platform; evaluate targeted resolution
+  events rather than charging a permanent periodically interlaced MIMO cost.
