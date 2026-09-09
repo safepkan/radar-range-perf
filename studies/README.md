@@ -55,7 +55,8 @@ Run a study from the repo root with the project venv, e.g.:
   `rx_layout_experiment.py` script shows the likely fixed rotated-square
   geometry and focuses the active electrical trade on staggered versus
   unstaggered rectangular RX phase-center layouts, without changing the main
-  range baseline.
+  range baseline. Its decision rationale and near-term investigation plan are
+  maintained separately in [`RX_LAYOUT.md`](2026-09-02_lannik-psi/RX_LAYOUT.md).
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions

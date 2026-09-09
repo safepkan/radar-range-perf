@@ -1,8 +1,9 @@
 """Provisional Lannik Psi RX-layout and channel-array-factor experiment.
 
-This script isolates the equal-weight array factor of the eight RX channel
-phase centers. It intentionally does not change the main range-performance
-baseline or include the common subarray pattern, TX pattern or MIMO signature.
+This script compares the equal-weight array factors of the eight RX channel
+phase centers. Principal cuts overlay the common TX and RX subarray gains for
+context; a separate comparison includes the MIMO signatures. It intentionally
+does not change the main range-performance baseline.
 
 Two supplier concepts received on 2026-09-08 are represented:
 
@@ -279,7 +280,7 @@ def plot_array_factors_uv(path: Path) -> None:
 
 
 def plot_array_factor_cuts(path: Path) -> None:
-    """Compare the rectangular options' principal boresight cuts."""
+    """Compare boresight RX factors alongside the common TX and RX gains."""
     direction = np.linspace(-CUT_LIMIT, CUT_LIMIT, CUT_SAMPLES)
     zeros = np.zeros_like(direction)
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.7), sharey=True)
@@ -308,7 +309,15 @@ def plot_array_factor_cuts(path: Path) -> None:
             np.sinc(RX_SOURCE_SUBARRAY_HEIGHT_M * direction / wavelength_m) ** 2
         ),
     )
-    for ax, subarray_pattern_db in zip(axes, subarray_patterns_db, strict=True):
+    tx_antenna = load_tx_antenna()
+    tx_boresight_gain_db = float(tx_antenna.gain_dbi_uv(0.0, 0.0))
+    tx_patterns_db = (
+        np.asarray(tx_antenna.gain_dbi_uv(direction, zeros)) - tx_boresight_gain_db,
+        np.asarray(tx_antenna.gain_dbi_uv(zeros, direction)) - tx_boresight_gain_db,
+    )
+    for ax, subarray_pattern_db, tx_pattern_db in zip(
+        axes, subarray_patterns_db, tx_patterns_db, strict=True
+    ):
         ax.plot(
             direction,
             subarray_pattern_db,
@@ -316,7 +325,15 @@ def plot_array_factor_cuts(path: Path) -> None:
             linestyle=":",
             linewidth=1.4,
             alpha=0.65,
-            label="single rectangular subarray pattern",
+            label="RX subarray gain (uniform rectangle)",
+        )
+        ax.plot(
+            direction,
+            tx_pattern_db,
+            color="C2",
+            linestyle="-.",
+            linewidth=1.5,
+            label="TX sum-beam gain",
         )
     for ax, title, label in (
         (axes[0], "Horizontal cut", "u (v = 0)"),
@@ -327,12 +344,12 @@ def plot_array_factor_cuts(path: Path) -> None:
         ax.set_xlim(-CUT_LIMIT, CUT_LIMIT)
         ax.set_ylim(ARRAY_FACTOR_FLOOR_DB, 1.0)
         ax.grid(True, alpha=0.25)
-    axes[0].set_ylabel("channel-array factor [dB relative to peak]")
+    axes[0].set_ylabel("gain / array factor [dB relative to boresight]")
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=3, fontsize=8)
+    fig.legend(handles, labels, loc="lower center", ncol=2, fontsize=8)
     fig.suptitle(
-        "Rectangular RX alternatives: boresight array-factor cuts\n"
-        "dotted reference is the common single-subarray pattern (not multiplied)",
+        "Rectangular RX alternatives: boresight gain components\n"
+        "TX gain + RX subarray gain + RX channel-array factor",
         fontsize=14,
     )
     fig.tight_layout(rect=(0.0, 0.15, 1.0, 0.92))

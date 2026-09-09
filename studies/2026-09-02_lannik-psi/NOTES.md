@@ -9,7 +9,7 @@ design document. It is deliberately not a transcript. Numerical configuration
 in [`lannik_psi.py`](lannik_psi.py) is authoritative when this document and the
 code differ.
 
-Last substantial update: 2026-09-08.
+Last substantial update: 2026-09-09.
 
 ## Status labels
 
@@ -66,6 +66,14 @@ two selected antennas should also be promoted to toolbox-level presets with
 names that clearly identify them as the first Lannik Psi prototype antennas.
 There is no need to build that infrastructure before the choices are known.
 
+**Decision preparation, 2026-09-09:** The 2026-09-10 meeting is expected to
+choose staggered versus unstaggered geometry for the rectangular prototype.
+The current recommendation favors URA for schedule and implementation
+simplicity, not because staggering has no useful information. The dedicated
+[RX-layout decision note](RX_LAYOUT.md) records costs, potential benefits,
+uncertainties and the smallest useful pre-decision checks. No geometry choice
+has been finalized by this update.
+
 ## Sources and reproduction
 
 Supplied antenna material is archived in [`inputs/`](inputs/):
@@ -99,6 +107,9 @@ Run the provisional RX geometry and channel-array-factor comparison with:
 ```text
 venv/bin/python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
 ```
+
+Its decision context and investigation plan are maintained in
+[`RX_LAYOUT.md`](RX_LAYOUT.md).
 
 Working figures are written to [`generated/`](generated/) and are intentionally
 not treated as reviewed deliverables.
@@ -316,42 +327,18 @@ second prototype is the rectangular geometry with versus without stagger:
   symmetric ±height/16 offsets about the array center. This interpretation
   should be confirmed at the design meeting.
 
-The staggered channel array is not separable into independent u and v factors.
-For an offset `s = height/8`, its equal-weight response can be viewed as the
-original vertical two-channel factor multiplied by a four-column horizontal
-sum whose column phases also depend on v. The result is a sheared grating-lobe
-lattice rather than removal of grating lobes.
+The stagger retains exact horizontal aliases and changes the old vertical
+alias into a strong near-alias. The -0.69 dB correlation at the old vertical
+period must not be interpreted as negligible information: it enables ordinary
+coherent-TX updates to contribute to vertical disambiguation, even though its
+additional benefit to the nominal opposite-edge MIMO measurement is tiny.
+The modeled subarray patterns and ideal coherent peak gain are unchanged.
 
-**Preliminary array-factor result:** The former first vertical replica at
-`Δv = 0.2070` is only 0.69 dB below the main response. The nearby vertical-cut
-peak is approximately -0.68 dB at `v = 0.2036`. Pure horizontal replicas at
-integer multiples of `Δu = 0.4140` are unchanged. Exact two-dimensional
-replicas remain; a useful reciprocal-lattice basis is approximately
-`(Δu,Δv) = (0.4140,0)` and `(0.2070,0.8279)`. Thus the exact-alias cell has four
-times the area of the unstaggered rectangle's cell, but the strong near-alias
-at the old vertical spacing remains the more relevant ambiguity metric.
-
-If the staggered geometry is selected, the current independent u/v period,
-rectangular steering-grid and coordinate-wise alias-folding helpers will no
-longer be valid. Beam placement should use the skew reciprocal cell or a fully
-general steering grid, and MIMO processing should enumerate hypotheses with
-the exact eight phase-center coordinates. The off-boresight channel-array
-factor also becomes coupled in u and v, so horizontal and vertical cuts alone
-will not characterize it.
-
-This modest RX-only decorrelation would add only about 0.69 dB to the nominal
-MIMO separation of the opposite vertical-edge hypotheses, while giving no
-benefit to the pure horizontal alias. It may help in combination with other
-evidence, and other alias pairs must still be enumerated, but the present
-height/8 stagger should not by itself be regarded as resolving the ambiguity.
-It preserves coherent boresight gain; its effects are directional rather than
-a peak-gain trade.
-
-The new [`rx_layout_experiment.py`](rx_layout_experiment.py) script shows the
-likely fixed square geometry for context, but focuses the electrical comparison
-plots on the staggered and unstaggered rectangles. It compares their boresight
-channel-array factors and complete ideal four-quadrant-MIMO folded-alias
-correlations without changing the main range baseline.
+Detailed geometry, review findings, costs and the decision plan now live in
+[`RX_LAYOUT.md`](RX_LAYOUT.md), alongside
+[`rx_layout_experiment.py`](rx_layout_experiment.py). The experiment still uses
+the old fixed-fold comparison; it does not yet evaluate complete hypothesis
+sets or accumulated coherent-plus-MIMO evidence.
 
 ### MIMO-assisted ambiguity resolution
 
@@ -632,8 +619,9 @@ choice.
 1. Have the antenna supplier assess an equal-power two-feed partition of each
    desired TX quadrant and provide realized-gain/pattern tolerances.
 2. Confirm the square prototype selection and choose staggered versus
-   unstaggered geometry for the rectangular prototype by comparing MIMO
-   resolution robustness, packaging and calibration sensitivity.
+   unstaggered geometry for the rectangular prototype using the bounded
+   coherent-plus-MIMO evidence comparison and supplier checks in
+   [`RX_LAYOUT.md`](RX_LAYOUT.md).
 3. Confirm the intended stagger convention and judge candidate offsets using
    worst-case multi-hypothesis ambiguity discrimination, not only the exact
    reciprocal-cell size.
@@ -686,8 +674,8 @@ choice.
 - `generated/experimental/rx_provisional_geometries.png` — the two provisional
   RX layouts and the unstaggered rectangular reference.
 - `generated/experimental/rx_channel_array_factor_uv.png` and
-  `rx_channel_array_factor_cuts.png` — channel-array-factor comparison without
-  the common subarray or TX patterns.
+  `rx_channel_array_factor_cuts.png` — channel-array-factor comparison. The cuts
+  also overlay the common RX subarray and TX sum-beam gains for context.
 - `generated/experimental/rx_rectangle_alias_correlation.png` — direct
   staggered-versus-unstaggered comparison of complete ideal four-quadrant-MIMO
   alias correlation, plus the RX decorrelation contributed by the stagger.
@@ -754,3 +742,7 @@ choice.
   refocused the active evaluation on staggered versus unstaggered versions of
   the rectangular prototype. Added a direct ideal-MIMO alias-correlation
   comparison for those two geometries.
+- **2026-09-09:** Created [`RX_LAYOUT.md`](RX_LAYOUT.md) for the imminent
+  rectangular-prototype decision. Recorded the schedule-driven URA preference,
+  potential stagger evidence in coherent updates, gain/RCS plausibility and
+  fluctuation uncertainty. The geometry decision remains open.

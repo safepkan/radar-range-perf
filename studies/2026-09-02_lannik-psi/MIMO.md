@@ -11,7 +11,7 @@ and achievable performance have not yet been validated. They indicate a
 promising way to retain a larger RX aperture without accepting unresolved
 channel-array ambiguities.
 
-Last substantial update: 2026-09-08.
+Last substantial update: 2026-09-09.
 
 ## Motivation and current conclusion
 
@@ -49,14 +49,14 @@ Two provisional layouts were received on 2026-09-08. The square-subarray
 candidate is now oriented as a 2 × 4 channel array and appears likely to be
 fixed. The active second-prototype comparison is therefore the original 4 × 2
 rectangular topology with versus without alternating two-channel columns
-staggered vertically by one eighth of the subarray height. Initial RX-only analysis shows
-that this stagger changes the old vertical exact alias into a very strong
-near-alias: the channel-array squared correlation across `Δv = 0.2070` is about
--0.69 dB. For the nominal opposite vertical-edge MIMO comparison, this would
-only add about 0.69 dB to the TX-quadrant discrimination already modeled. The
-stagger therefore needs a full multi-alias evaluation and should not yet be
-credited as independent ambiguity resolution. See the provisional-layout
-section in [`NOTES.md`](NOTES.md) and [`rx_layout_experiment.py`](rx_layout_experiment.py).
+staggered vertically by one eighth of the subarray height. The stagger has
+negligible additional benefit for the already nearly orthogonal opposite
+vertical-edge MIMO pair, but can make intervening coherent-TX updates useful
+for vertical disambiguation. Its horizontal aliases remain exact. The imminent
+prototype choice therefore concerns combined evidence, implementation effort
+and schedule risk, not only the MIMO correlation plot. See the dedicated
+[`RX_LAYOUT.md`](RX_LAYOUT.md) decision note and
+[`rx_layout_experiment.py`](rx_layout_experiment.py).
 
 ## Mode and virtual-array model
 
@@ -181,6 +181,15 @@ folded into the principal cell. The two hypotheses have unrelated unknown
 complex target amplitudes. Noise and Swerling-1 amplitude are independent
 between MIMO updates; projection-energy evidence is accumulated without
 coherent phase integration between CPIs.
+
+**Review qualification, 2026-09-09:** The physical RCS fluctuation timescale is
+unknown. The multi-update ranges below are conditional on the stated
+independence assumption, not validated latency guarantees. A block-constant
+RCS sensitivity check gave materially shorter unconditional resolution range;
+conditioning on an existing track also needs separate treatment. See
+[`RX_LAYOUT.md`](RX_LAYOUT.md) for the review result and the proposed
+fixed-SNR, equal-time comparison that avoids relying on a guessed fluctuation
+timescale for the geometry decision.
 
 For the 2.42λ square RX boundary, where `rho` is approximately -3.14
 dB, the modeled ranges for a 99% correct binary decision are:
