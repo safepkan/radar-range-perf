@@ -56,6 +56,18 @@ smoke:
 	MPLBACKEND=Agg $(PYTHON) examples/pd_vs_range.py
 	MPLBACKEND=Agg $(PYTHON) examples/plotting_demo.py
 
+# Regenerate every working figure of the Lannik Psi study headlessly and run
+# its study-local tests. Figures land under the study's generated/ directory
+# (gitignored); only reviewed or delivered outputs are copied to deliverables/.
+.PHONY: study_260902_lannik_psi
+study_260902_lannik_psi:
+	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/lannik_psi.py
+	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/quadrant_mimo.py
+	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/rx_layout_experiment.py
+	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/rx_resolution_experiment.py
+	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/rx_stagger_amount_experiment.py
+	$(PYTHON) -m pytest studies/2026-09-02_lannik-psi -q
+
 .PHONY: clean
 clean:
 	rm -rf build dist *.egg-info

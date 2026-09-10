@@ -13,11 +13,16 @@ import pytest
 
 from radarperf import antenna
 from radarperf.antenna import (
+    MultiBeamUniformArrayAntenna,
     PatternCutAntenna,
+    RectangularArrayAntenna,
+    UniformArrayAntenna,
+    UniformRectangularApertureAntenna,
     load_antenna_pair_csv,
     load_pattern_cut_csv,
 )
 from radarperf.protocols import Antenna
+from radarperf.units import SPEED_OF_LIGHT
 
 # (preset, boresight dBi, az 10-dB beamwidth deg, el 10-dB beamwidth deg)
 PRESETS = [
@@ -68,6 +73,433 @@ def test_pair_from_element_shares_one_pattern() -> None:
     assert pair.tx is element
     assert pair.rx is element
     assert pair.name == "custom"
+
+
+def test_rectangular_array_uniform_boresight_gain() -> None:
+    antenna_model = RectangularArrayAntenna(
+        [-0.25, 0.25],
+        [-0.25, 0.25],
+        np.ones((2, 2)),
+        center_frequency_hz=SPEED_OF_LIGHT,
+        element_gain_dbi=5.0,
+        fft_size=256,
+    )
+    assert antenna_model.boresight_gain_dbi == pytest.approx(5.0 + 10.0 * np.log10(4.0))
+    assert antenna_model.gain_dbi(0.0, 0.0) == pytest.approx(
+        antenna_model.boresight_gain_dbi
+    )
+    # Half-wavelength horizontal spacing gives a null at u=1.
+    assert antenna_model.gain_dbi(90.0, 0.0) < -200.0
+
+
+@pytest.mark.parametrize("plane", ["azimuth", "elevation"])
+@pytest.mark.parametrize("spacing_m", [1.0, 1.2])
+def test_rectangular_array_beamwidth_excludes_grating_lobes(
+    plane: str, spacing_m: float
+) -> None:
+    horizontal_count, vertical_count = (8, 2) if plane == "azimuth" else (2, 8)
+    horizontal_spacing, vertical_spacing = (
+        (spacing_m, 0.5) if plane == "azimuth" else (0.5, spacing_m)
+    )
+    array = RectangularArrayAntenna(
+        np.arange(horizontal_count) * horizontal_spacing,
+        np.arange(vertical_count) * vertical_spacing,
+        np.ones((horizontal_count, vertical_count)),
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=2048,
+    )
+    reference = UniformArrayAntenna(
+        antenna.ConstantGainAntenna(0.0),
+        horizontal_count=horizontal_count,
+        vertical_count=vertical_count,
+        horizontal_spacing_m=horizontal_spacing,
+        vertical_spacing_m=vertical_spacing,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    # At one wavelength, equally high replicas occur at the cut endpoints.
+    # Select the boresight lobe, not an endpoint lobe or the span across lobes.
+    if plane == "azimuth":
+        width = array.beamwidth_az_deg
+        expected_width = reference.beamwidth_az_deg
+    else:
+        width = array.beamwidth_el_deg
+        expected_width = reference.beamwidth_el_deg
+    assert 4.0 < width < 8.0
+    assert width == pytest.approx(expected_width, abs=0.05)
+
+
+def test_rectangular_array_beamwidth_follows_phase_steered_peak() -> None:
+    horizontal = np.arange(8) * 0.5
+    weights = np.broadcast_to(np.exp(2.0j * np.pi * horizontal[:, None] * 0.5), (8, 2))
+    array = RectangularArrayAntenna(
+        horizontal,
+        [0.0, 0.5],
+        weights,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=2048,
+    )
+    reference = UniformArrayAntenna(
+        antenna.ConstantGainAntenna(0.0),
+        horizontal_count=8,
+        vertical_count=2,
+        horizontal_spacing_m=0.5,
+        vertical_spacing_m=0.5,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        steering_azimuth_deg=30.0,
+    )
+    assert array.beamwidth_az_deg == pytest.approx(reference.beamwidth_az_deg, abs=0.05)
+
+
+def test_rectangular_array_fft_matches_direct_array_factor() -> None:
+    horizontal = np.array([-0.75, -0.25, 0.25, 0.75])
+    vertical = np.array([-0.25, 0.25])
+    weights = np.array(
+        [
+            [0.2 + 0.1j, 0.4 - 0.2j],
+            [0.7 + 0.3j, 1.0 - 0.1j],
+            [0.9 - 0.2j, 0.6 + 0.4j],
+            [0.3 + 0.2j, 0.1 - 0.1j],
+        ]
+    )
+    antenna_model = RectangularArrayAntenna(
+        horizontal,
+        vertical,
+        weights,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        element_gain_dbi=3.0,
+        fft_size=2048,
+    )
+    u = np.array([0.0, 0.17, -0.41])
+    v = np.array([0.0, -0.23, 0.36])
+    phase = np.exp(
+        -2.0j
+        * np.pi
+        * (
+            u[:, None, None] * horizontal[None, :, None]
+            + v[:, None, None] * vertical[None, None, :]
+        )
+    )
+    direct_power_gain = np.abs(np.sum(weights[None, :, :] * phase, axis=(1, 2))) ** 2
+    direct_power_gain /= np.sum(np.abs(weights) ** 2)
+    expected_gain_dbi = 3.0 + 10.0 * np.log10(direct_power_gain)
+    assert np.asarray(antenna_model.gain_dbi_uv(u, v)) == pytest.approx(
+        expected_gain_dbi, abs=2.0e-3
+    )
+
+
+def test_rectangular_array_normalizes_total_excitation_power() -> None:
+    positions = np.array([-0.25, 0.25])
+    weights = np.array([[0.5 + 0.2j, 1.0], [0.7j, 0.3 - 0.1j]])
+    antenna_model = RectangularArrayAntenna(
+        positions,
+        positions,
+        weights,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=256,
+    )
+    scaled_model = RectangularArrayAntenna(
+        positions,
+        positions,
+        7.0 * weights,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=256,
+    )
+    u = np.array([-0.4, 0.0, 0.3])
+    v = np.array([0.2, 0.0, -0.1])
+    assert antenna_model.gain_dbi_uv(u, v) == pytest.approx(
+        scaled_model.gain_dbi_uv(u, v), abs=1.0e-12
+    )
+
+
+def test_rectangular_array_builds_grid_from_shuffled_element_list() -> None:
+    horizontal = np.array([1.0, 0.0, 1.0, 0.0])
+    vertical = np.array([2.0, 2.0, 3.0, 3.0])
+    weights = np.array([3.0, 1.0, 4.0, 2.0])
+    antenna_model = RectangularArrayAntenna.from_element_list(
+        horizontal,
+        vertical,
+        weights,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=64,
+    )
+    assert np.array_equal(antenna_model.horizontal_positions_m, [0.0, 1.0])
+    assert np.array_equal(antenna_model.vertical_positions_m, [2.0, 3.0])
+    assert np.array_equal(antenna_model.excitations, [[1.0, 2.0], [3.0, 4.0]])
+
+
+def test_rectangular_array_rejects_incomplete_or_irregular_grid() -> None:
+    with pytest.raises(ValueError, match="complete rectangular grid"):
+        RectangularArrayAntenna.from_element_list(
+            [0.0, 0.0, 1.0],
+            [0.0, 1.0, 0.0],
+            [1.0, 1.0, 1.0],
+            center_frequency_hz=SPEED_OF_LIGHT,
+        )
+    with pytest.raises(ValueError, match="uniformly spaced"):
+        RectangularArrayAntenna(
+            [0.0, 1.0, 3.0],
+            [0.0, 1.0],
+            np.ones((3, 2)),
+            center_frequency_hz=SPEED_OF_LIGHT,
+        )
+
+
+def test_uniform_rectangular_aperture_gain_and_nulls() -> None:
+    antenna_model = UniformRectangularApertureAntenna(
+        2.0,
+        4.0,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        aperture_efficiency=0.8,
+    )
+    expected_boresight_dbi = 10.0 * np.log10(0.8 * 4.0 * np.pi * 2.0 * 4.0)
+    assert antenna_model.boresight_gain_dbi == pytest.approx(expected_boresight_dbi)
+    assert antenna_model.gain_dbi_uv(0.0, 0.0) == pytest.approx(expected_boresight_dbi)
+    assert antenna_model.gain_dbi_uv(0.5, 0.0) < -280.0
+    assert antenna_model.gain_dbi_uv(0.0, 0.25) < -280.0
+
+
+def test_uniform_rectangular_subarrays_reconstruct_dense_complete_aperture() -> None:
+    subarray = UniformRectangularApertureAntenna(
+        0.4,
+        0.6,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        aperture_efficiency=0.75,
+    )
+    channel_array = UniformArrayAntenna(
+        subarray,
+        horizontal_count=3,
+        vertical_count=2,
+        horizontal_spacing_m=subarray.horizontal_extent_m,
+        vertical_spacing_m=subarray.vertical_extent_m,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    complete_aperture = UniformRectangularApertureAntenna(
+        3.0 * subarray.horizontal_extent_m,
+        2.0 * subarray.vertical_extent_m,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        aperture_efficiency=subarray.aperture_efficiency,
+    )
+    azimuth_deg = np.array([0.0, 4.0, 9.0, 17.0])
+    elevation_deg = np.array([0.0, -3.0, 7.0, 12.0])
+    combined_gain = np.asarray(
+        channel_array.gain_dbi(azimuth_deg, elevation_deg)
+    ) + 10.0 * np.log10(channel_array.element_count)
+    assert combined_gain == pytest.approx(
+        complete_aperture.gain_dbi(azimuth_deg, elevation_deg), abs=1.0e-10
+    )
+
+
+@pytest.mark.parametrize(
+    "horizontal, vertical, frequency, efficiency, message",
+    [
+        (0.0, 1.0, 1.0, 1.0, "horizontal_extent_m"),
+        (1.0, -1.0, 1.0, 1.0, "vertical_extent_m"),
+        (1.0, 1.0, 0.0, 1.0, "center_frequency_hz"),
+        (1.0, 1.0, 1.0, 0.0, "aperture_efficiency"),
+        (1.0, 1.0, 1.0, 1.1, "aperture_efficiency"),
+    ],
+)
+def test_uniform_rectangular_aperture_validates_parameters(
+    horizontal: float,
+    vertical: float,
+    frequency: float,
+    efficiency: float,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        UniformRectangularApertureAntenna(
+            horizontal,
+            vertical,
+            center_frequency_hz=frequency,
+            aperture_efficiency=efficiency,
+        )
+
+
+def test_uniform_array_adds_relative_factor_but_not_coherent_peak_gain() -> None:
+    element = antenna.ConstantGainAntenna(10.0)
+    array = UniformArrayAntenna(
+        element,
+        horizontal_count=4,
+        vertical_count=1,
+        horizontal_spacing_m=0.5,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    # The processing model supplies the ideal coherent factor of four. The
+    # antenna wrapper is 0 dB relative at the beam center.
+    assert array.element_count == 4
+    assert array.boresight_gain_dbi == pytest.approx(10.0)
+    assert array.array_factor_relative_db_uv(0.0, 0.0) == pytest.approx(0.0)
+    # A four-element half-wavelength ULA has a null at u=0.5 (azimuth 30 deg).
+    assert array.gain_dbi(30.0, 0.0) < -200.0
+
+
+def test_uniform_array_steers_relative_factor() -> None:
+    array = UniformArrayAntenna(
+        antenna.ConstantGainAntenna(7.0),
+        horizontal_count=4,
+        vertical_count=2,
+        horizontal_spacing_m=0.5,
+        vertical_spacing_m=0.5,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        steering_azimuth_deg=30.0,
+        steering_elevation_deg=0.0,
+    )
+    assert array.steering_u == pytest.approx(0.5)
+    assert array.gain_dbi(30.0, 0.0) == pytest.approx(7.0)
+    assert array.gain_dbi(0.0, 0.0) < -200.0
+
+
+def test_uniform_array_builds_from_uv_steering() -> None:
+    array = UniformArrayAntenna.from_steering_uv(
+        antenna.ConstantGainAntenna(7.0),
+        horizontal_count=4,
+        vertical_count=2,
+        horizontal_spacing_m=0.5,
+        vertical_spacing_m=0.5,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        steering_u=0.5,
+        steering_v=0.0,
+    )
+    assert array.steering_azimuth_deg == pytest.approx(30.0)
+    assert array.steering_elevation_deg == pytest.approx(0.0)
+    assert array.gain_dbi(30.0, 0.0) == pytest.approx(7.0)
+
+
+def test_uniform_array_multiplies_element_pattern_and_array_factor() -> None:
+    element = antenna.GaussianBeamAntenna(12.0, 80.0, 30.0)
+    array = UniformArrayAntenna(
+        element,
+        horizontal_count=2,
+        vertical_count=2,
+        horizontal_spacing_m=0.4,
+        vertical_spacing_m=0.6,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    azimuth_deg = np.array([0.0, 10.0, 20.0])
+    elevation_deg = np.array([5.0, 0.0, -10.0])
+    u = np.sin(np.radians(azimuth_deg)) * np.cos(np.radians(elevation_deg))
+    v = np.sin(np.radians(elevation_deg))
+    expected = np.asarray(element.gain_dbi(azimuth_deg, elevation_deg)) + np.asarray(
+        array.array_factor_relative_db_uv(u, v)
+    )
+    assert array.gain_dbi(azimuth_deg, elevation_deg) == pytest.approx(expected)
+
+
+def test_uniform_subarrays_reconstruct_complete_aperture_with_coherent_gain() -> None:
+    spacing_m = 0.4
+    subarray = RectangularArrayAntenna(
+        [-0.2, 0.2],
+        [-0.4, 0.0, 0.4],
+        np.ones((2, 3)),
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=1024,
+    )
+    channel_array = UniformArrayAntenna(
+        subarray,
+        horizontal_count=3,
+        vertical_count=2,
+        horizontal_spacing_m=2 * spacing_m,
+        vertical_spacing_m=3 * spacing_m,
+        center_frequency_hz=SPEED_OF_LIGHT,
+    )
+    complete_aperture = RectangularArrayAntenna(
+        np.arange(6) * spacing_m,
+        np.arange(6) * spacing_m,
+        np.ones((6, 6)),
+        center_frequency_hz=SPEED_OF_LIGHT,
+        fft_size=1024,
+    )
+    azimuth_deg = np.array([0.0, 4.0, 9.0, 17.0])
+    elevation_deg = np.array([0.0, -3.0, 7.0, 12.0])
+    combined_gain = np.asarray(
+        channel_array.gain_dbi(azimuth_deg, elevation_deg)
+    ) + 10.0 * np.log10(channel_array.element_count)
+    assert combined_gain == pytest.approx(
+        complete_aperture.gain_dbi(azimuth_deg, elevation_deg), abs=2.0e-3
+    )
+
+
+def test_uniform_array_validates_counts_spacings_and_steering() -> None:
+    element = antenna.ConstantGainAntenna(0.0)
+    with pytest.raises(ValueError, match="horizontal_count"):
+        UniformArrayAntenna(
+            element,
+            horizontal_count=0,
+            vertical_count=1,
+            center_frequency_hz=SPEED_OF_LIGHT,
+        )
+    with pytest.raises(ValueError, match="horizontal_spacing"):
+        UniformArrayAntenna(
+            element,
+            horizontal_count=2,
+            vertical_count=1,
+            center_frequency_hz=SPEED_OF_LIGHT,
+        )
+    with pytest.raises(ValueError, match="steering_azimuth"):
+        UniformArrayAntenna(
+            element,
+            horizontal_count=1,
+            vertical_count=1,
+            center_frequency_hz=SPEED_OF_LIGHT,
+            steering_azimuth_deg=91.0,
+        )
+
+
+def test_multi_beam_uniform_array_matches_maximum_individual_gain() -> None:
+    element = antenna.GaussianBeamAntenna(12.0, 80.0, 30.0)
+    steering_u = np.array([-0.1, 0.0, 0.1])
+    steering_v = np.array([0.0, 0.0, 0.0])
+    beam_set = MultiBeamUniformArrayAntenna(
+        element,
+        horizontal_count=4,
+        vertical_count=2,
+        horizontal_spacing_m=0.5,
+        vertical_spacing_m=0.5,
+        center_frequency_hz=SPEED_OF_LIGHT,
+        steering_u=steering_u,
+        steering_v=steering_v,
+    )
+    azimuth_deg = np.array([-8.0, -2.0, 0.0, 4.0, 9.0])
+    elevation_deg = np.zeros_like(azimuth_deg)
+    individual = np.stack(
+        [
+            beam_set.beam(index).gain_dbi(azimuth_deg, elevation_deg)
+            for index in range(beam_set.beam_count)
+        ]
+    )
+    assert beam_set.gain_dbi_per_beam(azimuth_deg, elevation_deg) == pytest.approx(
+        individual
+    )
+    assert beam_set.gain_dbi(azimuth_deg, elevation_deg) == pytest.approx(
+        np.max(individual, axis=0)
+    )
+    assert beam_set.element_count == 8
+    assert beam_set.beam_count == 3
+    assert beam_set.boresight_gain_dbi == pytest.approx(12.0)
+
+
+def test_multi_beam_uniform_array_validates_steering_grid() -> None:
+    element = antenna.ConstantGainAntenna(0.0)
+    with pytest.raises(ValueError, match="equal nonzero lengths"):
+        MultiBeamUniformArrayAntenna(
+            element,
+            horizontal_count=2,
+            vertical_count=1,
+            horizontal_spacing_m=0.5,
+            center_frequency_hz=SPEED_OF_LIGHT,
+            steering_u=[0.0, 0.1],
+            steering_v=[0.0],
+        )
+    with pytest.raises(ValueError, match="visible"):
+        MultiBeamUniformArrayAntenna(
+            element,
+            horizontal_count=2,
+            vertical_count=1,
+            horizontal_spacing_m=0.5,
+            center_frequency_hz=SPEED_OF_LIGHT,
+            steering_u=[0.8],
+            steering_v=[0.8],
+        )
 
 
 def test_separable_gain_adds_cuts() -> None:

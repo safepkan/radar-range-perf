@@ -22,6 +22,7 @@ from radarperf.plotting import (
     plot_coverage,
     plot_pattern_cut,
     plot_pattern_cuts,
+    plot_pattern_uv,
     plot_pd_map,
     plot_pd_vs_range,
     plot_snr_vs_range,
@@ -167,4 +168,42 @@ def test_pattern_cut_two_way_replaces_one_way() -> None:
     assert ax.get_ylabel() == "two-way gain [dBi]"
     two_way = np.asarray(ax.lines[0].get_ydata(), dtype=float)
     assert np.allclose(two_way, 2.0 * one_way)  # TX == RX here
+    plt.close("all")
+
+
+def test_pattern_uv_draws_visible_direction_cosine_disk() -> None:
+    element = GaussianBeamAntenna(11.0, 80.0, 20.0)
+    axis = np.linspace(-1.0, 1.0, 41)
+    ax = plot_pattern_uv(element, u=axis, v=axis, colorbar=False)
+    assert ax.get_xlabel() == "u [-]"
+    assert ax.get_ylabel() == "v [-]"
+    assert len(ax.collections) == 1
+    assert len(ax.lines) == 1
+    assert ax.get_aspect() == 1.0
+    plt.close("all")
+
+
+def test_pattern_uv_two_way_sums_tx_and_rx_gain() -> None:
+    tx = GaussianBeamAntenna(11.0, 80.0, 20.0)
+    rx = GaussianBeamAntenna(7.0, 40.0, 10.0)
+    axis = np.linspace(-0.5, 0.5, 5)
+    one_way_ax = plot_pattern_uv(tx, u=axis, v=axis, relative=False, colorbar=False)
+    tx_values = np.asarray(one_way_ax.collections[0].get_array(), dtype=float)
+    plt.close("all")
+
+    rx_ax = plot_pattern_uv(rx, u=axis, v=axis, relative=False, colorbar=False)
+    rx_values = np.asarray(rx_ax.collections[0].get_array(), dtype=float)
+    plt.close("all")
+
+    two_way_ax = plot_pattern_uv(
+        tx,
+        rx,
+        u=axis,
+        v=axis,
+        relative=False,
+        two_way=True,
+        colorbar=False,
+    )
+    two_way_values = np.asarray(two_way_ax.collections[0].get_array(), dtype=float)
+    assert two_way_values == pytest.approx(tx_values + rx_values)
     plt.close("all")

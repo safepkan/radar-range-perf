@@ -83,11 +83,14 @@ class Frontend(Protocol):
 
 @runtime_checkable
 class Antenna(Protocol):
-    """A transmit or receive antenna (single element of the array).
+    """A transmit or receive antenna pattern.
 
-    Gain here is the *element* gain.  Coherent array / beamforming gain is
-    accounted for by the processing model, not folded into the pattern, to
-    avoid double counting.
+    Most models report gain for one hardware channel's element or subarray, in
+    which case coherent array / beamforming gain is accounted for by the
+    processing model. A model may instead describe a complete aperture; its
+    processing configuration must then omit the corresponding array gain to
+    avoid double counting (for :class:`~radarperf.processing.StandardProcessing`,
+    set ``tx_array_gain_in_antenna=True`` for a complete coherent TX aperture).
     """
 
     @property
