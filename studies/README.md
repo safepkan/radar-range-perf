@@ -65,6 +65,11 @@ Run a study from the repo root with the project venv, e.g.:
   the TX beam, and shows that the MIMO discrimination originates in the TX
   defocus phase. The supplier-facing requirements draft is
   [`ANTENNA_REQUIREMENTS.md`](2026-09-02_lannik-psi/ANTENNA_REQUIREMENTS.md).
+  The 2026-09-10 meeting chose the two first prototypes: the rectangular
+  subarrays with a two-pitch (height/4) alternating column stagger and the
+  rotated 2 x 4 square-subarray URA. The presentation given at that meeting
+  is kept as presented under `presentations/`, with its figures archived
+  under `deliverables/2026-09-10_presentation/`.
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions

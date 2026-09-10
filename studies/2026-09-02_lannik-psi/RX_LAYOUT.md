@@ -1,9 +1,10 @@
 # Lannik Psi RX-layout decision notes
 
-Working decision brief, 2026-09-09, extended 2026-09-10 before the meeting.
-The internal meeting on 2026-09-10 is expected to choose the rectangular
-prototype geometry; ordering may not allow further deferral. This is a recommendation under uncertainty, not a finalized
-antenna specification or a demonstrated ambiguity-resolution capability.
+Working decision brief, 2026-09-09, extended 2026-09-10 before and after the
+meeting that chose the rectangular prototype geometry. The analysis behind the
+decision is idealized: it is not a finalized antenna specification or a
+demonstrated ambiguity-resolution capability. See the decision record at the
+end for the outcome.
 
 See [NOTES.md](NOTES.md) for system context and [MIMO.md](MIMO.md) for the
 track-directed MIMO architecture. The corresponding experimental script is
@@ -18,14 +19,15 @@ layout: an unstaggered 4 × 2 URA, or the same subarrays with alternating
 two-channel columns displaced vertically. Neither rectangular alternative is an
 official prototype preset yet.
 
-**Current direction, 2026-09-10: a two-pitch (height/4) alternating column
-stagger, as option C (eight rows, 42.3 mm tall) or option D (seven rows,
-37.6 mm tall, -0.6 dB) in [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
-The unstaggered URA is the fallback.** This supersedes the 2026-09-09
-preference for the URA, which rested on the modest benefit of the one-pitch
-(height/8) internal sketch; see the decision record. The choice is ours to
-make from a product and project perspective; the supplier is asked only for
-early feedback on obvious feasibility, PCB, feed, coupling or schedule issues.
+**Decision, 2026-09-10 meeting: the rectangular prototype uses a two-pitch
+(height/4) alternating column stagger, option C (eight rows, 42.3 mm tall) in
+[ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md). The second prototype is
+the rotated 2 × 4 square-subarray URA in a smaller package.** The extra RX
+height of option C fits within the margin to the edge, so option D (seven
+rows) is not needed. This supersedes the 2026-09-09 preference for the URA, which
+rested on the modest benefit of the one-pitch (height/8) internal sketch. The
+reasoning below was written before the meeting and is kept as the record of
+why.
 
 ### Why staggering is the main direction
 
@@ -619,16 +621,15 @@ robust benefit, recommend URA; if it reveals a clear benefit, weigh it against
 supplier and processing constraints. The comparison found a clear benefit for
 a two-pitch offset, so the direction changed as recorded at the top.*
 
-Still open after the meeting:
+Still open after the meeting (geometry decided, see the decision record):
 
-- Supplier: early feedback on obvious PCB, feed, coupling or schedule issues
-  with options C and D (two-pitch stagger, eight or seven rows), not a full
-  analysis. The one-pitch sketch was ours and may not have been discussed
-  with them at all.
-- Supplier: agreement that the four individual TX quadrant patterns are a
-  requirement, that the beam widening comes from the prescribed quadratic
-  phase or an agreed equivalent, and that per-port complex patterns are a
-  deliverable; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
+- **TX-side specification.** Formulate what the supplier must ensure about
+  the four quadrant patterns, the defocus and the per-port deliverables so
+  that the properties MIMO relies on are guaranteed without over-specifying
+  the detailed design; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
+  This is the main remaining item.
+- Supplier: confirmation of the decided RX layouts (option C and the rotated
+  square URA) and of any feed, coupling or schedule implications.
 - Internal: whether the long-range in-beam vertical family or the
   short-range off-beam horizontal family drives the requirement, and who
   owns the non-separable steering and per-lobe coherent likelihoods in the
@@ -645,7 +646,7 @@ Still open after the meeting:
 source venv/bin/activate
 python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
 python studies/2026-09-02_lannik-psi/rx_resolution_experiment.py
-python studies/2026-09-02_lannik-psi/rx_stagger_amount_experiment.py  # about 3 min
+python studies/2026-09-02_lannik-psi/rx_stagger_amount_experiment.py  # about 5 min
 python -m pytest studies/2026-09-02_lannik-psi/test_rx_resolution_experiment.py \
     studies/2026-09-02_lannik-psi/test_rx_stagger_amount_experiment.py -q
 ```
@@ -702,5 +703,14 @@ only partly complete.
   processing cost is likely manageable, not budgeted; ±15° is a proposed
   calibration target; option D is an extrapolation; 550 m is a 10 dB SNR
   reference, not a cutoff.
-- **Decision pending, 2026-09-10 meeting:** Record the selected geometry, reasons,
-  dissenting considerations, accepted uncertainties and follow-up owners here.
+- **Decision, 2026-09-10 meeting:** The rectangular prototype will use the
+  two-pitch (height/4) alternating column stagger, option C (eight rows,
+  42.3 mm tall). The extra height is not an issue: there was a conservative
+  margin to the edge. The second prototype is the smaller square-subarray
+  variant, rotated to 2 × 4 channels for a more compact package and kept as
+  an unstaggered URA; its vertical aliases then match the horizontal ones at
+  ±11.9°, a mid-to-short-range concern rather than a long-range one. The
+  main remaining work is formulating the TX-side specification so that the
+  properties MIMO relies on are ensured without over-specifying the detailed
+  design. Ambiguity-resolution latency, calibration tolerance and the
+  processing budget remain validation items.

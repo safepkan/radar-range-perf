@@ -54,11 +54,13 @@ scheduling and confidence details remain design work rather than demonstrated
 product performance.
 
 Two antenna prototypes with different RX subarray dimensions are planned.
-Candidate square and staggered-rectangle concepts were received on 2026-09-08,
-but remain provisional pending the design meeting and final dimensions. Until
-that decision, the supplied 2.42λ × 4.83λ rectangle remains a computational
-reference only; its use as the current script baseline does not identify it as
-either prototype choice.
+Candidate square and staggered-rectangle layouts were sketched on 2026-09-08.
+The 2026-09-10 meeting decided both: the supplied-size 2.42λ × 4.83λ
+rectangular subarrays with a two-pitch (height/4) alternating column stagger,
+and the 2.42λ square subarrays rotated to 2 × 4 channels as an unstaggered
+URA in a smaller package. The main script's unstaggered rectangular baseline
+remains a computational reference for range performance; the staggered
+geometry does not change gain or beamwidth.
 
 Once the dimensions are known, the study should gain a simple two-variant
 runner that produces directly comparable versions of the existing plots. The
@@ -81,11 +83,13 @@ And the stagger amount dominates the geometry trade: the sketched height/8
 offset gives a coherent frame only 0.146 of an unambiguous measurement's
 separation at the vertical alias, whereas height/4 gives 0.500 and resolves
 the tested vertical-edge events without a MIMO burst within one to four
-frames. The current direction, recorded later on 2026-09-10 in
-[RX_LAYOUT.md](RX_LAYOUT.md), is a two-pitch stagger (eight rows at 42.3 mm
-or seven rows at the original 37.6 mm), with the URA as fallback; the choice
-is ours, with the supplier asked only for early feedback on obvious issues.
-No geometry choice has been finalized by this update.
+frames. **Decision, 2026-09-10 meeting:** The rectangular prototype uses the
+two-pitch (height/4) stagger with eight-row subarrays (42.3 mm tall; the
+margin to the edge allows it). The second prototype is the rotated 2 × 4 square-subarray
+URA, whose vertical aliases sit at ±11.9° like its horizontal ones and are a
+mid-to-short-range matter. The main remaining work is the TX-side
+specification; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md) and
+the decision record in [RX_LAYOUT.md](RX_LAYOUT.md).
 
 **Source fact, 2026-09-10:** The same supplier has already produced a separate
 prototype antenna with four-quadrant tapered TX and RX apertures for the
@@ -672,16 +676,17 @@ choice.
 
 1. Have the antenna supplier assess an equal-power two-feed partition of each
    desired TX quadrant and provide realized-gain/pattern tolerances.
-2. Confirm the square prototype selection and, for the rectangular
-   prototype, choose between the two-pitch stagger variants (eight rows at
-   42.3 mm or seven rows at 37.6 mm) and the URA fallback after supplier
-   feedback; see [`RX_LAYOUT.md`](RX_LAYOUT.md).
-3. Judge any change to the stagger offset with the multi-frame event model
-   and the in-beam competitor map, not only the exact reciprocal-cell size,
-   and hand the supplier the requirements in
+2. Formulate the TX-side specification for the supplier: which quadrant-
+   pattern properties are binding, which deliverables verify them, and how
+   much of the detailed design is left open; start from
    [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
-4. Once selected, add a simple study runner for both prototype variants and
-   promote them to clearly named toolbox-level Lannik Psi prototype presets.
+3. Judge any later change to the decided stagger offset with the
+   multi-frame event model and the in-beam competitor map, not only the
+   exact reciprocal-cell size.
+4. Add a simple study runner for the two decided prototype variants (the
+   height/4-staggered rectangle and the rotated square URA) and promote them
+   to clearly named toolbox-level Lannik Psi prototype presets; the main
+   range model must then support staggered RX phase centres.
 5. Write acquisition, track-maintenance and time-to-unambiguous-publication use
    cases with an allowable wrong-cell probability.
 6. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
@@ -830,3 +835,8 @@ choice.
   diagonal competitor family and a systematic RX column-group phase error to
   the multi-frame experiment. The direction stands; frame counts, processing
   cost, calibration tolerance and option D are recorded as validation items.
+- **2026-09-10, meeting:** Decided the two first prototypes: the rectangular
+  subarrays with a two-pitch (height/4) alternating column stagger, eight
+  rows, and the rotated 2 × 4 square-subarray URA. The TX-side specification
+  is the main remaining item. This branch is snapshotted to `main` at this
+  point; the presentation under `presentations/` is kept as presented.

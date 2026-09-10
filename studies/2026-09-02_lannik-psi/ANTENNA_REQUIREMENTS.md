@@ -5,14 +5,18 @@ Lannik Psi ambiguity-resolution concept needs from the antenna, written so
 that it can be worked into the supplier's detailed design and checked
 before production release. The engineering rationale is in
 [NOTES.md](NOTES.md), [MIMO.md](MIMO.md) and [RX_LAYOUT.md](RX_LAYOUT.md);
-this document states requirements, not reasoning. Values marked *TBD* are
-to be fixed after the 2026-09-10 geometry decision.
+this document states requirements, not reasoning. The RX geometries were
+fixed at the 2026-09-10 meeting; the open item is the TX-side formulation
+(sections 2 and 4), which must ensure the properties relied on without
+over-specifying the detailed design.
 
 ## 1. Concept summary for the supplier
 
 - One TX aperture of 16 × 16 radiators, fed from eight MMIC ports as four
   independently driven quadrants of two ports each.
 - One RX aperture of eight channels, each a uniform rectangular subarray.
+  Two first prototypes are ordered with different RX apertures (section 3);
+  the TX aperture is the same for both.
 - Normal operation transmits the same waveform from all eight TX ports (a
   single sum beam). For ambiguity resolution the radar occasionally transmits
   four mutually orthogonal waveforms, one per TX quadrant, and separates them
@@ -59,27 +63,58 @@ to be fixed after the 2026-09-10 geometry decision.
 
 ## 3. RX requirements
 
-### 3.1 Subarrays and layout
+### 3.1 Prototype 1: staggered rectangular subarrays (decided 2026-09-10)
 
 1. Eight identical uniform rectangular subarrays of 4 radiators horizontally
-   by *TBD* radiators vertically (nominally 8; see 3.2), arranged as four
-   columns of two channels.
-2. Adjacent columns are displaced vertically by a stagger *s* (*TBD*, see
-   3.2), alternating (+s/2, -s/2, +s/2, -s/2). The eight channel phase-centre
-   positions shall be documented as a table of (x, y) in millimetres.
+   by 8 radiators vertically (9.41 × 18.81 mm at the 2.351 mm pitch),
+   arranged as four columns of two channels, densely packed.
+2. Adjacent columns are displaced vertically by two radiator pitches
+   (s = 4.70 mm), alternating (+s/2, -s/2, +s/2, -s/2), so the aperture is
+   37.6 mm wide and 42.3 mm tall. Nominal channel phase centres, x to the
+   right and y up, origin at the aperture centre:
+
+| Channel | x [mm] | y [mm] |
+|---|---:|---:|
+| 1 | -14.11 | -7.05 |
+| 2 | -14.11 | +11.76 |
+| 3 | -4.70 | -11.76 |
+| 4 | -4.70 | +7.05 |
+| 5 | +4.70 | -7.05 |
+| 6 | +4.70 | +11.76 |
+| 7 | +14.11 | -11.76 |
+| 8 | +14.11 | +7.05 |
+
 3. Phase-centre position tolerance: ±0.2 mm is sufficient. Inter-channel
    static amplitude and phase offsets are calibrated in the radar and need
-   no tight tolerance, but their stability is required (section 5).
+   no tight tolerance, but their stability is required (section 5); the
+   relative phase between the two column groups in particular must be
+   calibratable to about ±15°.
 
-### 3.2 Layout options: preliminary feedback requested
+### 3.2 Prototype 2: square subarrays, rotated (decided 2026-09-10)
 
-We will choose the layout ourselves from a product and project perspective.
-What we ask from the supplier at this stage is early feedback on obvious
-feasibility, PCB, feed, coupling or schedule issues with the shortlisted
-options, not a full analysis of each.
+1. Eight identical uniform square subarrays of 4 × 4 radiators
+   (9.41 × 9.41 mm), arranged as two columns of four channels, densely
+   packed and unstaggered: the aperture is 18.8 mm wide and 37.6 mm tall,
+   for a more compact package. Nominal channel phase centres:
 
-With W = 9.41 mm subarray width, 2.351 mm radiator pitch and H = 18.81 mm
-for eight rows:
+| Channel | x [mm] | y [mm] |
+|---|---:|---:|
+| 1 | -4.70 | -14.11 |
+| 2 | -4.70 | -4.70 |
+| 3 | -4.70 | +4.70 |
+| 4 | -4.70 | +14.11 |
+| 5 | +4.70 | -14.11 |
+| 6 | +4.70 | -4.70 |
+| 7 | +4.70 | +4.70 |
+| 8 | +4.70 | +14.11 |
+
+2. The same tolerance and stability statements as for prototype 1 apply.
+
+### 3.3 Layout options considered (record)
+
+The following options were compared before the decision; option C was
+chosen for prototype 1. With W = 9.41 mm subarray width, 2.351 mm radiator
+pitch and H = 18.81 mm for eight rows:
 
 | Option | Subarray height | Stagger `s` | Total RX height | Own vertical alias edge | Coherent-mode separation of that alias, `1 - rho` | Subarray gain change |
 |---|---:|---:|---:|---:|---:|---:|
@@ -88,13 +123,12 @@ for eight rows:
 | C. Two-pitch stagger | 18.81 mm (8 rows) | 4.70 mm (H/4) | 42.3 mm | ±5.9° | 0.50 | 0 dB |
 | D. Two-pitch stagger, 7 rows | 16.46 mm (7 rows) | 4.70 mm (2H/7) | 37.6 mm | ±6.8° | 0.61 | -0.58 dB |
 
-Option A is the fallback. Options C and D are preferred from the
-signal-processing side; B is our own earlier sketch and is included for
-reference, but it gives too little separation to be worth its complexity. Option D keeps the original
-16-row grid, pitch and total height: each column populates 14 of 16 rows,
-offset by two rows between adjacent columns. A horizontal row offset of one
-pitch (W/4) on top of the column stagger would give the same 0.50 separation
-for the horizontal aliases; it is not requested now but may be raised later.
+Option C was chosen because the margin to the edge accommodates its height,
+which makes option D (seven rows, same total height, -0.6 dB) unnecessary.
+B is our own earlier sketch, kept for reference; it gives too little
+separation to be worth its complexity. A horizontal row offset of one pitch
+(W/4) on top of the column stagger would give the same 0.50 separation for
+the horizontal aliases; it is not requested now but may be raised later.
 
 ## 4. Deliverables and acceptance metrics
 

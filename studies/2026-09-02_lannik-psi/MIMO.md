@@ -58,9 +58,11 @@ and schedule risk, not only the MIMO correlation plot. See the dedicated
 [`RX_LAYOUT.md`](RX_LAYOUT.md) decision note and
 [`rx_layout_experiment.py`](rx_layout_experiment.py).
 
-**Project status, 2026-09-10:** The current direction is a two-pitch
+**Decision, 2026-09-10 meeting:** The rectangular prototype uses a two-pitch
 (height/4) column stagger, which lets ordinary coherent frames resolve the
-in-beam vertical alias family without MIMO in the tested events. MIMO is
+in-beam vertical alias family without MIMO in the tested events; the second
+prototype is the rotated square-subarray URA, whose aliases all sit at
+±11.9°. MIMO is
 retained for the horizontal alias family, which remains exact in every
 stagger variant, and as the fallback for the vertical family; it is used
 on demand. The horizontal-edge discrimination of about -3 dB, which comes
