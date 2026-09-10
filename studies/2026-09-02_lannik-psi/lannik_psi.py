@@ -346,7 +346,7 @@ RX_SQUARE_LAYOUT = RxAntennaLayout(
     horizontal_count=2,
     vertical_count=4,
 )
-# Provisional supplier concept: alternate the vertical position of adjacent
+# Provisional internal sketch (2026-09-08): alternate the vertical position of
 # two-channel columns. The difference between the two column positions is one
 # eighth of the rectangular subarray height; symmetric offsets keep the whole
 # layout centered without affecting its array-factor power.

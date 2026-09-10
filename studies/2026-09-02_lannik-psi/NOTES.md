@@ -9,7 +9,7 @@ design document. It is deliberately not a transcript. Numerical configuration
 in [`lannik_psi.py`](lannik_psi.py) is authoritative when this document and the
 code differ.
 
-Last substantial update: 2026-09-09.
+Last substantial update: 2026-09-10.
 
 ## Status labels
 
@@ -68,11 +68,33 @@ There is no need to build that infrastructure before the choices are known.
 
 **Decision preparation, 2026-09-09:** The 2026-09-10 meeting is expected to
 choose staggered versus unstaggered geometry for the rectangular prototype.
-The current recommendation favors URA for schedule and implementation
+The 2026-09-09 recommendation favored URA for schedule and implementation
 simplicity, not because staggering has no useful information. The dedicated
 [RX-layout decision note](RX_LAYOUT.md) records costs, potential benefits,
-uncertainties and the smallest useful pre-decision checks. No geometry choice
-has been finalized by this update.
+uncertainties and the smallest useful pre-decision checks.
+
+**Pre-meeting update, 2026-09-10:** Two findings qualify that recommendation.
+The ideal MIMO alias discrimination is entirely a property of the prescribed
+TX defocus phase and the quadrant squint it produces; it is robust to
+plausible taper and static phase errors but not to a change of TX excitation.
+And the stagger amount dominates the geometry trade: the sketched height/8
+offset gives a coherent frame only 0.146 of an unambiguous measurement's
+separation at the vertical alias, whereas height/4 gives 0.500 and resolves
+the tested vertical-edge events without a MIMO burst within one to four
+frames. The current direction, recorded later on 2026-09-10 in
+[RX_LAYOUT.md](RX_LAYOUT.md), is a two-pitch stagger (eight rows at 42.3 mm
+or seven rows at the original 37.6 mm), with the URA as fallback; the choice
+is ours, with the supplier asked only for early feedback on obvious issues.
+No geometry choice has been finalized by this update.
+
+**Source fact, 2026-09-10:** The same supplier has already produced a separate
+prototype antenna with four-quadrant tapered TX and RX apertures for the
+existing 4TX/4RX radars, primarily as a supplier evaluation and for
+narrow-beam long-range demonstrations. Its measurements are under review;
+nothing worrying has been seen so far. If per-port patterns were measured,
+they are the first available check of the supplier's ability to realize a
+prescribed amplitude and phase distribution, and of the quadrant-squint
+metrics in [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
 
 ## Sources and reproduction
 
@@ -84,8 +106,9 @@ Supplied antenna material is archived in [`inputs/`](inputs/):
 - `main_read.m`
 - `new_aperture_IFX_rot_small_RX.png` — provisional square-subarray layout,
   rotated to a 2 × 4 RX channel arrangement for a more compact PCB.
-- `Aperture_large_staggeredered_IFX.png` — provisional supplied-size
-  rectangular layout with alternating vertical channel-pair offsets.
+- `Aperture_large_staggeredered_IFX.png` — internal sketch of the
+  supplied-size rectangular layout with alternating vertical channel-pair
+  offsets; the one-pitch offset was not chosen by analysis.
 
 Run the complete study from the repository root:
 
@@ -109,7 +132,8 @@ venv/bin/python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
 ```
 
 Its decision context and investigation plan are maintained in
-[`RX_LAYOUT.md`](RX_LAYOUT.md).
+[`RX_LAYOUT.md`](RX_LAYOUT.md). The supplier-facing antenna requirements
+draft is [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
 
 Working figures are written to [`generated/`](generated/) and are intentionally
 not treated as reviewed deliverables.
@@ -311,8 +335,10 @@ This option may permit the larger supplied-height RX subarrays to be retained.
 
 ### Provisional prototype layouts received 2026-09-08
 
-Two updated supplier concepts have been added as experimental layouts without
-changing the main range-performance baseline or promoting either to a preset.
+Two provisional layout sketches have been added as experimental layouts
+without changing the main range-performance baseline or promoting either to a
+preset. The staggered rectangle is an internal idea whose offset was not
+analysed when it was drawn.
 The square design now appears likely to be fixed; the active trade for the
 second prototype is the rectangular geometry with versus without stagger:
 
@@ -322,7 +348,7 @@ second prototype is the rectangular geometry with versus without stagger:
   the finite-array beam shape and makes the physical RX/PCB layout narrower;
   this is now the orientation used for the square comparison.
 - The 2.42λ × 4.83λ rectangles remain in a 4 × 2 arrangement. Based on the
-  supplied image, the current model interprets adjacent two-channel columns as
+  sketch, the current model interprets adjacent two-channel columns as
   differing in vertical position by one eighth of a subarray height, with
   symmetric ±height/16 offsets about the array center. This interpretation
   should be confirmed at the design meeting.
@@ -364,8 +390,13 @@ The first on-demand resolution-event experiment is now in
 [`rx_resolution_experiment.py`](rx_resolution_experiment.py), with results in
 [`RX_LAYOUT.md`](RX_LAYOUT.md). It compares fixed-RCS, known-target events,
 not a full acquisition/tracker scenario. The tested cases show useful extra
-vertical information from stagger, but only modest additional MIMO-energy
-savings; they do not overturn the provisional URA preference.
+vertical information from the height/8 stagger, but only modest additional
+MIMO-energy savings. The follow-up
+[`rx_stagger_amount_experiment.py`](rx_stagger_amount_experiment.py) shows
+that a height/4 stagger resolves the same vertical-edge events with coherent
+frames alone, and that the MIMO discrimination itself originates in the TX
+defocus phase rather than the quadrant geometry; see
+[`MIMO.md`](MIMO.md).
 
 The initial ideal experiment is promising for both RX candidates. With the
 2.42λ square subarrays, 99% binary resolution at a principal edge reaches
@@ -490,6 +521,11 @@ proves impractical.
    operating constraints?
 5. Is the presentation's approximately 23.5 dBi value directivity, gain, or
    realized gain, and what total input-power reference was used?
+6. The MIMO ambiguity resolution depends on the four individual quadrant
+   patterns, which follow from the prescribed quadratic (defocus) phase. The
+   per-port pattern deliverables, acceptance metrics and stability guidance
+   to give the supplier are drafted in
+   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
 
 The previous calculation based on the apparent eight equal geometric groups
 gave very unequal group powers. That remains evidence that those labels should
@@ -636,13 +672,14 @@ choice.
 
 1. Have the antenna supplier assess an equal-power two-feed partition of each
    desired TX quadrant and provide realized-gain/pattern tolerances.
-2. Confirm the square prototype selection and choose staggered versus
-   unstaggered geometry for the rectangular prototype using the bounded
-   coherent-plus-MIMO evidence comparison and supplier checks in
-   [`RX_LAYOUT.md`](RX_LAYOUT.md).
-3. Confirm the intended stagger convention and judge candidate offsets using
-   worst-case multi-hypothesis ambiguity discrimination, not only the exact
-   reciprocal-cell size.
+2. Confirm the square prototype selection and, for the rectangular
+   prototype, choose between the two-pitch stagger variants (eight rows at
+   42.3 mm or seven rows at 37.6 mm) and the URA fallback after supplier
+   feedback; see [`RX_LAYOUT.md`](RX_LAYOUT.md).
+3. Judge any change to the stagger offset with the multi-frame event model
+   and the in-beam competitor map, not only the exact reciprocal-cell size,
+   and hand the supplier the requirements in
+   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
 4. Once selected, add a simple study runner for both prototype variants and
    promote them to clearly named toolbox-level Lannik Psi prototype presets.
 5. Write acquisition, track-maintenance and time-to-unambiguous-publication use
@@ -700,9 +737,15 @@ choice.
 - `generated/experimental/on_demand/resolution_phase_0deg.png` and
   `resolution_phase_10deg.png` — wrong-lobe probability versus extra MIMO
   illumination after a coherent observation, nominal and phase-stress cases.
+- `generated/experimental/on_demand/stagger_amount_vertical_edge.png` —
+  vertical-edge wrong-lobe probability after one, two and four coherent
+  frames plus MIMO illumination, for URA, height/8 and height/4 stagger.
 
 ## Decision log
 
+- `generated/experimental/on_demand/stagger_in_beam_competitors.png` —
+  strongest gain-admissible alias competitor for every in-beam true
+  direction, coherent and MIMO, for the same three layouts.
 - **2026-09-02:** Named the product Lannik Psi and created a clean study based
   on config 3 of the 2026-06-22 comparison.
 - **2026-09-02:** Replaced placeholder TX gain with the supplied complete
@@ -771,3 +814,19 @@ choice.
   sparse scenarios. Assume tracker-to-control requests and flexible sequencing
   can be implemented on the shared platform; evaluate targeted resolution
   events rather than charging a permanent periodically interlaced MIMO cost.
+- **2026-09-10:** Traced the MIMO alias discrimination to the prescribed TX
+  defocus phase and quadrant squint; uniform quadrants alias exactly with the
+  RX lattice. Added a stagger-amount comparison: height/4 resolves the tested
+  vertical-edge events in coherent mode alone, height/8 only partly. Proposed
+  preferring height/4 if the supplier can accommodate it. Decision pending.
+- **2026-09-10, later:** In-beam competitor map confirmed that height/4 leaves
+  no near-exact coherent-mode competitor inside the TX 3 dB region, and that
+  URA gain plausibility covers only about ±2° around the horizontal plane
+  once alias-lobe skirts are admitted. Added equal-total-height variants
+  (7 rows, two-pitch stagger) and drafted the supplier-facing
+  [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+- **2026-09-10, review:** Corrected a phase-wrapping bug in the defocus
+  sensitivity sweep and the in-beam MIMO competitor search; added the
+  diagonal competitor family and a systematic RX column-group phase error to
+  the multi-frame experiment. The direction stands; frame counts, processing
+  cost, calibration tolerance and option D are recorded as validation items.

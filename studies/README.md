@@ -60,6 +60,11 @@ Run a study from the repo root with the project venv, e.g.:
   A companion `rx_resolution_experiment.py` compares targeted resolution events
   using one coherent observation followed by variable MIMO illumination, with
   plots under `generated/experimental/on_demand/` and study-local tests.
+  `rx_stagger_amount_experiment.py` extends it to several coherent frames and
+  a height/4 stagger, sweeps the stagger amount, screens competing lobes over
+  the TX beam, and shows that the MIMO discrimination originates in the TX
+  defocus phase. The supplier-facing requirements draft is
+  [`ANTENNA_REQUIREMENTS.md`](2026-09-02_lannik-psi/ANTENNA_REQUIREMENTS.md).
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions

@@ -11,7 +11,7 @@ and achievable performance have not yet been validated. They indicate a
 promising way to retain a larger RX aperture without accepting unresolved
 channel-array ambiguities.
 
-Last substantial update: 2026-09-09.
+Last substantial update: 2026-09-10.
 
 ## Motivation and current conclusion
 
@@ -57,6 +57,15 @@ prototype choice therefore concerns combined evidence, implementation effort
 and schedule risk, not only the MIMO correlation plot. See the dedicated
 [`RX_LAYOUT.md`](RX_LAYOUT.md) decision note and
 [`rx_layout_experiment.py`](rx_layout_experiment.py).
+
+**Project status, 2026-09-10:** The current direction is a two-pitch
+(height/4) column stagger, which lets ordinary coherent frames resolve the
+in-beam vertical alias family without MIMO in the tested events. MIMO is
+retained for the horizontal alias family, which remains exact in every
+stagger variant, and as the fallback for the vertical family; it is used
+on demand. The horizontal-edge discrimination of about -3 dB, which comes
+entirely from the prescribed TX defocus, is therefore the binding TX
+requirement; see [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
 
 ## Mode and virtual-array model
 
@@ -142,6 +151,42 @@ Representative exact-alias correlations are:
 The strong variation demonstrates why neither one phase-center spacing nor one
 boresight-replica number characterizes the problem. The full complex patterns
 must be evaluated over all relevant hypothesis pairs.
+
+### Origin of the quadrant discrimination, 2026-09-10
+
+The TX radiator pitch equals the RX pitch, so each 8 × 8 quadrant is exactly
+one RX subarray height wide and the four quadrant phase centers share the RX
+alias lattice. Uniform, cophasal quadrants therefore give 0.0 dB at the
+opposite vertical edges and -0.6 dB at the opposite horizontal edges: the
+quadrant *geometry* contributes nothing. The supplied excitation carries a
+rotationally symmetric quadratic phase, about 180° at the edge centres and
+360° at the corners. It is a beam-broadening defocus (6.9° to 12.6° 3 dB
+beamwidth, 5.3 dB boresight cost) and it squints each quadrant beam by 6.0°
+in u and v toward the opposite corner. That squint, with the resulting
+amplitude and phase differences between quadrants, is the entire source of
+the table above; the supplied amplitude taper without its phase gives only
+-4.7 dB at the vertical edges and -0.04 dB at the horizontal edges.
+
+Consequences: the vertical discrimination is robust to plausible errors in
+the realized taper (vertical-edge margin at least 17 dB for 0.6 to 1.4 times
+the prescribed phase, at least 12.9 dB for a 30° uncalibrated upper/lower
+quadrant phase error) but is tied to the prescribed TX excitation. The
+horizontal-edge margin scales with the amount of defocus, from 1.8 dB at 0.6
+times the prescribed phase to 4.3 dB at 1.4 times, so an under-realized
+defocus weakens the MIMO-limited horizontal case. A focused long-range TX
+mode, TX subarray phase steering or any re-shaped taper changes the MIMO
+alias discrimination and must be re-evaluated; the supplier must realize the
+phase distribution, not only the amplitude taper. (These sensitivity figures
+were corrected on 2026-09-10 after a review found that the first sweep scaled
+the wrapped rather than the unwrapped phase.)
+See [`RX_LAYOUT.md`](RX_LAYOUT.md) and
+[`rx_stagger_amount_experiment.py`](rx_stagger_amount_experiment.py).
+
+Because the antenna supplier implements our concept, this dependence is
+something to specify rather than hope for. The supplier-facing formulation,
+with per-port pattern deliverables and acceptance thresholds on the
+alias-pair correlations, is drafted in
+[`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
 
 ## Single-CPI detection results
 
@@ -346,6 +391,43 @@ The final comparison should account for displaced coherent updates, target
 decorrelation, range/Doppler migration, acceleration, phase noise, waveform
 orthogonality, velocity ambiguity, thermal duty and processing capacity.
 
+## Fallbacks if MIMO underperforms, 2026-09-10
+
+**Design ideas**, recorded because the remaining MIMO risk sits on the TX
+side (pattern realization, intra- and inter-quadrant calibration, waveform
+orthogonality and its Doppler cost) and because a single-target application
+tolerates slower resolution:
+
+1. **TX sequential lobing with the coherent waveform.** The per-port MMIC
+   phase settings can steer or re-shape the coherent sum beam between CPIs
+   (for example a small upward or sideways squint). The received amplitude
+   ratio between two such CPIs differs between the true direction and its
+   alias because the TX patterns are not periodic in the RX lattice. This
+   uses the same quadrant-pattern squint as MIMO but at full coherent power
+   and with no orthogonal waveform or MIMO processing. Its weakness is that
+   the two measurements are in different CPIs, so target RCS fluctuation
+   enters the ratio; MIMO measures all four quadrant responses in one CPI and
+   cancels the unknown amplitude exactly. The TX pattern requirement in
+   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md) is unchanged.
+2. **Gain-trajectory evidence in the tracker.** As a target or the platform
+   moves, the received amplitude follows the two-way gain pattern at the
+   true direction; the alias hypothesis predicts a different profile. This is
+   free information for targets crossing the beam and for any platform
+   motion, and nothing for a radially approaching target at constant angle.
+3. **Surface the ambiguity upward.** Publish the hypothesis set and its
+   probabilities as a first-class output state rather than hiding it, so
+   higher layers can wait, accept, or act. As a last resort in a
+   single-target use case, an operator or platform controller can be asked
+   to rotate the platform by a few degrees: the alias sits at a different
+   place in the fixed TX and subarray patterns, so the amplitude change on
+   rotation has opposite sign under the two hypotheses. It is the mechanical
+   version of item 1 and inherits the same RCS-fluctuation caveat, but it
+   needs no change to the radar at all.
+
+Items 1 and 2 are cheap to model with the existing quadrant patterns and
+should be quantified before they are relied on. None of them removes the
+need for calibrated patterns; they remove the need for orthogonal waveforms.
+
 ## Future eight-TX MIMO
 
 The physical subdivision of each quadrant into two equal-power TX subapertures
@@ -457,3 +539,5 @@ MIMO figures are written under [`generated/mimo/`](generated/mimo/):
 - No multiple-hypothesis Pfa/resource cost.
 - The four-quadrant split is conceptual until the physical eight-port design is
   available.
+- The alias discrimination is a property of the prescribed TX defocus phase;
+  it does not transfer to other TX excitations or modes without re-evaluation.

@@ -5,7 +5,7 @@ phase centers. Principal cuts overlay the common TX and RX subarray gains for
 context; a separate comparison includes the MIMO signatures. It intentionally
 does not change the main range-performance baseline.
 
-Two supplier concepts received on 2026-09-08 are represented:
+Two provisional layout sketches from 2026-09-08 are represented:
 
 * square subarrays in a densely packed 2 x 4 channel layout; and
 * the supplied-size rectangular subarrays in a 4 x 2 layout, with alternating

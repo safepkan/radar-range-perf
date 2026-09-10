@@ -109,27 +109,34 @@ def build_bank(
     *,
     rcs_ceiling_dbsm: float = 10.0,
     local_samples: int = 17,
+    u_seed_fraction: float = 1.0,
 ) -> HypothesisBank:
     """Enumerate old-alias neighborhoods; screen individual angles by RCS.
 
     A neighborhood extends +/-0.75*period/channel_count in each axis, so
     neighborhoods do not overlap and include the nearby sheared RX replica.
     All layouts use the same neighborhood and noiseless RCS-screen convention.
+    ``u_seed_fraction`` sets the seed spacing in u as a fraction of the URA
+    period; 0.5 adds the half-period seeds where staggered layouts have a
+    diagonal near-alias family and the URA has nulls and sidelobes.
     """
     if local_samples < 3 or local_samples % 2 != 1:
         raise ValueError("local_samples must be odd and at least 3")
+    if u_seed_fraction not in (0.5, 1.0):
+        raise ValueError("u_seed_fraction must be 0.5 or 1.0 so seeds do not overlap")
     if not np.isfinite(rcs_ceiling_dbsm) or rcs_ceiling_dbsm < 0:
         raise ValueError("rcs_ceiling_dbsm must be finite and >= 0 for the 1 m² target")
     true_uv = np.array([[case.u, case.v]])
     reference_gain = float(coherent_gain_db(tx, true_uv)[0])
     radius = 0.75 * PERIODS / np.array([4, 2])
+    seed_periods = PERIODS * np.array([u_seed_fraction, 1.0])
     du, dv = np.meshgrid(
         np.linspace(-radius[0], radius[0], local_samples),
         np.linspace(-radius[1], radius[1], local_samples),
         indexing="ij",
     )
     offsets = np.column_stack((du.ravel(), dv.ravel()))
-    limits = np.ceil((1 + np.abs(true_uv[0]) + radius) / PERIODS).astype(int)
+    limits = np.ceil((1 + np.abs(true_uv[0]) + radius) / seed_periods).astype(int)
     cells: list[tuple[int, int]] = []
     starts: list[int] = []
     points: list[FloatArray] = []
@@ -137,7 +144,7 @@ def build_bank(
     point_count = 0
     for ku in range(-int(limits[0]), int(limits[0]) + 1):
         for kv in range(-int(limits[1]), int(limits[1]) + 1):
-            uv = true_uv + np.array([ku, kv]) * PERIODS + offsets
+            uv = true_uv + np.array([ku, kv]) * seed_periods + offsets
             visible = np.sum(uv**2, axis=1) <= 1.0
             required_rcs = reference_gain - coherent_gain_db(tx, uv)
             keep = visible & (required_rcs <= rcs_ceiling_dbsm + 1e-10)
