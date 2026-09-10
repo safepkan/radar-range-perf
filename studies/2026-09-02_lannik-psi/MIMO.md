@@ -467,6 +467,17 @@ and only the burst latency grows. The quadrant mode remains the shorter
 the left/right discrimination is the same defocus-squint effect with the same
 sensitivity to an under-realized defocus.
 
+The nominal radiator-grid split is illustrated by
+`left_right_half_tx_beams.png`. Coherently joining the two quadrants on each
+side cancels their opposite vertical squints while retaining the horizontal
+squint: the physical left half peaks at about -6.0° azimuth and the physical
+right half at about +6.0°. Thus the two half-aperture beams point inward across
+boresight rather than straight ahead. The plotted one-waveform curves include
+each half's 1/2 share of the unchanged total TX power; their noncoherent power
+sum is 3.0 dB below the full coherent aperture at boresight. This remains a
+geometric illustration using the prescribed radiator excitations, not a model
+of finalized four-port embedded patterns.
+
 ## Future eight-TX MIMO
 
 The physical subdivision of each quadrant into two equal-power TX subapertures
@@ -555,6 +566,8 @@ venv/bin/python studies/2026-09-02_lannik-psi/quadrant_mimo.py
 
 MIMO figures are written under [`generated/mimo/`](generated/mimo/):
 
+- `left_right_half_tx_beams.png` — individual left/right half-aperture beams,
+  their horizontal cut and the two-waveform power sum.
 - `quadrant_mimo_alias_correlation.png` — folded-alias correlation for the
   square and supplied-height RX geometries.
 - `mimo_detection_range_cuts.png` — coherent and four-quadrant MIMO Pd range
