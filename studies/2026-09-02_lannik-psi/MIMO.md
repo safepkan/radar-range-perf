@@ -71,6 +71,17 @@ requirement; see [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
 
 ## Mode and virtual-array model
 
+### Terminology
+
+This study uses **MIMO** to mean that distinct TX subapertures transmit
+separable waveforms whose matched-filter outputs are retained for every RX
+channel. A virtual-array extension is not required by the term and is not the
+main purpose here. The resulting TX × RX measurements instead provide
+calibrated TX-pattern diversity for resolving RX angular aliases. If the TX
+subapertures sent the same waveform with a fixed phase relationship, they
+would form one phased-array TX beam and the measurement would effectively be
+SIMO.
+
 ### Four-quadrant MIMO
 
 The current ideal experiment geometrically divides the prescribed 16 × 16 TX
