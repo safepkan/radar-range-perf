@@ -430,6 +430,38 @@ Items 1 and 2 are cheap to model with the existing quadrant patterns and
 should be quantified before they are relied on. None of them removes the
 need for calibrated patterns; they remove the need for orthogonal waveforms.
 
+## Design idea: two-way TX splits instead of quadrants, 2026-09-10
+
+With the vertical alias family handled by the staggered RX, the MIMO burst
+only has to separate the horizontal family. A **left/right half split** (two
+orthogonal waveforms, four coherent ports each) gives exactly the same
+horizontal discrimination as the quadrant split and is 3 dB more sensitive:
+
+| Alias pair | Quadrant MIMO | Left/right halves | Up/down halves |
+|---|---:|---:|---:|
+| Horizontal edges (±0.207, 0), also at v = 0.05 and 0.1035 | -3.1 dB | -3.1 dB | 0.0 dB |
+| Vertical edges (0, ±0.1035) | -29.3 dB | 0.0 dB | -29.3 dB |
+| Diagonal corners (±0.207, ±0.1035) | -32.5 dB | -3.1 dB | -29.3 dB |
+| Square-cell vertical edges (0, ±0.207) | -3.1 dB | 0.0 dB | -3.1 dB |
+
+MIMO gain relative to the coherent sum: halves -3.0 dB at boresight and along
+the vertical axis (quadrants -6.0 dB); at the horizontal edge +5.2 dB
+(quadrants +2.2 dB). At a given elevation the two quadrants on one side
+respond alike, so the quadrant split adds nothing to the horizontal pair; what
+the halves lose is the vertical family, which the H/4 stagger covers in the
+coherent frames and in the RX part of the MIMO measurement.
+
+Consequences: burst energies for the horizontal events should roughly halve
+(to be run, not assumed); two orthogonal waveforms are the simplest MIMO
+scheme (a two-chirp phase alternation, or a two-channel Doppler division that
+halves rather than quarters the unambiguous velocity); and the antenna is
+unchanged, so left/right, up/down and quadrant splits are per-event waveform
+and MMIC-phase choices on the same eight ports. The square prototype would use
+up/down halves for its vertical pairs at the same -3.1 dB; the quadrant mode
+remains the "both at once" fallback at -6 dB. The TX requirement is unchanged:
+the left/right discrimination is the same defocus-squint effect with the same
+sensitivity to an under-realized defocus.
+
 ## Future eight-TX MIMO
 
 The physical subdivision of each quadrant into two equal-power TX subapertures
