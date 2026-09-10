@@ -360,6 +360,13 @@ latency. Fixed every-Nth-frame interlacing remains a reference/fallback, not
 the likely operational schedule. See [MIMO.md](MIMO.md) for the architecture
 and [RX_LAYOUT.md](RX_LAYOUT.md) for the geometry comparison.
 
+The first on-demand resolution-event experiment is now in
+[`rx_resolution_experiment.py`](rx_resolution_experiment.py), with results in
+[`RX_LAYOUT.md`](RX_LAYOUT.md). It compares fixed-RCS, known-target events,
+not a full acquisition/tracker scenario. The tested cases show useful extra
+vertical information from stagger, but only modest additional MIMO-energy
+savings; they do not overturn the provisional URA preference.
+
 The initial ideal experiment is promising for both RX candidates. With the
 2.42λ square subarrays, 99% binary resolution at a principal edge reaches
 approximately 253/407/541 m after one/two/four MIMO updates. With the supplied
@@ -690,6 +697,9 @@ choice.
 - `generated/experimental/rx_rectangle_alias_correlation.png` — direct
   staggered-versus-unstaggered comparison of complete ideal four-quadrant-MIMO
   alias correlation, plus the RX decorrelation contributed by the stagger.
+- `generated/experimental/on_demand/resolution_phase_0deg.png` and
+  `resolution_phase_10deg.png` — wrong-lobe probability versus extra MIMO
+  illumination after a coherent observation, nominal and phase-stress cases.
 
 ## Decision log
 

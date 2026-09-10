@@ -308,6 +308,14 @@ apply while the burst runs. These details remain architecture work.
 
 ### Historical reference and remaining alternatives
 
+The new [rx_resolution_experiment.py](rx_resolution_experiment.py) evaluates
+one coherent observation followed by variable on-demand MIMO illumination,
+with local angular searches within multiple candidate lobes and a phase-error
+stress case. The fixed-RCS model and preliminary geometry comparison are
+documented in [RX_LAYOUT.md](RX_LAYOUT.md); its plots are under
+`generated/experimental/on_demand/`. These results quantify illumination
+energy for selected events, not scheduling latency or full coverage.
+
 The existing `quadrant_mimo.py` figures use one unchanged full-length MIMO CPI every fourth 20 Hz
 frame: a 5 Hz MIMO update and 15 coherent updates per second. The corresponding
 worst-case times from appearance to one, two and four scheduled MIMO updates

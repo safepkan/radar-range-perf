@@ -57,6 +57,9 @@ Run a study from the repo root with the project venv, e.g.:
   unstaggered rectangular RX phase-center layouts, without changing the main
   range baseline. Its decision rationale and near-term investigation plan are
   maintained separately in [`RX_LAYOUT.md`](2026-09-02_lannik-psi/RX_LAYOUT.md).
+  A companion `rx_resolution_experiment.py` compares targeted resolution events
+  using one coherent observation followed by variable MIMO illumination, with
+  plots under `generated/experimental/on_demand/` and study-local tests.
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions

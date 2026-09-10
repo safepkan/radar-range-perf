@@ -187,7 +187,8 @@ and potential benefit, not validated operational performance.
 
 The objective is to test whether the potential stagger benefit changes the
 choice, not to complete the radar or tracker design. Keep the baseline and
-prototype presets unchanged. Extend the study-local experiment only.
+prototype presets unchanged. Extend the study-local experiment only. The first
+bounded implementation below does not complete this broader investigation plan.
 
 ### 1. Identify the decision-relevant competing directions
 
@@ -234,6 +235,86 @@ achieve a comparable result, and whether it changes the system's worst case.
 No full trajectory tracker, MUSIC implementation or waveform optimization is
 needed for this decision aid.
 
+### First on-demand resolution-event experiment, 2026-09-09
+
+Implemented in [rx_resolution_experiment.py](rx_resolution_experiment.py),
+separately from the geometry-illustration script. The result supports retaining
+URA as the default, while showing a genuine but modest vertical benefit from
+staggering in the tested events. It is not a full-field reliability demonstration.
+
+**Model:**
+
+- One baseline coherent observation followed by one ideal four-quadrant MIMO
+  measurement with variable illumination. Fixed 1 m² target, known to exist
+  in a range/Doppler gate; trials are not conditioned on detector threshold
+  crossing. Zero added energy means no MIMO measurement or noise statistic.
+- True directions: positive vertical edge `(0, 0.10349)`, horizontal edge
+  `(0.20698, 0)`, and corner `(0.20698, 0.10349)`. These are deliberately
+  ambiguous events, not a distribution of arrivals or scene-average overhead.
+- Nominal coherent matched SNR is 10 or 16 dB. Directional MIMO/coherent SNR
+  differences are -3.16, +2.17 and +5.04 dB respectively. A constant boresight
+  -6.02 dB penalty would be wrong for these directions.
+- Old-URA aliases across the visible disk seed local 17 × 17 angle grids.
+  Each neighborhood extends +/-0.75 times period/channel-count per axis,
+  about +/-0.0776 in u and v. Each layout uses its actual RX phase centers.
+- Candidate angles must explain the noiseless nominal coherent signal with
+  RCS no greater than +10 dBsm. This leaves 2, 6 and 4 candidate lobes for the
+  three events. Screening is not a noisy RCS estimator or a posterior.
+- Sum the whitened projection energies from both modes, fitting unrelated
+  unknown complex amplitudes but the same angle. Maximize over angles per
+  lobe, then choose the highest-scoring lobe. Exact ties are randomized.
+- The phase stress applies independent zero-mean Gaussian 10-degree RMS
+  offsets to every RX channel and TX quadrant, fixed throughout an event.
+  TX offsets also perturb the coherent sum. The processor uses nominal
+  patterns. This is an illustrative stress distribution, not a hard tolerance.
+- 20,000 trials per configuration, recorded seed, common raw draws across
+  layouts and RCS screens. The metric is forced-choice wrong-lobe probability,
+  not the confidence of a publication decision with an abstention option.
+
+**Results:** First *sampled* extra MIMO energy whose pointwise 95% binomial
+upper error bound is at most 1%. These are not finely estimated minimum energies
+or simultaneous confidence guarantees across the entire experiment.
+
+| Event | Coherent SNR | 1 m² reference range | Nominal: URA / stagger | 10-degree stress: URA / stagger |
+|---|---:|---:|---:|---:|
+| Vertical edge | 10 dB | 893 m | 2 / 2 | 3 / 3 |
+| Vertical edge | 16 dB | 632 m | 0.5 / 0.375 | 0.5 / 0.5 |
+| Horizontal edge | 10 dB | 554 m | 1.5 / 1.5 | 1.5 / 1.5 |
+| Horizontal edge | 16 dB | 392 m | 0.375 / 0.375 | 0.375 / 0.375 |
+| Corner | 10 dB | 379 m | 0.75 / 0.75 | 0.75 / 0.75 |
+| Corner | 16 dB | 268 m | 0.25 / 0.25 | 0.25 / 0.25 |
+
+Energy is in baseline-CPI equivalents at unchanged total TX power. One unit
+is approximately 10.49 ms of active sampling/illumination in the current budget,
+**not** a 50 ms frame or measured wall-clock latency. Scaling assumes a single
+coherent MIMO integration and unchanged processing losses; no longer waveform
+or sequence of independent CPIs has been implemented.
+
+At the 16 dB vertical edge, coherent-only error falls from about 50% for URA
+to 6.7% for nominal stagger, or 9.5% with phase stress. This is useful evidence,
+but does not eliminate the burst at a 1% objective in this case. MIMO reduces
+the difference between layouts; horizontal and corner results nearly coincide.
+
+**Checks:** A 9 × 9 rather than 17 × 17 local grid changed probabilities by at
+most 0.25 percentage points without changing the sampled energy thresholds.
+A +6 rather than +10 dBsm ceiling changed probabilities by at most 0.5 points;
+one near-threshold vertical stress case moved from 3 to 2 sampled energy units
+for stagger. Such threshold-grid changes are not precise percentage savings.
+
+**Limits:** The approximate folded-angle seeds are centered on the true folded
+angle. Local angle uncertainty is searched, but no initial angle estimator is
+simulated. The old-alias neighborhoods are not a complete global search for
+staggered near-aliases, and only three positive edge/corner directions are tested.
+There is no RCS fluctuation, motion, interference, multi-target association,
+waveform orthogonality loss, systematic group-phase stress, amplitude error,
+embedded-pattern distortion or measured processing/switching latency.
+
+The projection rule is not an optimal gated Bayesian tracker. At very low MIMO
+energy, adding its noisy statistic can slightly worsen a decision; RCS and
+existence evidence are not jointly modeled. The next useful extensions are
+off-edge/mixed-sign directions and structured calibration stress, or a more
+realistic gated likelihood if a concrete decision-relevant question warrants it.
+
 ### Stop rule and meeting questions
 
 If the small comparison finds no material, robust benefit, stop and recommend
@@ -253,13 +334,20 @@ benefit threshold has yet been agreed.
 ```text
 source venv/bin/activate
 python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
+python studies/2026-09-02_lannik-psi/rx_resolution_experiment.py
+python -m pytest studies/2026-09-02_lannik-psi/test_rx_resolution_experiment.py -q
 ```
 
 Figures are under `generated/experimental/`: geometry, 2-D channel factors,
 principal cuts with TX/RX gain overlays, and the existing fixed-fold MIMO alias
-comparison. The two investigations above are proposed work, not implemented
-results. Review-only diagnostics should be made reproducible in the experiment
-if they are used as quantitative decision evidence.
+comparison. The new resolution experiment writes into `on_demand/`:
+`resolution_phase_0deg.png`, `resolution_phase_10deg.png` and
+`resolution_summary.json` (configuration, seed, error counts and bounds).
+These are regenerable working outputs, not archived deliverables. Reproduce
+the sensitivity runs using `--local-samples 9` or `--rcs-ceiling-dbsm 6` and a
+separate `--output-dir`. Six study-local tests cover normalization, screening,
+alias ties, analytic orthogonal-signature error probability, noise-only behavior
+and error bounds. The broader investigation plan remains only partly complete.
 
 - **2026-09-08:** Added both provisional layouts and the initial array-factor
   and fixed-fold MIMO comparisons. Initial interpretation emphasized the small
@@ -267,5 +355,9 @@ if they are used as quantitative decision evidence.
 - **2026-09-09:** Recorded the review correction: coherent updates can gain
   useful vertical-alias information even when the extra MIMO benefit is tiny.
   Established the schedule-driven URA preference and the bounded checks above.
+- **2026-09-09:** Adopted on-demand MIMO as the likely path and implemented the
+  first fixed-RCS multi-lobe resolution-event comparison. Staggering provides
+  extra vertical information but only modest MIMO-energy savings in the tested
+  events; the URA preference is retained provisionally.
 - **Decision pending, 2026-09-10 meeting:** Record the selected geometry, reasons,
   dissenting considerations, accepted uncertainties and follow-up owners here.
