@@ -457,8 +457,13 @@ scheme (a two-chirp phase alternation, or a two-channel Doppler division that
 halves rather than quarters the unambiguous velocity); and the antenna is
 unchanged, so left/right, up/down and quadrant splits are per-event waveform
 and MMIC-phase choices on the same eight ports. The square prototype would use
-up/down halves for its vertical pairs at the same -3.1 dB; the quadrant mode
-remains the "both at once" fallback at -6 dB. The TX requirement is unchanged:
+up/down halves for its vertical pairs at the same -3.1 dB, and left/right
+and up/down splits one CPI at a time when both families are ambiguous: two
+half-split CPIs give each family a measurement at twice the SNR of the
+quadrant CPI over twice the time, so the evidence per unit illumination is
+the same, each measurement cancels the unknown amplitude within its own CPI,
+and only the burst latency grows. The quadrant mode remains the shorter
+"both at once" option at -6 dB. The TX requirement is unchanged:
 the left/right discrimination is the same defocus-squint effect with the same
 sensitivity to an under-realized defocus.
 
