@@ -33,6 +33,13 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
+- `2026-09-11_carkit-validation/` — validation of the range model against
+  measured CARKIT configurations, starting with the single-TX Hallesaker
+  reflector walk and noncoherent RX power averaging. Uses the CTRX8188F and
+  FARAD-IV presets. Scope, assumptions and missing measurement details are in
+  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the supplied report and
+  its initial review are retained separately. `carkit_walk.py` runs the first
+  provisional comparison against the report's fitted curve over 15–51 m.
 - `2026-09-02_lannik-psi/` — Lannik Psi design study, carried forward from
   config 3 of the 2026-06-22 comparison. It retains the same closing-target
   evaluation scenario and now models the proposed tapered 16 x 16 TX aperture,
