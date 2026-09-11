@@ -11,7 +11,7 @@ and achievable performance have not yet been validated. They indicate a
 promising way to retain a larger RX aperture without accepting unresolved
 channel-array ambiguities.
 
-Last substantial update: 2026-09-10.
+Last substantial update: 2026-09-11.
 
 ## Motivation and current conclusion
 
@@ -22,7 +22,7 @@ subarray enlarges the fundamental region, but reducing a square subarray from
 2.42λ to approximately 1.71λ costs another 3 dB of boresight RX gain.
 
 The proposed alternative is to retain the coherent mode for sensitivity and
-occasionally transmit distinguishable MIMO waveforms. Their complex TX
+periodically interlace distinguishable MIMO waveforms. Their complex TX
 responses provide information that is absent from the periodic RX steering
 vector. A tracker can retain several ambiguity-cell hypotheses, accumulate
 MIMO evidence and apply the resolved cell to intervening coherent measurements.
@@ -62,12 +62,24 @@ and schedule risk, not only the MIMO correlation plot. See the dedicated
 (height/4) column stagger, which lets ordinary coherent frames resolve the
 in-beam vertical alias family without MIMO in the tested events; the second
 prototype is the rotated square-subarray URA, whose aliases all sit at
-±11.9°. MIMO is
-retained for the horizontal alias family, which remains exact in every
-stagger variant, and as the fallback for the vertical family; it is used
-on demand. The horizontal-edge discrimination of about -3 dB, which comes
-entirely from the prescribed TX defocus, is therefore the binding TX
-requirement; see [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+±11.9°. MIMO is retained for the horizontal alias family, which remains exact
+in every stagger variant, and as the fallback for the vertical family. The
+horizontal-edge discrimination of about -3 dB, which comes entirely from the
+prescribed TX defocus, is therefore the binding TX requirement; see
+[`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+
+**Scheduling decision, 2026-09-11:** Start with periodically interlaced MIMO
+rather than purely on-demand bursts. Schedule both split directions: a
+left/right-half measurement for the horizontal alias family and an
+up/down-half measurement for the vertical alias family. The main reason is
+implementation and test simplicity: routine MIMO frames ensure that both
+intended waveform configurations are actually exercised and that recorded
+datasets contain enough MIMO measurements to validate the processing and
+antenna behavior. Their exact cadence, relative rates, ordering and grouping
+remain open. This direction knowingly trades away some coherent-TX CPI
+opportunities and may add latency before a new target's alias cell can be
+resolved. On-demand or adaptive scheduling remains a possible future
+extension and is not pursued for the initial release.
 
 ## Mode and virtual-array model
 
@@ -335,36 +347,50 @@ publication probability per track, rather than full-search per-cell Pfa.
 
 ## Waveform and scheduling degrees of freedom
 
-### Likely path: tracker-requested MIMO bursts
+### Initial path: periodically interlaced MIMO
 
-**Working direction, 2026-09-09:** Use on-demand MIMO in sparse scenarios with
-few simultaneous tracks. Once a track's uncertainty and association gate are
-narrow enough not to overlap their alias-shifted copies, its prediction can
-unwrap subsequent coherent measurements. Request additional MIMO evidence for
-new unresolved tracks, reacquisition or deteriorating ambiguity confidence.
-The request rate is governed by such events, not just the number of tracks.
+**Current direction, 2026-09-11:** Reserve recurring parts of the frame schedule
+for both left/right-half and up/down-half MIMO. The two splits respectively
+supply horizontal- and vertical-alias evidence and are separate measurement
+configurations. This is deliberately simpler than making MIMO availability
+depend on tracker requests, sequencer response and ambiguity-state logic. It
+also guarantees routine recorded data from both configurations during initial
+integration and testing, making failures to select or process either waveform
+visible and providing enough measurements to evaluate the realized TX
+signatures.
 
-**User-supplied implementation expectation:** Radar control, SP and tracking
-will share the Aurix TC457. Treat tracker requests and the required sequencer
-flexibility as feasible design assumptions. Sparse-target association and
-filtering are expected to be relatively cheap; there are no platform timing or
-compute measurements yet. Much SP must await the received CPI, and request,
-processing, sequencer-boundary, switching and illumination delays remain real.
-Do not equate active illumination time with end-to-end resolution latency.
+The interlace rates, ordering, whether the two split directions are adjacent or
+distributed, and the exact waveform/CPI configurations are not yet selected.
+These choices must balance the coherent-search sensitivity and revisit
+opportunities displaced by MIMO against the time from target appearance to
+sufficient evidence in the required axis. Performance and resolution latency
+should therefore be evaluated over the complete schedule, not inferred from
+the sensitivity of either CPI type alone.
 
-The on-demand burst can use a different waveform, longer coherent illumination
-or repeated CPIs, and a small range/Doppler gate. It need not pass an independent
-full-search detection threshold: soft complex measurements can update the
-remaining hypotheses directly. A relaxed gated Pfa can help thresholded
-extraction, but does not create extra signature information at fixed SNR.
+The existing `quadrant_mimo.py` figures use one unchanged full-length
+four-quadrant MIMO CPI every fourth 20 Hz frame: a 5 Hz MIMO update and 15
+coherent updates per second. The corresponding worst-case times from appearance
+to one, two and four scheduled MIMO updates are approximately 0.2, 0.4 and 0.8
+seconds. This remains a useful energy/latency reference, but it does not yet
+represent the selected two-axis half-aperture interlace and its one-in-four
+fraction is not a decision.
 
-Compare time/energy to a sufficiently reliable unambiguous result, rather than
-assuming the fixed-CPI coherent-to-MIMO SNR difference is a permanent range
-penalty. Longer illumination is useful only within target-coherence and
-range/Doppler-motion constraints; confirmed-track revisit requirements still
-apply while the burst runs. These details remain architecture work.
+### On-demand experiments and later alternatives
 
-### Historical reference and remaining alternatives
+**Superseded working direction, 2026-09-09:** The earlier assumption was to use
+tracker-requested MIMO bursts in sparse scenarios, primarily for unresolved new
+tracks, reacquisition or deteriorating ambiguity confidence. The bounded
+experiments built around that assumption remain useful for understanding MIMO
+energy and evidence; they no longer define the initial product schedule or an
+initial-release implementation task.
+
+Radar control, SP and tracking are expected to share the Aurix TC457. Tracker
+requests and flexible sequencing may therefore support a later adaptive mode,
+but actual timing and compute behavior have not been measured. An on-demand
+burst could use longer illumination, repeated CPIs and a small range/Doppler
+gate. Soft complex measurements could update the remaining hypotheses without
+passing an independent full-search threshold. Those are possible later
+extensions rather than dependencies or deliverables of the initial release.
 
 The new [rx_resolution_experiment.py](rx_resolution_experiment.py) evaluates
 one coherent observation followed by variable on-demand MIMO illumination,
@@ -374,15 +400,9 @@ documented in [RX_LAYOUT.md](RX_LAYOUT.md); its plots are under
 `generated/experimental/on_demand/`. These results quantify illumination
 energy for selected events, not scheduling latency or full coverage.
 
-The existing `quadrant_mimo.py` figures use one unchanged full-length MIMO CPI every fourth 20 Hz
-frame: a 5 Hz MIMO update and 15 coherent updates per second. The corresponding
-worst-case times from appearance to one, two and four scheduled MIMO updates
-are approximately 0.2, 0.4 and 0.8 seconds.
+Candidate later refinements include:
 
-This remains an illustrative reference/fallback, not the likely product
-schedule. Candidate strategies include:
-
-- Fixed sparse interlacing.
+- A different fixed interlace fraction or burst grouping.
 - A triggered burst after an ambiguous coherent detection.
 - Adaptive MIMO rate based on ambiguity entropy or publication urgency.
 - A clean mode switch during ambiguity resolution.
@@ -443,10 +463,13 @@ need for calibrated patterns; they remove the need for orthogonal waveforms.
 
 ## Design idea: two-way TX splits instead of quadrants, 2026-09-10
 
-With the vertical alias family handled by the staggered RX, the MIMO burst
-only has to separate the horizontal family. A **left/right half split** (two
-orthogonal waveforms, four coherent ports each) gives exactly the same
-horizontal discrimination as the quadrant split and is 3 dB more sensitive:
+For the H/4-staggered rectangle, coherent RX measurements already contribute
+to resolving the vertical alias family, so the binding MIMO requirement is the
+horizontal family. A **left/right half split** (two orthogonal waveforms, four
+coherent ports each) gives exactly the same horizontal discrimination as the
+quadrant split and is 3 dB more sensitive. The initial interlace nevertheless
+also schedules the corresponding up/down split, both to cover the square
+prototype's vertical family and to exercise and record both configurations:
 
 | Alias pair | Quadrant MIMO | Left/right halves | Up/down halves |
 |---|---:|---:|---:|
