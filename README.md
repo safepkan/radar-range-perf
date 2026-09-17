@@ -254,9 +254,18 @@ the same checks across Python 3.12 and 3.14.
 
 ## Possible next steps
 
+Single-return phase-noise diagnostics are available in `radarperf.phase_noise`:
+relative spectra, range/range–Doppler FFT predictions, real/complex sampling,
+and Infineon CTRX8188F CW presets. See [the model and usage guide](docs/phase_noise.md)
+and `examples/phase_noise.py` for a configurable chamber diagnostic. For a guided
+progression of six controlled examples, see [the phase-noise tutorial](docs/phase_noise_tutorial.md)
+and run `examples/phase_noise_tutorial.py`; it produces a local figure gallery.
+These are standalone diagnostics; integration
+into scene-level SNR/SINR and MIMO/channel combining remains future work.
+
 Longer-term extensions: short-range effects (receiver saturation / near-field,
-TX-to-RX leakage, ADC dynamic range, phase-noise / reciprocal-mixing skirts that
-limit SCR against strong nearby reflectors), eclipsing, ADC quantisation noise,
+TX-to-RX leakage, ADC dynamic range, integration of phase-noise / reciprocal-mixing
+skirts into SCR against strong nearby reflectors), eclipsing, ADC quantisation noise,
 range/Doppler-cell clutter for ground / guardrail / multipath, waveform validity
 checks (max beat frequency, range / velocity ambiguity, duty cycle, EIRP),
 computing the angular beamforming / straddle loss from the actual array geometry
