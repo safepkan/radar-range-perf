@@ -11,6 +11,18 @@ code differ.
 
 Last substantial update: 2026-09-11.
 
+**RFQ technical-description update, 2026-09-17:** The illustrated
+[technical description](rfq/TECHNICAL_DESCRIPTION.md), PDF and figure-generation
+tools now live under [rfq/](rfq/README.md). It describes the selected TX modes,
+both RX layouts, proposed targets, and early versus final data needs, with
+coordinate and metric details in appendices. The operating band is confirmed
+as 76–77 GHz, centred at 76.5 GHz; horizontal or vertical linear polarization
+is still to be chosen. Reference geometry may be adjusted by joint evaluation;
+exact mechanical interfaces are defined separately. The existing model remains
+at 77 GHz and the published reference calculations retain that label.
+Presentation discrepancies, metric rationale and internal decisions are in
+the [internal RFQ review](rfq/internal/REVIEW.md).
+
 ## Status labels
 
 The following labels are used to keep different kinds of information separate:
@@ -88,7 +100,7 @@ two-pitch (height/4) stagger with eight-row subarrays (42.3 mm tall; the
 margin to the edge allows it). The second prototype is the rotated 2 × 4 square-subarray
 URA, whose vertical aliases sit at ±11.9° like its horizontal ones and are a
 mid-to-short-range matter. The main remaining work is the TX-side
-specification; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md) and
+specification; see [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) and
 the decision record in [RX_LAYOUT.md](RX_LAYOUT.md).
 
 **Source fact, 2026-09-10:** The same supplier has already produced a separate
@@ -98,7 +110,7 @@ narrow-beam long-range demonstrations. Its measurements are under review;
 nothing worrying has been seen so far. If per-port patterns were measured,
 they are the first available check of the supplier's ability to realize a
 prescribed amplitude and phase distribution, and of the quadrant-squint
-metrics in [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
+metrics in [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 **Scheduling decision, 2026-09-11:** Use periodically interlaced MIMO as the
 initial operating direction, scheduling both left/right-half MIMO for the
@@ -158,7 +170,7 @@ venv/bin/python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
 
 Its decision context and investigation plan are maintained in
 [`RX_LAYOUT.md`](RX_LAYOUT.md). The supplier-facing antenna requirements
-draft is [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+draft is [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 Working figures are written to [`generated/`](generated/) and are intentionally
 not treated as reviewed deliverables.
@@ -549,7 +561,7 @@ proves impractical.
    patterns, which follow from the prescribed quadratic (defocus) phase. The
    per-port pattern deliverables, acceptance metrics and stability guidance
    to give the supplier are drafted in
-   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 The previous calculation based on the apparent eight equal geometric groups
 gave very unequal group powers. That remains evidence that those labels should
@@ -701,7 +713,7 @@ choice.
 2. Formulate the TX-side specification for the supplier: which quadrant-
    pattern properties are binding, which deliverables verify them, and how
    much of the detailed design is left open; start from
-   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 3. Judge any later change to the decided stagger offset with the
    multi-frame event model and the in-beam competitor map, not only the
    exact reciprocal-cell size.
@@ -852,7 +864,7 @@ choice.
   URA gain plausibility covers only about ±2° around the horizontal plane
   once alias-lobe skirts are admitted. Added equal-total-height variants
   (7 rows, two-pitch stagger) and drafted the supplier-facing
-  [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+  [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 - **2026-09-10, review:** Corrected a phase-wrapping bug in the defocus
   sensitivity sweep and the in-beam MIMO competitor search; added the
   diagonal competitor family and a systematic RX column-group phase error to

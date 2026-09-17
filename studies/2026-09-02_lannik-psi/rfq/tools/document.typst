@@ -1,0 +1,18 @@
+#set document(title: "$if(internal-review)$Lannik Psi antenna RFQ — internal review$else$Lannik Psi antenna — Technical description for RFQ$endif$", author: "Saferadar Research")
+#set page(paper: "a4", margin: (x: 18mm, top: 19mm, bottom: 18mm), header: align(right, text(size: 8pt, fill: rgb("647783"))[LANNIK PSI / $if(internal-review)$INTERNAL REVIEW$else$ANTENNA DEVELOPMENT$endif$]), footer: context align(right, text(size: 8pt, fill: rgb("647783"))[17 September 2026 · #counter(page).display("1")]))
+#set text(font: "DejaVu Sans", size: 9.5pt, fill: rgb("233747"), lang: "en")
+#set par(justify: false, leading: 0.55em)
+#set heading(numbering: none)
+#show heading.where(level: 1): set text(size: 25pt, fill: rgb("236b8e"))
+#show heading.where(level: 2): set text(size: 17pt, fill: rgb("236b8e"))
+#show heading.where(level: 3): set text(size: 11pt, weight: "bold")
+#set table(inset: 5pt, stroke: (bottom: 0.4pt + rgb("cfdae0")))
+#show table: set text(size: 8.5pt)
+#set figure(gap: 4pt)
+#show figure.caption: set text(size: 8pt, fill: rgb("526774"))
+#show figure.where(kind: table): set figure.caption(position: top)
+#show raw: set text(font: "DejaVu Sans Mono", size: 8pt)
+#show link: set text(fill: rgb("236b8e"))
+#let horizontalRule = line(length: 100%, stroke: 0.5pt + rgb("cfdae0"))
+#let divider = horizontalRule
+$body$

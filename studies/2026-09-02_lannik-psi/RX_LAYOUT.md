@@ -20,7 +20,7 @@ official prototype preset yet.
 
 **Decision, 2026-09-10 meeting: the rectangular prototype uses a two-pitch
 (height/4) alternating column stagger, option C (eight rows, 42.3 mm tall) in
-[ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md). The second prototype is
+[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md). The second prototype is
 the rotated 2 × 4 square-subarray URA in a smaller package.** The extra RX
 height of option C fits within the margin to the edge, so option D (seven
 rows) is not needed. This supersedes the 2026-09-09 preference for the URA, which
@@ -467,7 +467,7 @@ change these numbers and must be re-evaluated for MIMO discrimination. The
 horizontal-edge margin scales with the amount of defocus, from 1.8 dB at 0.6
 times the prescribed phase to 4.3 dB at 1.4 times: an under-realized defocus
 weakens the MIMO-limited horizontal case, which is why the horizontal-edge
-metric in [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md) matters. The
+metric in [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) matters. The
 stagger's vertical information is purely RX geometry and does not depend on
 any of this.
 
@@ -629,7 +629,7 @@ Still open after the meeting (geometry decided, see the decision record):
 - **TX-side specification.** Formulate what the supplier must ensure about
   the four quadrant patterns, the defocus and the per-port deliverables so
   that the properties MIMO relies on are guaranteed without over-specifying
-  the detailed design; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
+  the detailed design; see [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
   This is the main remaining item.
 - Supplier: confirmation of the decided RX layouts (option C and the rotated
   square URA) and of any feed, coupling or schedule implications.
@@ -695,7 +695,7 @@ only partly complete.
   plausibility protects only about ±2° around the horizontal plane), the
   equal-total-height variants (7 rows with a two-pitch stagger keeps
   37.6 mm at -0.6 dB) and the supplier-facing
-  [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md) draft.
+  [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) draft.
 - **2026-09-10, review:** A separate review found a phase-wrapping bug in
   the defocus-scale sweep (fixed; 0.6× now 17.8/1.8 dB) and that the in-beam
   map reported MIMO at the strongest coherent competitor rather than the

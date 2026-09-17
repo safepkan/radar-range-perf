@@ -13,6 +13,13 @@ channel-array ambiguities.
 
 Last substantial update: 2026-09-11.
 
+**RFQ update, 2026-09-17:** Appendix B of the illustrated
+[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) uses mode-specific
+half-aperture correlation checks alongside directional gain and a full-pattern
+review. Its numerical thresholds are proposed feasibility targets, not yet
+validated system acceptance limits. See
+[internal RFQ review](rfq/internal/REVIEW.md) for the rationale and checks.
+
 ## Motivation and current conclusion
 
 The eight RX channel phase centers form a sparse URA. Its steering vector is
@@ -65,8 +72,8 @@ prototype is the rotated square-subarray URA, whose aliases all sit at
 ±11.9°. MIMO is retained for the horizontal alias family, which remains exact
 in every stagger variant, and as the fallback for the vertical family. The
 horizontal-edge discrimination of about -3 dB, which comes entirely from the
-prescribed TX defocus, is therefore the binding TX requirement; see
-[`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+prescribed TX defocus, is therefore a priority for the TX specification; see
+[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 **Scheduling decision, 2026-09-11:** Start with periodically interlaced MIMO
 rather than purely on-demand bursts. Schedule both split directions: a
@@ -211,7 +218,7 @@ Because the antenna supplier implements our concept, this dependence is
 something to specify rather than hope for. The supplier-facing formulation,
 with per-port pattern deliverables and acceptance thresholds on the
 alias-pair correlations, is drafted in
-[`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 ## Single-CPI detection results
 
@@ -441,7 +448,7 @@ tolerates slower resolution:
    the two measurements are in different CPIs, so target RCS fluctuation
    enters the ratio; MIMO measures all four quadrant responses in one CPI and
    cancels the unknown amplitude exactly. The TX pattern requirement in
-   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md) is unchanged.
+   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) is unchanged.
 2. **Gain-trajectory evidence in the tracker.** As a target or the platform
    moves, the received amplitude follows the two-way gain pattern at the
    true direction; the alias hypothesis predicts a different profile. This is
