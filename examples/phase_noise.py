@@ -1,7 +1,8 @@
-"""Single-return chamber diagnostic; default waveform settings are illustrative.
+"""Single-return diagnostic using the reported chamber acquisition as defaults.
 
-Use --help to substitute the measured waveform. For the guided progression and
-strong-return visibility example, run examples/phase_noise_tutorial.py instead.
+FFT windows and the RF reference remain assumptions; the hardware high-pass
+response is not modeled. Use --help to override settings. For the guided
+progression, run examples/phase_noise_tutorial.py instead.
 """
 
 from __future__ import annotations
@@ -31,11 +32,27 @@ from radarperf.units import linear_to_db
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--range-m", type=float, default=2.3)
-    parser.add_argument("--slope-mhz-us", type=float, default=40.0)
-    parser.add_argument("--sample-rate-mhz", type=float, default=20.0)
-    parser.add_argument("--samples", type=int, default=256)
-    parser.add_argument("--chirps", type=int, default=64)
-    parser.add_argument("--crt-us", type=float, default=25.0)
+    parser.add_argument(
+        "--slope-mhz-us",
+        type=float,
+        default=400.0 / 10.24,
+        help="chirp slope in MHz/us; default is 400 MHz across the 10.24 us payload",
+    )
+    parser.add_argument("--sample-rate-mhz", type=float, default=50.0)
+    parser.add_argument("--samples", type=int, default=512)
+    parser.add_argument(
+        "--chirps",
+        type=int,
+        default=1024,
+        help="retained chirps, excluding dummy chirps",
+    )
+    parser.add_argument("--crt-us", type=float, default=15.96)
+    parser.add_argument(
+        "--center-frequency-ghz",
+        type=float,
+        default=76.78,
+        help="RF reference for velocity conversion; default assumes a 76.58-76.98 GHz payload",
+    )
     parser.add_argument("--doppler-hz", type=float, default=0.0)
     parser.add_argument("--rf-band", choices=("76-77", "77-81"), default="76-77")
     parser.add_argument("--level", choices=("typical", "maximum"), default="typical")
@@ -53,6 +70,7 @@ def main() -> None:
     parser.add_argument("--offset-min-hz", type=float, default=1.0)
     parser.add_argument("--offset-max-mhz", type=float, default=20.0)
     parser.add_argument("--integration-oversample", type=int, default=4)
+    parser.add_argument("--max-integration-points", type=int, default=4_000_000)
     parser.add_argument(
         "--extrapolation", choices=("error", "constant", "slope"), default="constant"
     )
@@ -73,7 +91,7 @@ def main() -> None:
         differential_delay_s=args.differential_delay_ns * 1e-9,
     )
     wf = FmcwWaveform.from_slope(
-        center_frequency_hz=76.5e9 if args.rf_band == "76-77" else 79e9,
+        center_frequency_hz=args.center_frequency_ghz * 1e9,
         chirp_slope_hz_per_s=args.slope_mhz_us * 1e12,
         sample_rate_hz=args.sample_rate_mhz * 1e6,
         n_samples=args.samples,
@@ -91,6 +109,7 @@ def main() -> None:
         sampling=args.sampling,
         chirp_correlation=args.correlation,
         integration_oversample=args.integration_oversample,
+        max_integration_points=args.max_integration_points,
     )
     range_only = phase_noise_fft(
         model,
@@ -101,6 +120,7 @@ def main() -> None:
         range_window=args.range_window,
         sampling=args.sampling,
         integration_oversample=args.integration_oversample,
+        max_integration_points=args.max_integration_points,
     )
 
     offsets = np.geomspace(1e4, 1e7, 800)
@@ -125,6 +145,9 @@ def main() -> None:
         if finite_noise.size
         else -40.0
     )
+    # Tiny window sidelobes outside the modeled noise band should not set
+    # the map's color span and hide structure in the main noise pedestal.
+    floor_dbc = max(floor_dbc, ceiling_dbc - 20.0)
     plot_phase_noise_map(
         rd, ax=axes[1, 0], floor_dbc=floor_dbc, ceiling_dbc=ceiling_dbc
     )
@@ -137,7 +160,7 @@ def main() -> None:
     fig.suptitle(
         f"Single return at {args.range_m:g} m | {args.sampling} | {args.correlation} chirp noise\n"
         f"{args.slope_mhz_us:g} MHz/µs; {args.sample_rate_mhz:g} MS/s; {args.samples} samples/chirp; {args.chirps} chirps; {args.crt_us:g} µs spacing\n"
-        f"Illustrative waveform; TX CW spectrum assumed shared; {args.extrapolation} extrapolation"
+        f"Ideal IF (hardware HPF omitted); TX CW spectrum assumed shared; {args.extrapolation} extrapolation"
     )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output_dir / "phase_noise.png", dpi=150)
@@ -161,7 +184,22 @@ def main() -> None:
         f"RF TX spectrum assumed entirely shared; extrapolation: {args.extrapolation}"
     )
     print(f"Sampling: {args.sampling}; chirp correlation: {args.correlation}")
+    print(
+        f"ADC duration: {wf.adc_duration_s * 1e6:.3f} us; "
+        f"sampled bandwidth: {wf.bandwidth_hz / 1e6:.3f} MHz; "
+        f"range-bin spacing: {wf.range_resolution_m:.4f} m"
+    )
+    print(
+        f"PRF: {1 / wf.chirp_repetition_time_s:.3f} Hz; "
+        f"CPI: {wf.cpi_duration_s * 1e3:.4f} ms; "
+        f"Doppler-bin spacing: {1 / wf.cpi_duration_s:.3f} Hz"
+    )
+    print(
+        f"Target beat: {(wf.effective_slope_hz_per_s * model.delay_s + args.doppler_hz) / 1e3:.3f} kHz; "
+        f"velocity reference: {wf.center_frequency_hz / 1e9:g} GHz"
+    )
     print(f"Ideal IF filter; modeled oscillator offsets: {band} Hz")
+    print("The chamber's 300 kHz high-pass response is not included.")
     print(
         f"RD integration step: {rd.integration_step_hz:.3f} Hz (double oversampling to check convergence)"
     )

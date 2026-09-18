@@ -94,36 +94,6 @@ class TabulatedPhaseNoise:
         return db_to_linear(self.ssb_db(offset_hz))
 
 
-def ctrx8188f_phase_noise(
-    *,
-    rf_band: Literal["76-77", "77-81"] = "76-77",
-    level: Literal["typical", "maximum"] = "typical",
-    extrapolation: Extrapolation = "error",
-) -> TabulatedPhaseNoise:
-    """CTRX8188F TX-port CW data, revision 0.20, Table 22, pp. 26-27.
-
-    Upper band means strictly above 77 GHz. These are TX output spectra, not
-    a measured shared/independent decomposition and not a chirped spectrum.
-    Treating the whole table as shared oscillator noise is an assumption.
-    Maximum entries are specified points, not a guaranteed interpolated mask.
-    """
-    tables = {
-        ("76-77", "typical"): (-79.0, -80.0, -100.0, -116.0, -121.0),
-        ("76-77", "maximum"): (-73.0, -75.0, -97.0, -111.0, -115.0),
-        ("77-81", "typical"): (-78.0, -78.0, -98.0, -114.0, -120.0),
-        ("77-81", "maximum"): (-73.0, -73.0, -95.0, -109.0, -114.0),
-    }
-    if (rf_band, level) not in tables:
-        raise ValueError("invalid RF band or phase-noise level")
-    return TabulatedPhaseNoise(
-        offset_hz=(1e4, 1e5, 1e6, 5e6, 1e7),
-        ssb_dbc_hz=tables[rf_band, level],
-        extrapolation=extrapolation,
-        name=f"CTRX8188F {rf_band} GHz, {level}, CW",
-        source="Infineon CTRX8188F Target Datasheet v0.20, 2025-06-17, Table 22, pp. 26-27",
-    )
-
-
 @dataclass(frozen=True)
 class SingleReturnPhaseNoise:
     """Shared source plus optional independent residual at the RF frequency.
@@ -419,4 +389,34 @@ def phase_noise_fft(
         chirp_correlation=chirp_correlation,
         range_enbw_hz=float(fs * np.sum(wr**2) / wr.sum() ** 2),
         doppler_enbw_bins=float(nc * np.sum(wd**2) / wd.sum() ** 2),
+    )
+
+
+def ctrx8188f_phase_noise(
+    *,
+    rf_band: Literal["76-77", "77-81"] = "76-77",
+    level: Literal["typical", "maximum"] = "typical",
+    extrapolation: Extrapolation = "error",
+) -> TabulatedPhaseNoise:
+    """CTRX8188F TX-port CW data, revision 0.20, Table 22, pp. 26-27.
+
+    Upper band means strictly above 77 GHz. These are TX output spectra, not
+    a measured shared/independent decomposition and not a chirped spectrum.
+    Treating the whole table as shared oscillator noise is an assumption.
+    Maximum entries are specified points, not a guaranteed interpolated mask.
+    """
+    tables = {
+        ("76-77", "typical"): (-79.0, -80.0, -100.0, -116.0, -121.0),
+        ("76-77", "maximum"): (-73.0, -75.0, -97.0, -111.0, -115.0),
+        ("77-81", "typical"): (-78.0, -78.0, -98.0, -114.0, -120.0),
+        ("77-81", "maximum"): (-73.0, -73.0, -95.0, -109.0, -114.0),
+    }
+    if (rf_band, level) not in tables:
+        raise ValueError("invalid RF band or phase-noise level")
+    return TabulatedPhaseNoise(
+        offset_hz=(1e4, 1e5, 1e6, 5e6, 1e7),
+        ssb_dbc_hz=tables[rf_band, level],
+        extrapolation=extrapolation,
+        name=f"CTRX8188F {rf_band} GHz, {level}, CW",
+        source="Infineon CTRX8188F Target Datasheet v0.20, 2025-06-17, Table 22, pp. 26-27",
     )

@@ -25,8 +25,9 @@ existing artifacts from previous runs are retained. The default output folder
 is `radarperf_phase_noise_tutorial` under the platform temporary directory.
 
 The chamber diagnostic is `examples/phase_noise.py`, with configurable waveform
-settings and `phase_noise.png` / `phase_noise.npz` outputs. Its defaults are
-illustrative. The tutorial's sixth lesson uses `--visibility-*` controls to
+settings and `phase_noise.png` / `phase_noise.npz` outputs. Its acquisition defaults
+match the reported chamber waveform; the [chamber walkthrough](phase_noise_examples.md)
+lists the remaining processing and filter assumptions. The tutorial's sixth lesson uses `--visibility-*` controls to
 set the reflector range and return levels relative to thermal noise.
 
 ## Before the plots: what is fluctuating?

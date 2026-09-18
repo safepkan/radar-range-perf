@@ -135,6 +135,29 @@ zero. Thus `(1e4, 1e7)` predicts only the datasheet-supported band contribution,
 not the complete noise skirt. The smooth PSD API does not evaluate zero offset:
 the carrier and finite-width FFT bins are handled separately.
 
+## TI AWR2243 source data
+
+The [AWR2243 datasheet, SWRS223D, Section 7.7, pages 19–20](https://www.ti.com/lit/ds/symlink/awr2243.pdf)
+specifies typical RF phase noise at **1 MHz offset**:
+
+| VCO | RF coverage in Section 7.7 | Typical SSB level |
+|---|---|---|
+| VCO1 | 76–78 GHz | -96 dBc/Hz |
+| VCO2 | 76–81 GHz | -94 dBc/Hz |
+
+Footnote 4 gives `SYNTH ICP TRIM = 3`, `SYNTH RZ TRIM = 8`, and
+`APLL ICP TRIM = 0x26`. The front-page summary instead groups the levels into
+76–77 and 77–81 GHz bands; use the detailed VCO/configuration information.
+The multi-offset clock specifications on page 24 concern the **40 MHz reference
+input**, not the RF output spectrum.
+
+[SPRACV2, *Cascade Coherency and Phase Shifter Calibration*](https://www.ti.com/lit/an/spracv2/spracv2.pdf)
+does not supply an RF phase-noise spectrum. Neither document supports a full
+multi-offset AWR2243 preset. One RF offset is insufficient to predict a
+range–Doppler skirt. Supply a measured `TabulatedPhaseNoise`, or explicitly label
+any assumed spectral shape as illustrative; matching the 1 MHz value alone
+does not validate close-in behavior or the far-offset tail.
+
 ## Range, Doppler and sampling
 
 For positive slope S, this module defines
@@ -181,6 +204,59 @@ covariance. Both are explicit assumptions; neither predicts reset/settling
 transients. A phase-noise offset influences fast and slow time together, so a
 range–Doppler map cannot generally be obtained by distributing a range skirt
 uniformly over Doppler or by applying a blanket chirp integration gain.
+
+### How PRF folding enters the range–Doppler map
+
+For the stationary complex-sampling model, write $P=1/T_r$ for the chirp PRF.
+Sampling residual phase once per chirp folds its continuous spectrum as
+
+$$
+S_{\mathrm{fold}}(\nu)=\sum_{m=-\infty}^{\infty}S_\epsilon(\nu+mP),
+\qquad -P/2\leq\nu<P/2.
+$$
+
+The delay-cancellation factor belongs inside each term, evaluated at the
+**original offset** $\nu+mP$. Cancellation at the folded frequency would give
+the wrong result. These densities are per Hz; no extra PRF factor is needed.
+The spectrum must have explicit bandwidth limits or sufficient filtering for
+the alias sum to converge.
+
+A range FFT combines many fast-time samples before the Doppler FFT. For range
+bin $k$ at beat frequency $f_{r,k}$, let $W_r$ and $W_d$ be the range and Doppler
+window frequency responses, each normalized by its window sum, and let
+$H_{\mathrm{IF}}$ be the IF filter amplitude response. The relevant folded PSD is
+
+$$
+S_k(\nu)=\sum_m S_\epsilon(\nu+mP)
+  |H_{\mathrm{IF}}(f_b+\nu+mP)|^2
+  |W_r(f_b+\nu+mP-f_{r,k})|^2.
+$$
+
+Then the expected noise power in Doppler bin $\ell$, relative to an ideal
+bin-centered carrier, is
+
+$$
+P_{k,\ell}=\int_{-P/2}^{P/2}S_k(\nu)
+  |W_d(f_D+\nu-f_{d,\ell})|^2\,d\nu.
+$$
+
+For example, a +12 kHz noise offset folds to +2 kHz relative to target Doppler
+at a 10 kHz PRF. Its fast-time offset remains +12 kHz, corresponding to a range
+displacement $c\,(12\,\mathrm{kHz})/(2S)$. Offsets separated by a PRF therefore
+share a Doppler location but can contribute very differently to a given range
+bin. Summing the unweighted source spectrum would miss that distinction.
+
+`phase_noise_fft` implements this relationship through covariance at the actual
+sample times, including chirp gaps. No additional folding step should be applied
+to its output. Real sampling also includes the conjugate-lobe contribution
+described above. The independent-chirp option instead removes cross-chirp
+correlation and produces a flat expected noise profile along Doppler.
+
+Multiplying a locally flat folded PSD by the Doppler window's equivalent noise
+bandwidth approximates its bin power. Integrating only a rectangular interval
+of width `PRF / n_chirps` is not the general FFT-window integral, even with an
+unwindowed FFT; its response has sidelobes. Zero padding does not reduce the
+equivalent noise bandwidth.
 
 ## FFT normalization and measurement comparison
 
