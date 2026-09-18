@@ -65,17 +65,17 @@ are accepted in addition to SciPy window names (periodic windows by default).
 For a common source, the dechirped phase is the difference of delayed and
 current oscillator phase. Its spectrum has the transfer
 
-\[
+$$
 K(f,\tau)=4\sin^2(\pi f\tau).
-\]
+$$
 
 In the small-phase approximation the two-sided complex-return noise PSD,
 relative to carrier power, is
 
-\[
+$$
 S_\epsilon(f)=K(f,\tau_\mathrm{eff})\,10^{L_\mathrm{shared}(|f|)/10}
              +10^{L_\mathrm{independent}(|f|)/10}.
-\]
+$$
 
 SSB L is in dBc/Hz; each signed sideband gets that linear density, without an
 extra factor of two. Integrating both sides supplies the factor of two in total
@@ -139,9 +139,9 @@ the carrier and finite-width FFT bins are handled separately.
 
 For positive slope S, this module defines
 
-\[
+$$
 f_b=S\tau+f_D,\qquad R_\mathrm{apparent}=cf_b/(2S),\qquad v_D=\lambda f_D/2.
-\]
+$$
 
 Positive Doppler and velocity mean positive phase advance in the modeled
 complex signal. Check the measurement's mixer/FFT sign convention. Apparent
