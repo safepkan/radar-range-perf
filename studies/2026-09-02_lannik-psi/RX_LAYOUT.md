@@ -1,13 +1,12 @@
 # Lannik Psi RX-layout decision notes
 
-Working decision brief, 2026-09-09, extended 2026-09-10 before and after the
-meeting that chose the rectangular prototype geometry. The analysis behind the
-decision is idealized: it is not a finalized antenna specification or a
-demonstrated ambiguity-resolution capability. See the decision record at the
-end for the outcome.
+Working decision brief, 2026-09-09, extended through 2026-09-11. The analysis
+behind the rectangular prototype decision is idealized: it is not a finalized
+antenna specification or a demonstrated ambiguity-resolution capability. See
+the decision record at the end for the outcome.
 
 See [NOTES.md](NOTES.md) for system context and [MIMO.md](MIMO.md) for the
-track-directed MIMO architecture. The corresponding experimental script is
+interlaced-MIMO architecture. The corresponding experimental script is
 [rx_layout_experiment.py](rx_layout_experiment.py). Keep geometry-specific
 reasoning and the eventual decision here rather than duplicating those notes.
 
@@ -21,7 +20,7 @@ official prototype preset yet.
 
 **Decision, 2026-09-10 meeting: the rectangular prototype uses a two-pitch
 (height/4) alternating column stagger, option C (eight rows, 42.3 mm tall) in
-[ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md). The second prototype is
+[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md). The second prototype is
 the rotated 2 × 4 square-subarray URA in a smaller package.** The extra RX
 height of option C fits within the margin to the edge, so option D (seven
 rows) is not needed. This supersedes the 2026-09-09 preference for the URA, which
@@ -96,12 +95,13 @@ why.
   vertical margin is 29 dB; but MIMO also depends on pattern realization
   and waveform orthogonality, which the stagger does not.
 - MIMO stays. The horizontal aliases remain exact in every stagger variant,
-  and MIMO is the fallback for the vertical family. Its main job moves to
-  the short-range horizontal family, which strengthens the on-demand
-  scheduling choice: no illumination is spent on less sensitive MIMO frames
-  when coherent frames resolve the vertical family. The horizontal-edge MIMO
-  discrimination of about -3 dB, entirely from the TX defocus, is therefore
-  the binding TX requirement.
+  and the initial schedule includes both left/right-half MIMO for the
+  horizontal family and up/down-half MIMO for the vertical family. The
+  stagger can reduce the amount or cadence of MIMO evidence needed vertically,
+  but does not remove that configuration from initial testing. The periodic
+  schedule is selected for simplicity and dependable test data. The
+  horizontal-edge MIMO discrimination of about -3 dB, entirely from the TX
+  defocus, is therefore the binding TX requirement.
 - Not yet shown: slow RCS fluctuation across frames, multi-target
   association, a tracker decision rule with abstention, and supplier
   feedback on the layout. These gaps apply equally to the URA-plus-MIMO plan.
@@ -112,21 +112,24 @@ result that removes most of the multi-frame benefit; or a requirement that
 makes the short-range horizontal family, rather than the long-range vertical
 family, the driver.
 
-### Updated operating assumption: on-demand MIMO
+### Updated operating assumption: interlaced MIMO
 
-Assume a sparse scene with few tracks. For a confirmed track with sufficiently
-narrow prediction/association gates, coherent measurements can be unwrapped
-without routine MIMO updates. The likely path is a tracker-requested burst for
-an unresolved new track or lost ambiguity confidence, not every-Nth-frame
-interlacing. Shared Aurix TC457 control/SP/tracking and sequencer flexibility
-are taken as feasible design assumptions; actual latency is not yet measured.
-See [MIMO.md](MIMO.md) for the detailed scope of this assumption.
+**Decision, 2026-09-11:** Begin with recurring left/right-half and up/down-half
+MIMO CPIs rather than purely tracker-requested bursts. The two configurations
+provide horizontal- and vertical-alias evidence respectively. The fixed
+structure is simpler to implement initially and ensures that test recordings
+routinely exercise and capture both configurations. Their exact cadence,
+relative rates, ordering and grouping remain open. The loss of some coherent-TX
+opportunities and the latency until enough scheduled MIMO evidence arrives in
+the required axis are accepted tradeoffs to quantify.
 
-This changes the geometry trade: staggering might avoid or shorten an
-occasional burst, rather than continuously saving scheduled MIMO resources.
-The comparison must allow a targeted gate and additional MIMO illumination;
-a fixed per-CPI SNR disadvantage is not a permanent system range penalty.
-Periodic-interlace examples below remain illustrative, not the decision metric.
+This changes how the stagger benefit is interpreted: it can reduce the MIMO
+evidence needed for the vertical family and may eventually support a lower
+interlace rate, but it does not eliminate scheduled MIMO from the initial
+mode. The existing one-in-four examples remain illustrative; they establish a
+reference calculation, not the chosen cadence. On-demand scheduling remains a
+possible future extension and is not pursued for the initial release. See
+[MIMO.md](MIMO.md) for the current direction.
 
 ## What is established in the current model
 
@@ -464,7 +467,7 @@ change these numbers and must be re-evaluated for MIMO discrimination. The
 horizontal-edge margin scales with the amount of defocus, from 1.8 dB at 0.6
 times the prescribed phase to 4.3 dB at 1.4 times: an under-realized defocus
 weakens the MIMO-limited horizontal case, which is why the horizontal-edge
-metric in [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md) matters. The
+metric in [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) matters. The
 stagger's vertical information is purely RX geometry and does not depend on
 any of this.
 
@@ -626,7 +629,7 @@ Still open after the meeting (geometry decided, see the decision record):
 - **TX-side specification.** Formulate what the supplier must ensure about
   the four quadrant patterns, the defocus and the per-port deliverables so
   that the properties MIMO relies on are guaranteed without over-specifying
-  the detailed design; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
+  the detailed design; see [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
   This is the main remaining item.
 - Supplier: confirmation of the decided RX layouts (option C and the rotated
   square URA) and of any feed, coupling or schedule implications.
@@ -692,7 +695,7 @@ only partly complete.
   plausibility protects only about ±2° around the horizontal plane), the
   equal-total-height variants (7 rows with a two-pitch stagger keeps
   37.6 mm at -0.6 dB) and the supplier-facing
-  [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md) draft.
+  [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) draft.
 - **2026-09-10, review:** A separate review found a phase-wrapping bug in
   the defocus-scale sweep (fixed; 0.6× now 17.8/1.8 dB) and that the in-beam
   map reported MIMO at the strongest coherent competitor rather than the
@@ -714,3 +717,9 @@ only partly complete.
   properties MIMO relies on are ensured without over-specifying the detailed
   design. Ambiguity-resolution latency, calibration tolerance and the
   processing budget remain validation items.
+- **2026-09-11:** Adopted periodic interlaced MIMO as the initial scheduling
+  direction, including both left/right- and up/down-half measurements, for
+  implementation simplicity and dependable MIMO test data. Accepted displaced
+  coherent CPIs and added resolution latency as explicit tradeoffs; their
+  cadence and ordering remain open. Purely on-demand scheduling is retained
+  only as a possible post-release extension.

@@ -67,8 +67,10 @@ all of its working figures headlessly and runs its study-local tests, e.g.
   `rx_stagger_amount_experiment.py` extends it to several coherent frames and
   a height/4 stagger, sweeps the stagger amount, screens competing lobes over
   the TX beam, and shows that the MIMO discrimination originates in the TX
-  defocus phase. The supplier-facing requirements draft is
-  [`ANTENNA_REQUIREMENTS.md`](2026-09-02_lannik-psi/ANTENNA_REQUIREMENTS.md).
+  defocus phase. The illustrated supplier-facing
+  [technical description for RFQ](2026-09-02_lannik-psi/rfq/TECHNICAL_DESCRIPTION.md)
+  and its PDF, figure sources and internal review are under
+  [`rfq/`](2026-09-02_lannik-psi/rfq/README.md).
   The 2026-09-10 meeting chose the two first prototypes: the rectangular
   subarrays with a two-pitch (height/4) alternating column stagger and the
   rotated 2 x 4 square-subarray URA. The presentation given at that meeting

@@ -1,4 +1,4 @@
-"""Ideal four-quadrant TX MIMO ambiguity experiment for Lannik Psi.
+"""Ideal split-aperture TX MIMO experiments for Lannik Psi.
 
 The complete prescribed TX aperture is split geometrically into four
 equal-power quadrants. Each quadrant is treated as one perfectly known complex
@@ -7,10 +7,11 @@ to feed that quadrant. The four quadrant waveforms are assumed perfectly
 orthogonal and their matched-filter outputs are retained for all eight RX
 channels, giving 32 virtual measurements.
 
-The script first tests whether the exact quadrant patterns distinguish
-directions that are exact grating-lobe aliases for the physical RX channel
-array. It then estimates ideal MIMO detection range and binary ambiguity-
-resolution range for an illustrative interlaced schedule.
+The script first illustrates the two-waveform left/right half-aperture mode.
+It then tests whether the exact quadrant patterns distinguish directions that
+are exact grating-lobe aliases for the physical RX channel array, and estimates
+ideal MIMO detection range and binary ambiguity-resolution range for an
+illustrative interlaced schedule.
 
 This deliberately excludes waveform orthogonality loss, calibration error,
 phase noise, processing-capacity and multiple-target effects.
@@ -166,6 +167,35 @@ def split_tx_quadrants(tx_antenna: RectangularArrayAntenna) -> tuple[TxQuadrant,
             )
         )
     return tuple(quadrants)
+
+
+def split_tx_left_right(
+    tx_antenna: RectangularArrayAntenna,
+) -> tuple[TxQuadrant, ...]:
+    """Split the complete TX grid into coherent left and right halves.
+
+    ``TxQuadrant`` is reused as a lightweight arbitrary-subaperture container;
+    this geometric split is only an illustration until embedded port patterns
+    and the final feed layout are available.
+    """
+    horizontal, vertical = np.meshgrid(
+        tx_antenna.horizontal_positions_m,
+        tx_antenna.vertical_positions_m,
+        indexing="ij",
+    )
+    definitions = (
+        ("Left TX half", horizontal > 0.0),
+        ("Right TX half", horizontal < 0.0),
+    )
+    return tuple(
+        TxQuadrant(
+            name,
+            np.asarray(horizontal[mask], dtype=float),
+            np.asarray(vertical[mask], dtype=float),
+            np.asarray(tx_antenna.excitations[mask], dtype=np.complex128),
+        )
+        for name, mask in definitions
+    )
 
 
 def quadrant_fields_uv(
@@ -668,6 +698,164 @@ def plot_alias_maps(
     print(f"\n  saved {path}")
 
 
+def plot_left_right_half_beams(
+    tx_antenna: RectangularArrayAntenna,
+    halves: tuple[TxQuadrant, ...],
+    path: Path,
+) -> None:
+    """Show the nominal beams from the illustrative left/right TX split."""
+    map_angles_deg = np.linspace(-25.0, 25.0, 401)
+    azimuth_deg, elevation_deg = np.meshgrid(map_angles_deg, map_angles_deg)
+    azimuth_rad = np.radians(azimuth_deg)
+    elevation_rad = np.radians(elevation_deg)
+    map_u = np.sin(azimuth_rad) * np.cos(elevation_rad)
+    map_v = np.sin(elevation_rad)
+    map_fields = quadrant_fields_uv(halves, map_u, map_v)
+    map_power_db = 10.0 * np.log10(np.maximum(np.abs(map_fields) ** 2, 1.0e-30))
+    map_power_db -= np.max(map_power_db, axis=(1, 2), keepdims=True)
+
+    fig, axes = plt.subplots(1, 3, figsize=(14.0, 5.2))
+    image = None
+    half_colors = ("C0", "C1")
+    for index, (ax, half, color) in enumerate(
+        zip(axes[:2], halves, half_colors, strict=True)
+    ):
+        image = ax.pcolormesh(
+            map_angles_deg,
+            map_angles_deg,
+            map_power_db[index],
+            shading="auto",
+            cmap="viridis",
+            vmin=-30.0,
+            vmax=0.0,
+        )
+        contours = ax.contour(
+            map_angles_deg,
+            map_angles_deg,
+            map_power_db[index],
+            levels=(-10.0, -3.0),
+            colors="white",
+            linewidths=(0.8, 1.2),
+        )
+        ax.clabel(contours, fmt=lambda level: f"{level:.0f} dB", fontsize=7)
+        peak_index = np.unravel_index(
+            int(np.argmax(map_power_db[index])), map_power_db[index].shape
+        )
+        peak_azimuth_deg = float(azimuth_deg[peak_index])
+        peak_elevation_deg = float(elevation_deg[peak_index])
+        ax.plot(
+            peak_azimuth_deg,
+            peak_elevation_deg,
+            marker="o",
+            markersize=5,
+            markerfacecolor="none",
+            markeredgecolor=color,
+            markeredgewidth=1.5,
+        )
+        ax.set_title(
+            f"{half.name}\n"
+            f"peak ({peak_azimuth_deg:+.1f}°, {peak_elevation_deg:+.1f}°)"
+        )
+        ax.set_xlabel("azimuth [deg]")
+        ax.set_ylabel("elevation [deg]")
+        ax.set_aspect("equal")
+        ax.grid(True, alpha=0.15)
+    if image is None:
+        raise ValueError("at least one TX half is required")
+    colorbar_ax = fig.add_axes((0.17, 0.125, 0.39, 0.032))
+    colorbar = fig.colorbar(
+        image,
+        cax=colorbar_ax,
+        orientation="horizontal",
+    )
+    colorbar.set_label("individual half-aperture gain relative to its peak [dB]")
+
+    cut_angles_deg = np.linspace(-30.0, 30.0, 1201)
+    cut_u = np.sin(np.radians(cut_angles_deg))
+    cut_v = np.zeros_like(cut_u)
+    cut_fields = quadrant_fields_uv(halves, cut_u, cut_v)
+    coherent_boresight_gain_db = float(tx_antenna.gain_dbi_uv(0.0, 0.0))
+    half_power_share = 1.0 / len(halves)
+    for half, field, color in zip(halves, cut_fields, half_colors, strict=True):
+        effective_gain_db = RADIATOR_GAIN_DBI + 10.0 * np.log10(
+            np.maximum(half_power_share * np.abs(field) ** 2, 1.0e-30)
+        )
+        axes[2].plot(
+            cut_angles_deg,
+            effective_gain_db - coherent_boresight_gain_db,
+            color=color,
+            label=f"{half.name}, one waveform",
+        )
+    coherent_relative_db = (
+        np.asarray(tx_antenna.gain_dbi_uv(cut_u, cut_v), dtype=float)
+        - coherent_boresight_gain_db
+    )
+    mimo_relative_db = (
+        mimo_tx_gain_dbi(halves, cut_u, cut_v) - coherent_boresight_gain_db
+    )
+    axes[2].plot(
+        cut_angles_deg,
+        coherent_relative_db,
+        color="0.45",
+        linestyle=":",
+        linewidth=1.8,
+        label="full-aperture coherent sum",
+    )
+    axes[2].plot(
+        cut_angles_deg,
+        mimo_relative_db,
+        color="0.1",
+        linestyle="--",
+        linewidth=1.8,
+        label="half-MIMO power sum",
+    )
+    principal_u_edge = (
+        0.5
+        * SPEED_OF_LIGHT
+        / CENTER_FREQUENCY_HZ
+        / RX_SQUARE_LAYOUT.channel_horizontal_spacing_m
+    )
+    principal_edge_deg = float(np.degrees(np.arcsin(principal_u_edge)))
+    axes[2].axvline(
+        -principal_edge_deg,
+        color="C3",
+        linestyle="--",
+        linewidth=1.0,
+        label="horizontal RX alias edges",
+    )
+    axes[2].axvline(
+        principal_edge_deg,
+        color="C3",
+        linestyle="--",
+        linewidth=1.0,
+    )
+    axes[2].set_title("Horizontal cut and mode power accounting")
+    axes[2].set_xlabel("azimuth [deg]")
+    axes[2].set_ylabel("gain relative to coherent boresight [dB]")
+    axes[2].set_xlim(cut_angles_deg[0], cut_angles_deg[-1])
+    axes[2].set_ylim(-30.0, 2.0)
+    axes[2].grid(True, alpha=0.25)
+    axes[2].legend(loc="lower center", fontsize=7.5)
+
+    fig.suptitle(
+        "Illustrative left/right half-aperture TX mode\n"
+        "two equal-power orthogonal waveforms using the prescribed complex excitation",
+        fontsize=13,
+    )
+    fig.text(
+        0.5,
+        0.012,
+        "Geometric radiator-grid split, pending final four-port feed layout and "
+        "embedded-pattern data | constant radiator pattern | positive azimuth is left",
+        ha="center",
+        fontsize=8,
+        color="0.3",
+    )
+    fig.subplots_adjust(left=0.06, right=0.98, bottom=0.28, top=0.80, wspace=0.28)
+    fig.savefig(path, dpi=150)
+    print(f"  saved {path}")
+
+
 def mark_principal_interval(ax: Axes, half_angle_deg: float) -> None:
     """Shade the unambiguous RX interval and mark its two edges."""
     ax.axvspan(
@@ -1017,6 +1205,7 @@ def main() -> None:
     product = lannik_psi()
     tx_antenna = load_tx_antenna()
     quadrants = split_tx_quadrants(tx_antenna)
+    halves = split_tx_left_right(tx_antenna)
     print_diagnostics(quadrants, ALIAS_CASES)
     rx_antenna = product.radar.antenna.rx
     if not isinstance(rx_antenna, MultiBeamUniformArrayAntenna):
@@ -1062,6 +1251,11 @@ def main() -> None:
     print_range_diagnostics(tx_antenna, quadrants, range_cuts, height_trade)
     generated_dir = Path(__file__).parent / "generated" / "mimo"
     generated_dir.mkdir(parents=True, exist_ok=True)
+    plot_left_right_half_beams(
+        tx_antenna,
+        halves,
+        generated_dir / "left_right_half_tx_beams.png",
+    )
     plot_alias_maps(
         tx_antenna,
         quadrants,

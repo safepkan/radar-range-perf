@@ -9,7 +9,19 @@ design document. It is deliberately not a transcript. Numerical configuration
 in [`lannik_psi.py`](lannik_psi.py) is authoritative when this document and the
 code differ.
 
-Last substantial update: 2026-09-10.
+Last substantial update: 2026-09-11.
+
+**RFQ technical-description update, 2026-09-17:** The illustrated
+[technical description](rfq/TECHNICAL_DESCRIPTION.md), PDF and figure-generation
+tools now live under [rfq/](rfq/README.md). It describes the selected TX modes,
+both RX layouts, proposed targets, and early versus final data needs, with
+coordinate and metric details in appendices. The operating band is confirmed
+as 76–77 GHz, centred at 76.5 GHz; horizontal or vertical linear polarization
+is still to be chosen. Reference geometry may be adjusted by joint evaluation;
+exact mechanical interfaces are defined separately. The existing model remains
+at 77 GHz and the published reference calculations retain that label.
+Presentation discrepancies, metric rationale and internal decisions are in
+the [internal RFQ review](rfq/internal/REVIEW.md).
 
 ## Status labels
 
@@ -35,7 +47,7 @@ The immediate goals are to:
    and RX apertures and their directional behavior.
 3. Understand what limits useful coverage before optimizing antenna weights,
    waveforms, beam schedules, or tracking behavior.
-4. Develop the track-directed MIMO approach needed to resolve RX channel-array
+4. Develop the interlaced-MIMO approach needed to resolve RX channel-array
    aliases while retaining as much RX aperture and gain as practical.
 
 The study is still exploratory. Requirements, operating modes, angular coverage
@@ -88,7 +100,7 @@ two-pitch (height/4) stagger with eight-row subarrays (42.3 mm tall; the
 margin to the edge allows it). The second prototype is the rotated 2 × 4 square-subarray
 URA, whose vertical aliases sit at ±11.9° like its horizontal ones and are a
 mid-to-short-range matter. The main remaining work is the TX-side
-specification; see [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md) and
+specification; see [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) and
 the decision record in [RX_LAYOUT.md](RX_LAYOUT.md).
 
 **Source fact, 2026-09-10:** The same supplier has already produced a separate
@@ -98,7 +110,18 @@ narrow-beam long-range demonstrations. Its measurements are under review;
 nothing worrying has been seen so far. If per-port patterns were measured,
 they are the first available check of the supplier's ability to realize a
 prescribed amplitude and phase distribution, and of the quadrant-squint
-metrics in [ANTENNA_REQUIREMENTS.md](ANTENNA_REQUIREMENTS.md).
+metrics in [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+
+**Scheduling decision, 2026-09-11:** Use periodically interlaced MIMO as the
+initial operating direction, scheduling both left/right-half MIMO for the
+horizontal alias family and up/down-half MIMO for the vertical family. Their
+cadence, relative rates, ordering and grouping remain open. This is simpler
+than relying on tracker-triggered scheduling from the outset and guarantees
+that initial test recordings routinely contain both MIMO configurations, so
+waveform use, processing and realized antenna signatures can be verified. Some
+coherent-TX CPIs will be displaced and additional ambiguity-resolution latency
+is accepted as an explicit trade. Pure on-demand operation remains a possible
+future extension and is not pursued for the initial release.
 
 ## Sources and reproduction
 
@@ -147,7 +170,7 @@ venv/bin/python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
 
 Its decision context and investigation plan are maintained in
 [`RX_LAYOUT.md`](RX_LAYOUT.md). The supplier-facing antenna requirements
-draft is [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+draft is [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 Working figures are written to [`generated/`](generated/) and are intentionally
 not treated as reviewed deliverables.
@@ -382,23 +405,22 @@ sets or accumulated coherent-plus-MIMO evidence.
 
 ### MIMO-assisted ambiguity resolution
 
-**Selected broad system direction:** Retain coherent TX for sensitivity and use
-on-demand four-quadrant MIMO measurements to resolve the discrete RX ambiguity
-cell. The tracker can maintain several hypotheses, accumulate evidence over
-multiple MIMO updates and apply the resolved cell to intervening coherent
-measurements. The detailed implementation and achievable performance remain
-to be validated.
+**Selected broad system direction:** Retain coherent TX for sensitivity and
+periodically interlace split-aperture MIMO measurements to resolve the discrete
+RX ambiguity cell. The tracker can maintain several hypotheses, accumulate
+evidence over MIMO updates and apply the resolved cell to intervening coherent
+measurements. The detailed waveform, cadence, processing and achievable
+performance remain to be validated.
 
-**Working architecture, 2026-09-09:** Assume sparse scenarios with few tracks.
-Confirmed tracks whose prediction/association gates do not overlap their
-alias-shifted copies normally need no further MIMO assistance. Request a burst
-for unresolved new tracks or when ambiguity confidence is lost. Radar control,
-SP and tracking are expected to share the Aurix TC457 platform; tracker requests
-and flexible sequencing are assumed feasible, not demonstrated or benchmarked.
-CPI reception, processing, switching and burst duration still contribute to
-latency. Fixed every-Nth-frame interlacing remains a reference/fallback, not
-the likely operational schedule. See [MIMO.md](MIMO.md) for the architecture
-and [RX_LAYOUT.md](RX_LAYOUT.md) for the geometry comparison.
+**Working architecture, 2026-09-11:** Begin with fixed periodic interlacing of
+both left/right- and up/down-half MIMO for simplicity and dependable test-data
+collection. Their exact fractions and grouping are not decided. Evaluate the
+loss from displaced coherent frames and the time from target appearance to
+sufficient evidence in the required axis as schedule-level tradeoffs. The
+earlier 2026-09-09 assumption of tracker-requested bursts is superseded.
+Triggered or adaptive scheduling is outside the initial-release scope, though
+it may be useful as a future extension. See [MIMO.md](MIMO.md) for the
+architecture and [RX_LAYOUT.md](RX_LAYOUT.md) for the geometry comparison.
 
 The first on-demand resolution-event experiment is now in
 [`rx_resolution_experiment.py`](rx_resolution_experiment.py), with results in
@@ -422,10 +444,10 @@ baseline; MIMO has reopened the supplied-height rectangle and intermediate
 heights as viable candidates.
 
 The experiment began by treating MIMO as an independent `Pfa=1e-6` detector
-with the existing waveform. A more natural product use is a track-directed
-ambiguity measurement with range/Doppler gating, soft cell likelihoods,
-adaptive scheduling and potentially a different waveform. Pattern/calibration
-tolerance and the complete set of aliases remain to be studied.
+with the existing waveform. Gated soft cell likelihoods remain a more natural
+way to use each scheduled MIMO measurement than requiring it to pass a second
+independent full-search threshold. Pattern/calibration tolerance, the complete
+set of aliases and the eventual schedule remain to be studied.
 
 See the dedicated [MIMO ambiguity-resolution note](MIMO.md) for the model,
 results, waveform and tracker ideas, calibration questions, eight-TX extension,
@@ -539,7 +561,7 @@ proves impractical.
    patterns, which follow from the prescribed quadratic (defocus) phase. The
    per-port pattern deliverables, acceptance metrics and stability guidance
    to give the supplier are drafted in
-   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 
 The previous calculation based on the apparent eight equal geometric groups
 gave very unequal group powers. That remains evidence that those labels should
@@ -612,8 +634,10 @@ These are open design directions, not current requirements.
   interlacing them.
 - Alternatively, cycling TX directions may trade CPI duration and coherent gain
   for angular coverage and revisit rate.
-- Interlaced MIMO may be scheduled sparsely, triggered as a short burst after an
-  ambiguous coherent detection, or run as a temporary track-directed mode.
+- The initial direction periodically interlaces both left/right- and
+  up/down-half MIMO. Their relative cadence, ordering and grouping remain open;
+  triggered bursts or a temporary track-directed mode are possible
+  post-release extensions, not initial work.
 - A track-directed MIMO waveform can use a higher gated Pfa, longer illumination
   and soft subthreshold likelihoods rather than acting as a second independent
   full-search detector. See [`MIMO.md`](MIMO.md).
@@ -689,7 +713,7 @@ choice.
 2. Formulate the TX-side specification for the supplier: which quadrant-
    pattern properties are binding, which deliverables verify them, and how
    much of the detailed design is left open; start from
-   [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 3. Judge any later change to the decided stagger offset with the
    multi-frame event model and the in-beam competitor map, not only the
    exact reciprocal-cell size.
@@ -713,7 +737,8 @@ choice.
 11. Add joint acquisition, maintenance and ambiguity-resolution coverage once
     the relevant trajectory, publication and scheduling assumptions are defined.
 12. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
-    tracker model and compare fixed, triggered and adaptive MIMO scheduling.
+    tracker model using the fixed interlace; compare triggered or adaptive
+    scheduling only as possible post-release work.
 13. Once the Lannik Psi product design settles, promote the final configuration
     to a reusable toolbox-level preset while retaining this dated study as the
     rationale and reproducible design history.
@@ -839,7 +864,7 @@ choice.
   URA gain plausibility covers only about ±2° around the horizontal plane
   once alias-lobe skirts are admitted. Added equal-total-height variants
   (7 rows, two-pitch stagger) and drafted the supplier-facing
-  [`ANTENNA_REQUIREMENTS.md`](ANTENNA_REQUIREMENTS.md).
+  [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
 - **2026-09-10, review:** Corrected a phase-wrapping bug in the defocus
   sensitivity sweep and the in-beam MIMO competitor search; added the
   diagonal competitor family and a systematic RX column-group phase error to
@@ -851,3 +876,9 @@ choice.
   is the main remaining item. This branch is snapshotted to `main` at this
   point; the presentation is kept as presented under
   `deliverables/2026-09-10_presentation/`.
+- **2026-09-11:** Replaced purely on-demand MIMO with periodic interlacing of
+  both left/right- and up/down-half measurements as the initial scheduling
+  direction. The simpler fixed schedule guarantees routine operation and
+  useful recorded data from both MIMO configurations. Its coherent-frame cost
+  and ambiguity-resolution latency are accepted; the cadence remains to be
+  selected.
