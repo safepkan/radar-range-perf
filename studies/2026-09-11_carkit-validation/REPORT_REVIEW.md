@@ -1,4 +1,160 @@
-# CARKIT measurement report: initial assessment
+# CARKIT measurement report: current assessment
+
+2026-09-26. Review of [`inputs/CARKIT report.pdf`](inputs/CARKIT%20report.pdf),
+17 pages, dated 2026-09-22. The report is still under review and appears to
+supersede the six-page report assessed later in this file. No raw ADC data or
+analysis code accompanied it, so all measurements remain reported rather than
+independently reproduced.
+
+**Assessment:** the useful validation datum is the single-TX field fit for the
+nominal 10 dBsm reflector: 36.57 dB at the fit's 100 m normalization point.
+Under the explicit provisional assumptions in `carkit_walk.py`, the toolbox
+predicts 32.67 dB, giving a report-minus-model offset of +3.90 dB. Keep that as
+a scoped empirical correction and reality check. The laboratory coherent-array
+results and the report's 1 km/Pd extrapolation should not be used as inputs to
+our range model.
+
+## Comments already raised and supported by this review
+
+- The nearly linear calibration phase versus frequency in Figures 1–2 is the
+  expected signature of approximately constant relative group delay. Fit a
+  line for every channel, report the delay and fit residual, and state the sign
+  convention explicitly: the slope of the plotted *correction* phase has the
+  opposite interpretation from the slope of the uncorrected channel response.
+  Per-RX reflector-range estimates, using a zero-padded range FFT plus quadratic
+  peak interpolation, provide a direct cross-check.
+- Section 1.4 must say exactly which range–Doppler cells and frames formed the
+  covariance. For real ADC samples, the negative-frequency half is conjugate-
+  related to the positive half (with both FFT coordinates reflected). Treating
+  both halves as independent observations symmetrizes and can distort the
+  spatial covariance and its eigenmodes. Use only the physical range half.
+- The growing spatially correlated background is consistent with a
+  signal-dependent multiplicative impairment such as phase noise: to first
+  order its perturbation is proportional to `j S delta_phi`, so it follows the
+  target steering vector and scales with target signal. In this strong-reflector
+  chamber setup it prevents a meaningful receiver-noise-limited assessment of
+  coherent SNR gain.
+- Consequently, the measured 7.14 dB coherent-RX gain from the chamber must not
+  be transferred into a field range budget. The impairment depends on the
+  strength and spectrum of strong nearby returns, not on the distant target
+  alone. A model of phase noise acting on clutter and other strong reflectors is
+  the relevant eventual range-analysis extension, but is outside this report's
+  scope.
+- Section 3.1 should reduce the field result to one clearly defined reference
+  point, preferably per RX channel, with the exact signal and noise estimators.
+  The theoretical scaling can then be done separately and compared afterward.
+- The zero-mean circular complex Gaussian target model in Section 3.2 is the
+  usual Swerling-1 model (assuming one realization is held during a scan and is
+  independent between scans).
+
+## Additional substantive comments
+
+**The 36.57 dB anchor is a selected fit, not a measurement at 100 m.** Figure 10
+says the fit uses 33 observations between 15 and 51 m that lie within 6 dB of a
+local R^-4-corrected peak in a +/-5 m neighborhood. The fit is then normalized
+at 100 m. This is an upper-tail selection whose result depends on the 6 dB and
+5 m choices. The report should state this wherever 36.57 dB is introduced and
+show the result's sensitivity to the selection, or preferably provide ordinary
+per-frame values and a robust all-point summary alongside it. It should also
+make clear whether both walking directions were eligible.
+
+**The signal/noise definition is still missing.** For both Table 5 and the field
+anchor, specify the FFT normalization, target-cell or peak-search definition,
+noise mask and estimator, channel normalization, whether `S` means total
+target-cell power or noise-subtracted signal power, and whether the reported
+ratio is `S/N`, `(S-N)/N`, or another statistic. Supply per-channel values. A
+normalized mean of eight RX powers has the same mean SNR as a representative
+single channel when channel SNRs are equal; calling it an eight-channel gain
+invites confusion.
+
+**Windowing and zero-padding must be quantified.** Table 6 does not state the
+range or Doppler windows, and Figure 10 only says that zero-padding was used.
+Window choice determines the two noise-equivalent-bandwidth losses; zero-padding
+only reduces residual sampled-bin scalloping and does not remove window loss.
+State both padding factors. Pending clarification, this study assumes Blackman
+on both axes and enough padding for zero residual straddling loss.
+
+**The covariance result needs a more precise name and construction.** If the
+cell set includes target mainlobe/sidelobe energy, phase-noise skirts, leakage,
+clutter, or heterogeneous noise variance, the matrix is a covariance of the
+selected *background/residual*, not necessarily receiver noise. Mean removal
+does not remove deterministic structure that varies between cells. State the
+mask relative to the target, any power normalization, and whether samples from
+multiple frames were pooled. Hann overlap/correlation reduces effective sample
+count, as the report notes, but the more important issue is whether those
+samples can reasonably be treated as draws from one stationary distribution.
+
+**Normalized eigenvalue fractions alone do not demonstrate growth.** Figures
+6–9 should be accompanied by absolute eigenvalues or mode powers versus target
+signal power/TX count, including 1 TX and 2 TX if available. Repeating at more
+than one TX backoff or reflector strength would test the expected multiplicative
+scaling directly. Alignment with the target steering vector and disappearance
+toward absorber are evidence for a target-path-related component, but they do
+not establish that a mode "comes from the target"; leakage, phase noise,
+multipath and other signal-dependent mechanisms remain possible.
+
+**The field car and reflector fits are not equivalent estimators.** Figure 10
+compares a median of 41 per-track car intercepts with the reflector's locally
+selected upper-tail observations; the candidate cars are not ground-truth
+classifications. Their 0.90 dB proximity is descriptive, not evidence that the
+car population has approximately 10 dBsm RCS. This comparison is not needed for
+the single-point model validation.
+
+**There are two numerical/terminological inconsistencies to fix.** Section 1.4
+quotes 7.19 dB measured coherent-RX noise reduction, whereas Table 5 and Section
+3.1 imply 78.47 - 71.33 = 7.14 dB. Table 3's "ADC-bandbredd" of 200.391 MHz is
+the sampled RF chirp bandwidth, not ADC bandwidth for a 25 MS/s ADC. In Table 6,
+16.34 ms is the 1024-ramp coherent processing interval; 120 ms appears to be the
+frame period, not a second definition of CPI. These labels matter when the
+result is scaled by integration time.
+
+**Calibration uncertainty should be visible.** Figures 1–2 average ten CPIs but
+show neither scatter nor fit residuals. Add phase standard deviation/error bars
+or a compact table. The linear-delay fit residual is especially useful: it
+separates ordinary channel delay from any genuinely frequency-dependent
+dispersive behavior. The target's finite-range geometry and the fact that these
+are correction weights, not raw channel phase, should be included in the delay
+interpretation.
+
+## Provisional point-model comparison
+
+The current comparison uses:
+
+- 10 dBsm, nonfluctuating reflector;
+- one TX at the controlled-datasheet preset 14.5 dBm;
+- FARAD-IV boresight gains, 15.045 dBi TX and 14.984 dBi RX;
+- 76.374237 GHz, 50 MS/s, 512 samples and 1024 chirps;
+- controlled-datasheet 10.2 dB RX noise figure;
+- Blackman range and Doppler losses, 2.37 dB each;
+- zero residual range/Doppler straddling and no CFAR loss; and
+- the toolbox `B_n = f_s` matched-filter/complex-sample convention.
+
+It predicts 32.67 dB at 100 m. The difference to 36.57 dB is +3.90 dB. The
+sign is worth emphasizing: interpreted as an additive model correction it is
+positive; interpreted as a conventional loss subtracted from the model it would
+be -3.90 dB. It therefore should be called an empirical SNR offset, not an
+implementation loss. RCS, installed gains, target angle/orientation,
+propagation, peak selection and noise conventions are all entangled in it.
+Prior measurement characterizations reportedly found the reflector stand
+negligible, with additional suppression from its position in the elevation
+sidelobes. Stand scattering is therefore not a leading explanation for the
+offset; absorber over its exposed parts remains a useful low-cost control in a
+new reference measurement.
+
+## Secondary observations on Section 3.2
+
+The 13 dB power threshold corresponds, under the report's known-noise
+single-complex-cell model, to `Pfa = exp(-10^(13/10))`, approximately 2.16e-9.
+That is a threshold choice rather than an SNR requirement. It does not include
+noise-estimation/CFAR loss or the multiple-testing effect of a range–Doppler
+search. The report acknowledges the latter and the mismatch between its
+peak-selected anchor and fixed-cell probability model. Given those caveats and
+the invalid transfer of chamber RX gain, reproducing the report's Pd curves is
+not a priority for this validation study.
+
+---
+
+# Earlier six-page report: initial assessment
 
 The initial broad review is retained for traceability. The study's current
 scope and priorities are in [`NOTES.md`](NOTES.md): match measured setups,
