@@ -268,11 +268,17 @@ def main() -> None:
         axes[1].scatter(
             delay_scaled_db[mask], plot_ratio[mask], s=18, alpha=0.75, label=name
         )
-        shown = mask & reliable
-        if np.any(shown):
-            axes[2].scatter(
-                range_m[shown], plot_excess_db[shown], s=18, alpha=0.75, label=name
-            )
+    # Outbound excess is mostly too small to reference to the peak reliably, so
+    # the relative panel shows the inbound leg only, in its usual color.
+    shown = (leg == "inbound") & reliable
+    axes[2].scatter(
+        range_m[shown],
+        plot_excess_db[shown],
+        s=18,
+        alpha=0.75,
+        color="C1",
+        label="inbound",
+    )
     curve_x = np.linspace(delay_scaled_db.min() - 1, delay_scaled_db.max() + 1, 200)
     axes[1].plot(
         curve_x,
@@ -302,7 +308,7 @@ def main() -> None:
         xscale="log",
         xlabel="Target range R [m]",
         ylabel="Excess per Doppler bin relative to target peak [dB]",
-        title=f"Excess relative to peak (ratio > {MIN_RATIO_FOR_LEVEL_DB} dB)",
+        title=f"Relative to peak, inbound with excess > {MIN_RATIO_FOR_LEVEL_DB} dB",
     )
     ticks = [15, 20, 30, 40, 50, 60]
     axes[2].set_xticks(ticks, [str(tick) for tick in ticks])
