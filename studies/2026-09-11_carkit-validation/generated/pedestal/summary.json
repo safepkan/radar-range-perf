@@ -1,0 +1,234 @@
+{
+  "input": "/Users/patrik/Git/radar-range-perf/studies/2026-09-11_carkit-validation/generated/dynamics/per_frame.csv",
+  "model": "ratio_db = 10 log10(1 + 10**c * S**a * (R / 30 m)**b)",
+  "frames": 84,
+  "doppler_blackman_enbw_bins": 1.726757369614512,
+  "range_band_dilution_db": -1.5732771402857364,
+  "cutoffs": {
+    "10": {
+      "doppler_band_hz": [
+        5095.140652270845,
+        31328.32080200501
+      ],
+      "band_bins": 857,
+      "fits": {
+        "free": {
+          "c_log10": -2.954234510042082,
+          "a_power_exponent": 1.015528321976749,
+          "b_range_exponent": 1.9988460079021269,
+          "rms_residual_db": 0.09595211514001604,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.021210521247855926,
+            "inbound": -0.0013098726198734157
+          },
+          "bootstrap_p5_p95": {
+            "a_power_exponent": [
+              0.9560508584919606,
+              1.0820329700746136
+            ],
+            "b_range_exponent": [
+              1.7900955862865269,
+              2.197428263205194
+            ]
+          }
+        },
+        "fixed_fraction_a1_b0": {
+          "c_log10": -3.229477985846587,
+          "a_power_exponent": 1.0,
+          "b_range_exponent": 0.0,
+          "rms_residual_db": 0.3570438566770226,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.0030458823193212727,
+            "inbound": -0.3013200141484812
+          }
+        },
+        "delay_squared_a1_b2": {
+          "c_log10": -2.913061785961212,
+          "a_power_exponent": 1.0,
+          "b_range_exponent": 2.0,
+          "rms_residual_db": 0.09672610469256261,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.02471076267164328,
+            "inbound": 0.003937580861189238
+          }
+        }
+      },
+      "equivalent_level": {
+        "frames": 32,
+        "frames_by_leg": {
+          "outbound": 1,
+          "inbound": 31
+        },
+        "range_span_m": [
+          16.360766925401737,
+          50.56964322396901
+        ],
+        "excess_to_peak_at_30m_db_median_p10_p90": [
+          -61.96949427579004,
+          -62.55225634213149,
+          -61.36683333756343
+        ],
+        "excess_to_peak_spread_db_raw_vs_range_normalized": [
+          2.7355341258755717,
+          0.5924352181057623
+        ],
+        "in_band_phase_rms_at_30m_rad_median": 0.02128482357393445,
+        "equivalent_frequency_rms_hz_median_p10_p90": [
+          16926.206654117417,
+          15827.61141596411,
+          18142.517458561968
+        ]
+      }
+    },
+    "20": {
+      "doppler_band_hz": [
+        10190.28130454169,
+        31328.32080200501
+      ],
+      "band_bins": 691,
+      "fits": {
+        "free": {
+          "c_log10": -2.9032167771516817,
+          "a_power_exponent": 1.0168645627992021,
+          "b_range_exponent": 1.9936745210204108,
+          "rms_residual_db": 0.10878214008121605,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.02104593173508466,
+            "inbound": 0.0014416227102097812
+          },
+          "bootstrap_p5_p95": {
+            "a_power_exponent": [
+              0.9513174437269137,
+              1.0862573331282386
+            ],
+            "b_range_exponent": [
+              1.7718006278748326,
+              2.1987624830826014
+            ]
+          }
+        },
+        "fixed_fraction_a1_b0": {
+          "c_log10": -3.1673848664749578,
+          "a_power_exponent": 1.0,
+          "b_range_exponent": 0.0,
+          "rms_residual_db": 0.3922477204223065,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.00196375369516063,
+            "inbound": -0.32280890293683806
+          }
+        },
+        "delay_squared_a1_b2": {
+          "c_log10": -2.8582985781045944,
+          "a_power_exponent": 1.0,
+          "b_range_exponent": 2.0,
+          "rms_residual_db": 0.10991831530526822,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.02532898723468096,
+            "inbound": 0.007989992856182068
+          }
+        }
+      },
+      "equivalent_level": {
+        "frames": 33,
+        "frames_by_leg": {
+          "outbound": 1,
+          "inbound": 32
+        },
+        "range_span_m": [
+          16.360766925401737,
+          50.56964322396901
+        ],
+        "excess_to_peak_at_30m_db_median_p10_p90": [
+          -61.365348584562255,
+          -62.10640257940791,
+          -60.83238341285908
+        ],
+        "excess_to_peak_spread_db_raw_vs_range_normalized": [
+          2.7296534293042862,
+          0.6607845555997702
+        ],
+        "in_band_phase_rms_at_30m_rad_median": 0.020488954234087777,
+        "equivalent_frequency_rms_hz_median_p10_p90": [
+          16293.31210044033,
+          14961.060356490238,
+          17324.42382055769
+        ]
+      }
+    },
+    "30": {
+      "doppler_band_hz": [
+        15285.421956812535,
+        31328.32080200501
+      ],
+      "band_bins": 525,
+      "fits": {
+        "free": {
+          "c_log10": -2.7694192472844326,
+          "a_power_exponent": 0.9744006519916494,
+          "b_range_exponent": 1.8700115293554356,
+          "rms_residual_db": 0.1256356043559397,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.017646205447955365,
+            "inbound": -0.0016136476372747744
+          },
+          "bootstrap_p5_p95": {
+            "a_power_exponent": [
+              0.9063193124236081,
+              1.0520927843299308
+            ],
+            "b_range_exponent": [
+              1.6489990521015712,
+              2.100720251275838
+            ]
+          }
+        },
+        "fixed_fraction_a1_b0": {
+          "c_log10": -3.1332020324674597,
+          "a_power_exponent": 1.0,
+          "b_range_exponent": 0.0,
+          "rms_residual_db": 0.41998531408401624,
+          "mean_residual_db_by_leg": {
+            "outbound": -0.013111032106720016,
+            "inbound": -0.34546296881234073
+          }
+        },
+        "delay_squared_a1_b2": {
+          "c_log10": -2.8273101458438505,
+          "a_power_exponent": 1.0,
+          "b_range_exponent": 2.0,
+          "rms_residual_db": 0.12667953501618398,
+          "mean_residual_db_by_leg": {
+            "outbound": 0.011425634826189418,
+            "inbound": 0.002102473437203626
+          }
+        }
+      },
+      "equivalent_level": {
+        "frames": 35,
+        "frames_by_leg": {
+          "outbound": 1,
+          "inbound": 34
+        },
+        "range_span_m": [
+          16.360766925401737,
+          50.56964322396901
+        ],
+        "excess_to_peak_at_30m_db_median_p10_p90": [
+          -61.09567471187815,
+          -61.907263079590656,
+          -60.307087868522935
+        ],
+        "excess_to_peak_spread_db_raw_vs_range_normalized": [
+          2.82206564604128,
+          0.6958291172110299
+        ],
+        "in_band_phase_rms_at_30m_rad_median": 0.018422311184971233,
+        "equivalent_frequency_rms_hz_median_p10_p90": [
+          14649.867549061511,
+          13343.081073524438,
+          16044.170069377024
+        ]
+      }
+    }
+  }
+}

@@ -103,6 +103,7 @@ The repo's default branch is `main`. This study started on
 | [Independent audit](audit_walk_adc.py) | Averaging order, local covariance and RX spectral-null checks |
 | [Dynamics analysis](analyze_walk_dynamics.py) | CPI length, Doppler structure and target-conditioned background |
 | [Current reference calculation](analyze_walk_reference_snr.py) | Same-range, near-Doppler target-free background and explicit averaging alternatives |
+| [Pedestal scaling fit](analyze_walk_pedestal.py) | Power/range exponents of the Doppler pedestal and equivalent frequency error; reads the dynamics CSV only |
 | [Detailed independent review](INDEPENDENT_REVIEW.md) | Methods, numerical checks, controls and qualifications, including second-review diagnostics |
 
 All 200 supplied binary hashes and common waveform/layout metadata passed
@@ -121,11 +122,12 @@ python studies/2026-09-11_carkit-validation/analyze_walk_adc.py /Users/patrik/Da
 python studies/2026-09-11_carkit-validation/audit_walk_adc.py /Users/patrik/Data/tmp/walk-hallesaker-tx1-1-psi
 python studies/2026-09-11_carkit-validation/analyze_walk_dynamics.py /Users/patrik/Data/tmp/walk-hallesaker-tx1-1-psi
 python studies/2026-09-11_carkit-validation/analyze_walk_reference_snr.py /Users/patrik/Data/tmp/walk-hallesaker-tx1-1-psi
+python studies/2026-09-11_carkit-validation/analyze_walk_pedestal.py
 ```
 
 Run the raw analysis first because the later scripts reuse its target coordinates
 and selections. JSON/CSV outputs live under `generated/walk_adc`, `audit`,
-`dynamics` and `reference_snr`. Plots are generated locally; selected shareable
+`dynamics`, `reference_snr` and `pedestal`. Plots are generated locally; selected shareable
 copies are under `deliverables/2026-09-29`.
 
 Analysis runs and repository Black/flake8/strict-mypy checks passed. The second
@@ -148,7 +150,7 @@ recovering 3.06/6.01/9.09 dB against ideal 3.01/6.02/9.03 dB gains.
 | Sampled integration / CPI span | 10.48576 / 16.34304 ms |
 | Model TX power / NF | 14.5 dBm / 10.2 dB; datasheet-based preset, NF specified at 10 MHz |
 | Model TX / RX gain | FARAD-IV digitized boresight cuts, approximately 15.045 / 14.984 dBi |
-| Target direction | Boresight assumed; precise geometry, heights and pointing unavailable |
+| Target direction | Boresight assumed; precise geometry and pointing unavailable. Reflector height provisionally ~1 m (hand-held at about waist height, to be confirmed); radar height unknown |
 | Walking reflector RCS | Provisionally 11.27 dBsm; all headline comparisons normalized to 10 dBsm |
 | FFT processing gain / window losses | 57.20 dB / 4.74 dB total |
 | Residual straddling / CFAR loss in model | 0 / 0 dB; matched-filter SNR comparison, not CFAR detection |
@@ -245,13 +247,49 @@ Spearman correlation 0.92. In several strong frames the dominant background
 spatial mode also aligns closely with the target vector. These are correlated
 observations, not independent-sample proof of a particular mechanism.
 
-The exact range extent and mechanism remain unresolved. Ordinary walking
-velocities do not explain actual returns at 20–30 m/s, but modulation or
-transients can spread energy there without such motion. The approximately
--60 dB excess per averaged Doppler cell relative to target peak is neither
-dBc/Hz nor a validated phase-noise parameter. Shared-LO delay cancellation and
-different chamber/field power/gain settings also prevent ruling out phase noise
-by an R^-4 echo-strength comparison alone.
+**The pedestal scales as target power × range².** Fitting
+`ratio_db = 10 log10(1 + 10^c S^a (R/30 m)^b)` to both legs together
+([analyze_walk_pedestal.py](analyze_walk_pedestal.py),
+[pedestal_scaling.png](generated/pedestal/pedestal_scaling.png)) gives:
+
+| Cutoff | Free fit a, b (bootstrap p5–p95) | RMS free / a=1,b=2 / a=1,b=0 |
+|---|---|---:|
+| >=10 m/s | 1.02 (0.96–1.08), 2.00 (1.79–2.20) | 0.10 / 0.10 / 0.36 dB |
+| >=20 m/s | 1.02 (0.95–1.09), 1.99 (1.77–2.20) | 0.11 / 0.11 / 0.39 dB |
+| >=30 m/s | 0.97 (0.91–1.05), 1.87 (1.65–2.10) | 0.13 / 0.13 / 0.42 dB |
+
+The legs separate power from range: outbound is about 12 dB weaker at the same
+ranges. A fixed fractional disturbance (b=0) leaves a -0.3 dB inbound bias; the
+delay-squared model leaves none. With the R^2 normalization, the spread of
+excess-to-peak drops from 2.7 to 0.6 dB. The inbound/outbound difference is
+therefore explained by range at given power, not by a different kind of return.
+
+This is the signature of a per-chirp phase error proportional to round-trip
+delay, `delta_phi = 2 pi tau delta_f`, as for an effective chirp-to-chirp
+frequency error. Corrected for the +/-1-bin range averaging (1.57 dB) and
+integrated over 5.1–31.3 kHz (the >=10 m/s band), the small-phase equivalent
+is **16.9 kHz rms** (p10–p90 15.8–18.1 kHz), or about 0.021 rad at 30 m.
+
+This independently corroborates the 2026-09-22 phase-noise-outdoor study on
+the `phase-noise` branch: there, the shared RX phase at a stationary reflector
+scaled with delay squared at 39 and 78 MHz/us, did not follow beat frequency
+when the slope doubled, and gave 13.8–16.9 kHz equivalent RMS over 5–31.33 kHz.
+The walk adds a third slope (9.8 MHz/us), a different day and carrier, and the
+power scaling (a≈1) that the phase-noise study lists as still to be tested.
+Our excess includes any amplitude part and is not restricted to the cross-RX
+common component, so the agreement is in order of magnitude and scaling, not
+an exact like-for-like number. The 22 Sept study also found the CW-datasheet
+phase-noise model 8–12 dB below the measured common phase component.
+
+Consequences if the effect carries over to the product's chirp generation:
+for a weak target the own pedestal stays negligible, so the sensitivity
+reference is unaffected. But the phase error grows linearly with range: about
+0.7 rad rms in-band at 1 km (tau = 6.7 us), implying roughly 2 dB coherent
+peak loss and a pedestal 30 dB higher relative to the peak than at 30 m. A
+strong return's pedestal also lies at that return's own range, so it limits
+dynamic range there rather than across all ranges. These extrapolations are
+conditional on the same mechanism and spectrum over a 30x delay range and have
+not been measured.
 
 For additive-noise sensitivity, use `N0` without the target's own pedestal.
 This does not reverse any peak-power loss from modulation or target motion.
