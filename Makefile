@@ -68,6 +68,17 @@ study_260902_lannik_psi:
 	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/rx_stagger_amount_experiment.py
 	$(PYTHON) -m pytest studies/2026-09-02_lannik-psi -q
 
+# Regenerate the CARKIT walk study from the raw capture, which is not in the
+# repo. Override its location with CARKIT_WALK_DATA=/path/to/capture.
+CARKIT_WALK_DATA ?= $(HOME)/Data/tmp/walk-hallesaker-tx1-1-psi
+CARKIT_STUDY := studies/2026-09-11_carkit-validation
+.PHONY: study_260911_carkit_validation
+study_260911_carkit_validation:
+	@export CARKIT_WALK_DATA="$(CARKIT_WALK_DATA)" MPLBACKEND=Agg; \
+	for step in extract background reference_snr dynamics pedestal model; do \
+		$(PYTHON) $(CARKIT_STUDY)/walk_$$step.py || exit 1; \
+	done
+
 .PHONY: clean
 clean:
 	rm -rf build dist *.egg-info

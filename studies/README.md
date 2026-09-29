@@ -21,7 +21,10 @@ contain multiple scripts and supporting files:
 
 Scripts write working figures under their local `generated/` directory. Copy
 the reviewed files delivered outside the repo into `deliverables/` to archive
-them with the code and assumptions that produced them.
+them with the code and assumptions that produced them. When a study's raw
+inputs are not in the repo, it may also track small data summaries (JSON/CSV)
+and the figures its notes link to in `generated/`, so that its numbers and
+figures stay reviewable and downstream steps can run without the raw data.
 
 Run a study from the repo root with the project venv, e.g.:
 
@@ -33,13 +36,14 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
-- `2026-09-11_carkit-validation/` — validation of the range model against
-  measured CARKIT configurations, starting with the single-TX Hallesaker
-  reflector walk and noncoherent RX power averaging. Uses the CTRX8188F and
-  FARAD-IV presets. Scope, assumptions and missing measurement details are in
-  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the supplied report and
-  its initial review are retained separately. `carkit_walk.py` runs the first
-  provisional comparison against the report's fitted curve over 15–51 m.
+- `2026-09-11_carkit-validation/` — validation of the range model against a
+  CARKIT walking-reflector measurement (CTRX8188F + FARAD-IV, TX1, eight RX
+  compared per channel). The measured per-RX SNR is 1.2–2.4 dB above the model
+  depending on the noise reference, so no correction follows; the study also
+  finds a Doppler pedestal scaling with target power × range². Results are in
+  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md). The `walk_*.py` scripts
+  process the raw capture (not in the repo) via
+  `make study_260911_carkit_validation`.
 - `2026-09-02_lannik-psi/` — Lannik Psi design study, carried forward from
   config 3 of the 2026-06-22 comparison. It retains the same closing-target
   evaluation scenario and now models the proposed tapered 16 x 16 TX aperture,

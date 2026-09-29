@@ -23,7 +23,7 @@ build/
 local/
 *.png
 !studies/**/deliverables/**/*.png
-!studies/**/inputs/*.png
+!studies/**/inputs/**/*.png
 
 # Misc
 .DS_Store

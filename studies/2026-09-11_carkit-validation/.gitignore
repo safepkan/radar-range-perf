@@ -1,0 +1,7 @@
+# Figures linked from NOTES.md. The raw capture is not in the repo, so they
+# cannot be regenerated from a checkout; track them so the links work here and
+# on GitHub. Keep this list in sync with the figure links in NOTES.md.
+!/generated/background/background.png
+!/generated/dynamics/cpi_length.png
+!/generated/dynamics/rx_null_example.png
+!/generated/pedestal/pedestal_scaling.png

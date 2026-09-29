@@ -1,7 +1,7 @@
 """Fit how the walk's target-associated Doppler pedestal scales with power and range.
 
-Reads the per-frame output of analyze_walk_dynamics.py; the raw capture is not
-needed.  For each remote-Doppler cutoff, the excess background at the target
+Reads the outputs of walk_extract.py and walk_dynamics.py; the raw capture is
+not needed.  For each remote-Doppler cutoff, the excess background at the target
 range relative to its same-range control is fitted as
 
     ratio_db = 10 log10(1 + 10**c * S**a * (R / 30 m)**b),
@@ -30,21 +30,23 @@ from typing import Any
 
 import matplotlib
 import numpy as np
-import numpy.typing as npt
 from scipy.optimize import least_squares
-from scipy.signal.windows import blackman
+
+from carkit_common import (
+    CARRIER_HZ,
+    GENERATED_DIR,
+    PADDING,
+    SPEED_OF_LIGHT,
+    FloatArray,
+    db,
+    window,
+    window_enbw_bins,
+    write_summary,
+)
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-FloatArray = npt.NDArray[np.float64]
-
-SPEED_OF_LIGHT = 299792458.0
-CARRIER_HZ = 76.374237e9
-N_SAMPLES = 512
-N_CHIRPS = 1024
-PRI_S = 15.96e-6
-RANGE_PADDING = 4
 REFERENCE_RANGE_M = 30.0
 CUTOFFS_MPS = (10, 20, 30)
 PLOT_CUTOFF_MPS = 20
@@ -52,11 +54,6 @@ PLOT_CUTOFF_MPS = 20
 MIN_RATIO_FOR_LEVEL_DB = 0.5
 BOOTSTRAP_RESAMPLES = 1000
 BOOTSTRAP_SEED = 20260929
-
-
-def db(value: npt.ArrayLike) -> FloatArray:
-    """Convert positive power-like values to dB."""
-    return np.asarray(10 * np.log10(np.maximum(value, np.finfo(float).tiny)))
 
 
 def predicted_ratio_db(
@@ -93,24 +90,24 @@ def fit(
     return np.array([float(result.x[0]), *fixed])
 
 
-def range_band_dilution() -> float:
+def range_band_dilution(n_samples: int) -> float:
     """Mean over the +/-1 native-bin band of the target's range response, peak=1.
 
-    analyze_walk_dynamics.py averages background over padded range bins within
+    walk_dynamics.py averages background over padded range bins within
     one native bin of the target peak.  A disturbance that multiplies the whole
     chirp inherits the target's range response, so its band mean is lower than
     its value at the peak by this factor.
     """
-    window = np.asarray(blackman(N_SAMPLES, sym=False), dtype=float)
-    n = np.arange(N_SAMPLES)
-    offsets = np.arange(-RANGE_PADDING, RANGE_PADDING + 1) / RANGE_PADDING
+    weights = window(n_samples)
+    n = np.arange(n_samples)
+    offsets = np.arange(-PADDING, PADDING + 1) / PADDING
     response = np.array(
         [
-            abs(np.sum(window * np.exp(-2j * np.pi * offset * n / N_SAMPLES))) ** 2
+            abs(np.sum(weights * np.exp(-2j * np.pi * offset * n / n_samples))) ** 2
             for offset in offsets
         ]
     )
-    return float(np.mean(response / response[RANGE_PADDING]))
+    return float(np.mean(response / response[PADDING]))
 
 
 def main() -> None:
@@ -118,12 +115,12 @@ def main() -> None:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path(__file__).parent / "generated/dynamics/per_frame.csv",
+        default=GENERATED_DIR / "dynamics" / "per_frame.csv",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path(__file__).parent / "generated/pedestal",
+        default=GENERATED_DIR / "pedestal",
     )
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -135,17 +132,18 @@ def main() -> None:
     signal_db = np.array([float(row["mean_rx_signal_power_db"]) for row in rows])
     delay_s = 2 * range_m / SPEED_OF_LIGHT
 
-    doppler_window = np.asarray(blackman(N_CHIRPS, sym=False), dtype=float)
-    doppler_enbw = float(
-        N_CHIRPS * np.sum(doppler_window**2) / np.sum(doppler_window) ** 2
-    )
-    native_doppler_hz = np.fft.fftfreq(N_CHIRPS, PRI_S)
+    capture = json.loads((GENERATED_DIR / "extract" / "summary.json").read_text())[
+        "capture"
+    ]
+    n_chirps, n_samples, _ = capture["shape_chirp_sample_rx"]
+    pri_s = float(capture["chirp_period_s"])
+    doppler_enbw = window_enbw_bins(n_chirps)
+    native_doppler_hz = np.fft.fftfreq(n_chirps, pri_s)
     wavelength_m = SPEED_OF_LIGHT / CARRIER_HZ
-    dilution = range_band_dilution()
+    dilution = range_band_dilution(n_samples)
     rng = np.random.default_rng(BOOTSTRAP_SEED)
 
     summary: dict[str, Any] = {
-        "input": str(args.csv),
         "model": "ratio_db = 10 log10(1 + 10**c * S**a * (R / 30 m)**b)",
         "frames": int(len(rows)),
         "doppler_blackman_enbw_bins": doppler_enbw,
@@ -202,7 +200,7 @@ def main() -> None:
         frequency_rms_hz = phase_rms_rad / (2 * np.pi * delay_s[reliable])
         phase_at_reference = phase_rms_rad * REFERENCE_RANGE_M / range_m[reliable]
         summary["cutoffs"][str(cutoff)] = {
-            "doppler_band_hz": [doppler_min_hz, 1 / (2 * PRI_S)],
+            "doppler_band_hz": [doppler_min_hz, 1 / (2 * pri_s)],
             "band_bins": band_bins,
             "fits": variants,
             "equivalent_level": {
@@ -324,9 +322,7 @@ def main() -> None:
     figure.savefig(args.output / "pedestal_scaling.png", dpi=160)
     plt.close(figure)
 
-    (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    print(json.dumps(summary, indent=2))
-    print(f"Wrote {args.output / 'pedestal_scaling.png'}")
+    write_summary(args.output, summary)
 
 
 if __name__ == "__main__":
