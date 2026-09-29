@@ -243,15 +243,36 @@ def main() -> None:
     )
     params = fit(plot_ratio, signal_db, range_m, (1.0, 2.0))
     delay_scaled_db = signal_db + 20 * np.log10(range_m / REFERENCE_RANGE_M)
-    figure, axes = plt.subplots(
-        1, 2, figsize=(11, 4.6), sharey=True, constrained_layout=True
+    # Pedestal relative to the target's own peak.  With a=1 this removes the
+    # power dependence and leaves the range dependence directly; only frames
+    # with a clearly measurable excess are shown.
+    plot_excess_db = np.array(
+        [float(row[f"positive_excess_to_target_{PLOT_CUTOFF_MPS}_db"]) for row in rows]
+    ) - float(db(dilution))
+    reliable = np.isfinite(plot_excess_db) & (plot_ratio > MIN_RATIO_FOR_LEVEL_DB)
+    reference_level_db = float(
+        np.median(
+            plot_excess_db[reliable]
+            - 20 * np.log10(range_m[reliable] / REFERENCE_RANGE_M)
+        )
     )
+
+    figure = plt.figure(figsize=(16, 4.8), constrained_layout=True)
+    grid = figure.add_gridspec(1, 3)
+    axes = [figure.add_subplot(grid[0, 0])]
+    axes.append(figure.add_subplot(grid[0, 1], sharey=axes[0]))
+    axes.append(figure.add_subplot(grid[0, 2]))
     for name in ("outbound", "inbound"):
         mask = leg == name
         axes[0].scatter(signal_db[mask], plot_ratio[mask], s=18, alpha=0.75, label=name)
         axes[1].scatter(
             delay_scaled_db[mask], plot_ratio[mask], s=18, alpha=0.75, label=name
         )
+        shown = mask & reliable
+        if np.any(shown):
+            axes[2].scatter(
+                range_m[shown], plot_excess_db[shown], s=18, alpha=0.75, label=name
+            )
     curve_x = np.linspace(delay_scaled_db.min() - 1, delay_scaled_db.max() + 1, 200)
     axes[1].plot(
         curve_x,
@@ -260,17 +281,35 @@ def main() -> None:
         linewidth=1.5,
         label="fit, excess ∝ S·R²",
     )
+    line_range = np.geomspace(14, 60, 50)
+    axes[2].plot(
+        line_range,
+        reference_level_db + 20 * np.log10(line_range / REFERENCE_RANGE_M),
+        color="black",
+        linewidth=1.5,
+        label="∝ R² (20 dB/decade)",
+    )
     axes[0].set(
         xlabel="Mean-RX target-cell power S [dB, arbitrary reference]",
         ylabel="Target-range background / same-range control [dB]",
-        title="Against target power",
+        title="Excess against target power",
     )
     axes[1].set(
         xlabel="S + 20 log10(R / 30 m) [dB]",
-        title="Against target power × (range / 30 m)²",
+        title="Excess against target power × (range / 30 m)²",
     )
-    for axis in axes:
+    axes[2].set(
+        xscale="log",
+        xlabel="Target range R [m]",
+        ylabel="Excess per Doppler bin relative to target peak [dB]",
+        title=f"Excess relative to peak (ratio > {MIN_RATIO_FOR_LEVEL_DB} dB)",
+    )
+    ticks = [15, 20, 30, 40, 50, 60]
+    axes[2].set_xticks(ticks, [str(tick) for tick in ticks])
+    axes[2].minorticks_off()
+    for axis in axes[:2]:
         axis.axhline(0, color="black", linestyle=":", linewidth=0.8)
+    for axis in axes:
         axis.grid(alpha=0.3)
         axis.legend()
     figure.suptitle(

@@ -289,7 +289,12 @@ peak loss and a pedestal 30 dB higher relative to the peak than at 30 m. A
 strong return's pedestal also lies at that return's own range, so it limits
 dynamic range there rather than across all ranges. These extrapolations are
 conditional on the same mechanism and spectrum over a 30x delay range and have
-not been measured.
+not been measured. For frequency/phase noise, the delay-squared law is the
+small-`f tau` limit of the range-correlation factor `4 sin^2(pi f tau)`. At
+1 km it is reduced by 0.6, 1.7 and 3.9 dB at 30, 50 and 75 kHz, so 0.7 rad is
+an upper estimate if the slow-time band contains aliased offsets well above
+31 kHz. A frequency offset that is constant over each chirp would not saturate
+in this way.
 
 For additive-noise sensitivity, use `N0` without the target's own pedestal.
 This does not reverse any peak-power loss from modulation or target motion.
