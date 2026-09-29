@@ -1,18 +1,28 @@
 # CARKIT measurement report: current assessment
 
+For the consolidated assessment after raw-data analysis, use
+[NOTES.md](NOTES.md). In particular, the later target-free reference is
+33.86 dB for inbound39 or 34.09 dB for selected37 under the stated averaging
+and provisional RCS conventions. Earlier noise references below are retained
+as report-review history, not current calibration corrections.
+
 2026-09-26. Review of [`inputs/CARKIT report.pdf`](inputs/CARKIT%20report.pdf),
 17 pages, dated 2026-09-22. The report is still under review and appears to
-supersede the six-page report assessed later in this file. No raw ADC data or
-analysis code accompanied it, so all measurements remain reported rather than
-independently reproduced.
+supersede the six-page report assessed later in this file. Raw ADC data were
+supplied separately on 2026-09-29 and independently reproduced as documented in
+[`NOTES.md`](NOTES.md); the original analysis code has not been supplied.
 
-**Assessment:** the useful validation datum is the single-TX field fit for the
-nominal 10 dBsm reflector: 36.57 dB at the fit's 100 m normalization point.
-Under the explicit provisional assumptions in `carkit_walk.py`, the toolbox
-predicts 32.67 dB, giving a report-minus-model offset of +3.90 dB. Keep that as
-a scoped empirical correction and reality check. The laboratory coherent-array
-results and the report's 1 km/Pd extrapolation should not be used as inputs to
-our range model.
+**Assessment, qualified 2026-09-29:** the single-TX field data are useful, but
+the report's 36.57 dB RX-magnitude-sum fit is not a one-RX SNR datum. The initial
+32.62 dB corrected comparison is a geometric RX/time mean. Averaging linear RX
+SNRs within each CPI before the dB fit instead gives 33.89 dB with the same
+broad target-band noise reference and provisional 10 dBsm normalization, versus
+the model's 32.67 dB. Target-conditioned background also contains a correlated
+component. See [INDEPENDENT_REVIEW.md](INDEPENDENT_REVIEW.md): neither a +3.90 dB
+hardware correction nor near-exact thermal-sensitivity validation is justified.
+The laboratory coherent-array results and
+the report's 1 km/Pd extrapolation should not be used as inputs to our range
+model.
 
 ## Comments already raised and supported by this review
 
@@ -58,21 +68,26 @@ show the result's sensitivity to the selection, or preferably provide ordinary
 per-frame values and a robust all-point summary alongside it. It should also
 make clear whether both walking directions were eligible.
 
-**The signal/noise definition is still missing.** For both Table 5 and the field
-anchor, specify the FFT normalization, target-cell or peak-search definition,
-noise mask and estimator, channel normalization, whether `S` means total
-target-cell power or noise-subtracted signal power, and whether the reported
-ratio is `S/N`, `(S-N)/N`, or another statistic. Supply per-channel values. A
-normalized mean of eight RX powers has the same mean SNR as a representative
-single channel when channel SNRs are equal; calling it an eight-channel gain
-invites confusion.
+**The signal/noise definition is only partly clarified.** A 2026-09-28 Slack
+follow-up says noise is the RMS over the farthest range quarter of the
+range–Doppler spectrum with the zero-Doppler neighborhood excluded, and a cell
+value is divided by that global CPI noise value. The supplied screenshot labels
+the result an RX1–8 *magnitude sum*, which is not automatically equivalent to
+the report's normalized noncoherent power sum or to a representative per-channel
+power SNR. The far-range noise can also differ from noise at the reflector's
+1–3.4 MHz beat frequencies because of IF filtering. Independent processing of
+the supplied raw ADC data confirms both effects: the magnitude-sum statistic is
+1.69 dB above the mean per-RX result, and the local noise correction is 1.36 dB.
+The original code is now only needed to establish the exact masks and reproduce
+the report's 33-point selection rather than the independent 37-point selection.
 
-**Windowing and zero-padding must be quantified.** Table 6 does not state the
-range or Doppler windows, and Figure 10 only says that zero-padding was used.
-Window choice determines the two noise-equivalent-bandwidth losses; zero-padding
-only reduces residual sampled-bin scalloping and does not remove window loss.
-State both padding factors. Pending clarification, this study assumes Blackman
-on both axes and enough padding for zero residual straddling loss.
+**Windowing and zero-padding are now clarified outside the report.** The same
+follow-up states Blackman windows and fourfold padding on both axes. These values
+should be put in the report. Fourfold sampling of a periodic Blackman response
+leaves at most about 0.068 dB scalloping per axis; zero-padding does not remove
+the 2.37 dB-per-axis window ENBW loss or otherwise create SNR. The quoted 0.4 dB
+reduction appears to describe improvement relative to the unpadded analysis,
+not a remaining straddling loss.
 
 **The covariance result needs a more precise name and construction.** If the
 cell set includes target mainlobe/sidelobe energy, phase-noise skirts, leakage,
@@ -129,17 +144,26 @@ The current comparison uses:
 - zero residual range/Doppler straddling and no CFAR loss; and
 - the toolbox `B_n = f_s` matched-filter/complex-sample convention.
 
-It predicts 32.67 dB at 100 m. The difference to 36.57 dB is +3.90 dB. The
-sign is worth emphasizing: interpreted as an additive model correction it is
-positive; interpreted as a conventional loss subtracted from the model it would
-be -3.90 dB. It therefore should be called an empirical SNR offset, not an
-implementation loss. RCS, installed gains, target angle/orientation,
-propagation, peak selection and noise conventions are all entangled in it.
+It predicts 32.67 dB at 100 m. Directly comparing that with the report's 36.57
+dB gives +3.90 dB, but that is not a valid empirical correction because the two
+numbers use different RX statistics, noise references and reflector RCS.
+Independent processing gives 32.62 dB for the geometric-mean RX/time statistic,
+or 33.89 dB if linear RX SNRs are averaged within each CPI before the dB fit;
+both use broad target-band noise and 10 dBsm normalization. The independent
+review explains why neither is uniquely "the model's mean-per-RX basis".
+RCS, installed gains, target
+angle/orientation, propagation and remaining selection effects are still
+entangled in the residual.
 Prior measurement characterizations reportedly found the reflector stand
 negligible, with additional suppression from its position in the elevation
 sidelobes. Stand scattering is therefore not a leading explanation for the
 offset; absorber over its exposed parts remains a useful low-cost control in a
 new reference measurement.
+
+The 2026-09-28 follow-up identifies the walking reflector as 1.27 dB stronger
+than the nominal 10 dBsm reference, i.e. provisionally 11.27 dBsm. This remains
+the largest qualification on the corrected agreement: it does not establish
+absolute RCS because the chamber reference itself remains nominal.
 
 ## Secondary observations on Section 3.2
 
@@ -151,6 +175,13 @@ search. The report acknowledges the latter and the mismatch between its
 peak-selected anchor and fixed-cell probability model. Given those caveats and
 the invalid transfer of chamber RX gain, reproducing the report's Pd curves is
 not a priority for this validation study.
+
+The reported approximately 950 m range for `Pd=0.5` is consistent with its own
+detector: with `T=19.95`, Swerling-1 `Pd=0.5` requires 14.44 dB mean SNR, and the
+ideal curve has 13.61 dB at 1 km, giving about 953 m. The older toolbox result of
+994 m is not evidence for a better empirical link budget. It uses `Pfa=1e-6`,
+which requires only 12.77 dB for `Pd=0.5`, and belongs to the June config-3
+placeholder with 17 dBi per-channel TX/RX gains and different processing losses.
 
 ---
 

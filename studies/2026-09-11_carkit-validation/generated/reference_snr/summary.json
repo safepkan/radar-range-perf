@@ -1,0 +1,433 @@
+{
+  "definition": {
+    "range_half_width_m": 1.487342456803075,
+    "doppler_half_width_mps": 1.0,
+    "control_start_frame": 26,
+    "tracked_reflector_last_frame": 160,
+    "control_exclusion_m": 8.0,
+    "primary_estimator": "median_exponential_corrected",
+    "reference_range_m": 100.0,
+    "provisional_rcs_correction_db": 1.27
+  },
+  "control_cpis_min_max": [
+    128,
+    139
+  ],
+  "samples_per_target_min_max": [
+    18864,
+    21267
+  ],
+  "estimators": {
+    "median_exponential_corrected": {
+      "selected37": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 37,
+          "mean_db_over_rx_and_frames": 34.0033651333721,
+          "linear_rx_mean_then_mean_db_over_frames": 35.364772574929546,
+          "linear_rx_mean_then_median_db_over_frames": 34.62271379395464,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            33.21726558133375,
+            38.773787301513714
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 35.913886747573905,
+          "per_rx_mean_db": [
+            32.19357200446774,
+            34.58549978109906,
+            34.72508933579119,
+            35.55952166031566,
+            35.60429373077451,
+            33.257265320632385,
+            33.81180534020698,
+            32.28987389368927
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 37,
+          "mean_db_over_rx_and_frames": 32.7333651333721,
+          "linear_rx_mean_then_mean_db_over_frames": 34.09477257492954,
+          "linear_rx_mean_then_median_db_over_frames": 33.352713793954635,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            31.94726558133375,
+            37.50378730151371
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 34.6438867475739,
+          "per_rx_mean_db": [
+            30.92357200446774,
+            33.31549978109906,
+            33.455089335791186,
+            34.28952166031566,
+            34.334293730774505,
+            31.987265320632385,
+            32.54180534020698,
+            31.01987389368927
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": 1.4247725749295412
+        }
+      },
+      "outbound45": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 45,
+          "mean_db_over_rx_and_frames": 21.49085141250028,
+          "linear_rx_mean_then_mean_db_over_frames": 22.680920344980155,
+          "linear_rx_mean_then_median_db_over_frames": 22.75961755955194,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            17.519075451765662,
+            27.89921785454475
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 24.700063476448342,
+          "per_rx_mean_db": [
+            21.44218687580161,
+            23.137091320837882,
+            23.108681312045878,
+            22.59167866554656,
+            20.61652063941802,
+            20.318331246861405,
+            19.921588103584327,
+            20.790733135906542
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 45,
+          "mean_db_over_rx_and_frames": 20.22085141250028,
+          "linear_rx_mean_then_mean_db_over_frames": 21.410920344980156,
+          "linear_rx_mean_then_median_db_over_frames": 21.48961755955194,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            16.249075451765663,
+            26.629217854544752
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 23.430063476448343,
+          "per_rx_mean_db": [
+            20.17218687580161,
+            21.867091320837883,
+            21.83868131204588,
+            21.32167866554656,
+            19.34652063941802,
+            19.048331246861405,
+            18.651588103584327,
+            19.520733135906543
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": -11.259079655019846
+        }
+      },
+      "inbound39": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 39,
+          "mean_db_over_rx_and_frames": 33.795867333351545,
+          "linear_rx_mean_then_mean_db_over_frames": 35.13299783203602,
+          "linear_rx_mean_then_median_db_over_frames": 34.5425316674636,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            33.00816914008306,
+            38.76170120100534
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 35.7591915051997,
+          "per_rx_mean_db": [
+            32.037906256180584,
+            34.3003672055037,
+            34.45626614431287,
+            35.361761992464935,
+            35.44780752788904,
+            33.171757739066855,
+            33.4215522323311,
+            32.169519569063276
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 39,
+          "mean_db_over_rx_and_frames": 32.52586733335154,
+          "linear_rx_mean_then_mean_db_over_frames": 33.862997832036015,
+          "linear_rx_mean_then_median_db_over_frames": 33.272531667463596,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            31.738169140083063,
+            37.491701201005334
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 34.4891915051997,
+          "per_rx_mean_db": [
+            30.767906256180584,
+            33.030367205503694,
+            33.18626614431287,
+            34.09176199246493,
+            34.17780752788904,
+            31.901757739066856,
+            32.1515522323311,
+            30.899519569063276
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": 1.1929978320360135
+        }
+      }
+    },
+    "upper_10_percent_trim_exponential_corrected": {
+      "selected37": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 37,
+          "mean_db_over_rx_and_frames": 33.991779814163756,
+          "linear_rx_mean_then_mean_db_over_frames": 35.35206159992633,
+          "linear_rx_mean_then_median_db_over_frames": 34.66161072399648,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            33.21873069721677,
+            38.76705005015674
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 35.90321757330077,
+          "per_rx_mean_db": [
+            32.175962424096426,
+            34.58704497977819,
+            34.72762754531595,
+            35.541841637119575,
+            35.60098406216598,
+            33.25322059175861,
+            33.78982172960667,
+            32.257735543468605
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 37,
+          "mean_db_over_rx_and_frames": 32.72177981416375,
+          "linear_rx_mean_then_mean_db_over_frames": 34.08206159992633,
+          "linear_rx_mean_then_median_db_over_frames": 33.39161072399648,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            31.94873069721677,
+            37.49705005015674
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 34.63321757330077,
+          "per_rx_mean_db": [
+            30.905962424096426,
+            33.31704497977819,
+            33.457627545315944,
+            34.27184163711957,
+            34.330984062165975,
+            31.983220591758613,
+            32.51982172960667,
+            30.987735543468606
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": 1.412061599926325
+        }
+      },
+      "outbound45": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 45,
+          "mean_db_over_rx_and_frames": 21.493556581535227,
+          "linear_rx_mean_then_mean_db_over_frames": 22.682672558418982,
+          "linear_rx_mean_then_median_db_over_frames": 22.751383062900608,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            17.522782199495587,
+            27.892474262627875
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 24.698832377414742,
+          "per_rx_mean_db": [
+            21.429255436368802,
+            23.11186783975679,
+            23.138245098185806,
+            22.59846958312112,
+            20.62514326524126,
+            20.332594463429217,
+            19.91891884748774,
+            20.79395811869111
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 45,
+          "mean_db_over_rx_and_frames": 20.223556581535227,
+          "linear_rx_mean_then_mean_db_over_frames": 21.412672558418983,
+          "linear_rx_mean_then_median_db_over_frames": 21.48138306290061,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            16.252782199495588,
+            26.622474262627875
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 23.428832377414743,
+          "per_rx_mean_db": [
+            20.159255436368802,
+            21.84186783975679,
+            21.868245098185806,
+            21.32846958312112,
+            19.35514326524126,
+            19.062594463429217,
+            18.64891884748774,
+            19.52395811869111
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": -11.257327441581019
+        }
+      },
+      "inbound39": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 39,
+          "mean_db_over_rx_and_frames": 33.785200234791844,
+          "linear_rx_mean_then_mean_db_over_frames": 35.12154067401278,
+          "linear_rx_mean_then_median_db_over_frames": 34.514951855966046,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            32.986626010530784,
+            38.75422827934094
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 35.74882187115859,
+          "per_rx_mean_db": [
+            32.02434005120694,
+            34.30343801721188,
+            34.46078556317027,
+            35.343642624671595,
+            35.44412253172447,
+            33.16963345249785,
+            33.39762603702312,
+            32.13801360082862
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 39,
+          "mean_db_over_rx_and_frames": 32.51520023479184,
+          "linear_rx_mean_then_mean_db_over_frames": 33.851540674012774,
+          "linear_rx_mean_then_median_db_over_frames": 33.24495185596604,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            31.716626010530785,
+            37.48422827934094
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 34.47882187115859,
+          "per_rx_mean_db": [
+            30.754340051206942,
+            33.03343801721188,
+            33.190785563170266,
+            34.07364262467159,
+            34.174122531724464,
+            31.89963345249785,
+            32.12762603702312,
+            30.868013600828622
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": 1.1815406740127727
+        }
+      }
+    },
+    "arithmetic_mean": {
+      "selected37": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 37,
+          "mean_db_over_rx_and_frames": 33.8981600222816,
+          "linear_rx_mean_then_mean_db_over_frames": 35.256964869887504,
+          "linear_rx_mean_then_median_db_over_frames": 34.658204255042676,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            33.140306017322345,
+            38.73889443804455
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 35.83852817027611,
+          "per_rx_mean_db": [
+            32.104040808471126,
+            34.46418285410245,
+            34.63470124047328,
+            35.44400188891587,
+            35.50471953807096,
+            33.18051712931313,
+            33.72229998342703,
+            32.13081673547897
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 37,
+          "mean_db_over_rx_and_frames": 32.6281600222816,
+          "linear_rx_mean_then_mean_db_over_frames": 33.9869648698875,
+          "linear_rx_mean_then_median_db_over_frames": 33.38820425504267,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            31.870306017322346,
+            37.46889443804454
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 34.56852817027611,
+          "per_rx_mean_db": [
+            30.834040808471126,
+            33.19418285410244,
+            33.36470124047327,
+            34.17400188891587,
+            34.234719538070955,
+            31.91051712931313,
+            32.452299983427025,
+            30.860816735478974
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": 1.3169648698874994
+        }
+      },
+      "outbound45": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 45,
+          "mean_db_over_rx_and_frames": 21.49058583673087,
+          "linear_rx_mean_then_mean_db_over_frames": 22.677303091702065,
+          "linear_rx_mean_then_median_db_over_frames": 22.75620462198969,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            17.528946553168204,
+            27.872637350770116
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 24.695079988904006,
+          "per_rx_mean_db": [
+            21.43537945498184,
+            23.100393062579627,
+            23.128180833467038,
+            22.584211152277174,
+            20.621321607422647,
+            20.337458548299736,
+            19.92170415297791,
+            20.796037881840956
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 45,
+          "mean_db_over_rx_and_frames": 20.22058583673087,
+          "linear_rx_mean_then_mean_db_over_frames": 21.407303091702065,
+          "linear_rx_mean_then_median_db_over_frames": 21.48620462198969,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            16.258946553168204,
+            26.602637350770117
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 23.425079988904006,
+          "per_rx_mean_db": [
+            20.165379454981842,
+            21.830393062579628,
+            21.85818083346704,
+            21.314211152277174,
+            19.351321607422648,
+            19.067458548299737,
+            18.65170415297791,
+            19.526037881840956
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": -11.262696908297936
+        }
+      },
+      "inbound39": {
+        "walking_reflector_11p27_dbsm": {
+          "count": 39,
+          "mean_db_over_rx_and_frames": 33.69611158926737,
+          "linear_rx_mean_then_mean_db_over_frames": 35.03104767106026,
+          "linear_rx_mean_then_median_db_over_frames": 34.345510732530485,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            32.88397168918181,
+            38.72123562520487
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 35.685095173711545,
+          "per_rx_mean_db": [
+            31.955025668926762,
+            34.18647119017269,
+            34.37357076302999,
+            35.250168824273274,
+            35.35224826441527,
+            33.10111102996435,
+            33.334061950113195,
+            32.01623502324346
+          ]
+        },
+        "normalized_to_10_dbsm": {
+          "count": 39,
+          "mean_db_over_rx_and_frames": 32.426111589267364,
+          "linear_rx_mean_then_mean_db_over_frames": 33.761047671060254,
+          "linear_rx_mean_then_median_db_over_frames": 33.07551073253048,
+          "linear_rx_mean_then_p10_p90_db_over_frames": [
+            31.613971689181813,
+            37.451235625204866
+          ],
+          "linear_mean_over_rx_and_range_normalized_frames_db": 34.41509517371154,
+          "per_rx_mean_db": [
+            30.685025668926762,
+            32.916471190172686,
+            33.103570763029985,
+            33.98016882427327,
+            34.08224826441527,
+            31.83111102996435,
+            32.06406195011319,
+            30.74623502324346
+          ],
+          "model_residual_for_linear_rx_mean_then_mean_db": 1.0910476710602524
+        }
+      }
+    }
+  }
+}

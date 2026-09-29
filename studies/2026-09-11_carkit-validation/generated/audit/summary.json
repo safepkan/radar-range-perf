@@ -1,0 +1,359 @@
+{
+  "averaging": {
+    "selected37": {
+      "count": 37,
+      "far": {
+        "dB_mean_channels_and_frames": 35.24790127890859,
+        "linear_mean_channels_then_dB_fit": 36.598875891873355,
+        "linear_mean_channels_and_range_normalized_frames": 37.09467400467284
+      },
+      "broad_local": {
+        "dB_mean_channels_and_frames": 33.88826233947318,
+        "linear_mean_channels_then_dB_fit": 35.16414196496093,
+        "linear_mean_channels_and_range_normalized_frames": 35.664951540388266
+      }
+    },
+    "inbound39": {
+      "count": 39,
+      "far": {
+        "dB_mean_channels_and_frames": 35.033151134807625,
+        "linear_mean_channels_then_dB_fit": 36.359405106318206,
+        "linear_mean_channels_and_range_normalized_frames": 36.93845127831506
+      },
+      "broad_local": {
+        "dB_mean_channels_and_frames": 33.68356274580068,
+        "linear_mean_channels_then_dB_fit": 34.93888530410123,
+        "linear_mean_channels_and_range_normalized_frames": 35.51315804723054
+      }
+    },
+    "inbound41": {
+      "count": 41,
+      "far": {
+        "dB_mean_channels_and_frames": 34.32649769811397,
+        "linear_mean_channels_then_dB_fit": 35.60617360260269,
+        "linear_mean_channels_and_range_normalized_frames": 36.73316620575179
+      },
+      "broad_local": {
+        "dB_mean_channels_and_frames": 32.988719603957485,
+        "linear_mean_channels_then_dB_fit": 34.20120551282904,
+        "linear_mean_channels_and_range_normalized_frames": 35.30878783360701
+      }
+    },
+    "outbound45": {
+      "count": 45,
+      "far": {
+        "dB_mean_channels_and_frames": 22.662592114440198,
+        "linear_mean_channels_then_dB_fit": 23.831028127959883,
+        "linear_mean_channels_and_range_normalized_frames": 25.80120342873329
+      },
+      "broad_local": {
+        "dB_mean_channels_and_frames": 21.52462806976331,
+        "linear_mean_channels_then_dB_fit": 22.70729712274393,
+        "linear_mean_channels_and_range_normalized_frames": 24.66133354363741
+      }
+    }
+  },
+  "adc_checks": {
+    "sha256_and_metadata_pairs_checked": 200,
+    "maximum_recomputed_cell_snr_difference_db": 0.0,
+    "target_local_smoothing_half_width_m": 1.4873424477637944,
+    "target_local_noise_sensitivity": {
+      "10": {
+        "selected37": 32.82498047057343,
+        "inbound39": 32.65114504640099,
+        "inbound41": 31.930730688093274,
+        "outbound45": 21.337754736096095
+      },
+      "20": {
+        "selected37": 32.680574658265236,
+        "inbound39": 32.512890274094154,
+        "inbound41": 31.79834470732339,
+        "outbound45": 21.319405342410594
+      },
+      "30": {
+        "selected37": 32.59263725707658,
+        "inbound39": 32.42698265325403,
+        "inbound41": 31.71725544647307,
+        "outbound45": 21.303307463530327
+      }
+    }
+  },
+  "patch_checks": [
+    {
+      "frame": 40,
+      "central_power_relative_to_strongest_rx_db": [
+        -0.516549825668335,
+        0.0,
+        -1.3766802549362183,
+        -6.550460338592529,
+        -27.422353744506836,
+        -9.215668678283691,
+        -4.169900894165039,
+        -5.2161865234375
+      ],
+      "integrated_patch_relative_to_strongest_rx_db": [
+        0.0,
+        -0.40216076374053955,
+        -2.1876752376556396,
+        -6.138397216796875,
+        -9.939438819885254,
+        -7.70439338684082,
+        -4.526978015899658,
+        -5.421421527862549
+      ],
+      "own_patch_peak_uplift_db": [
+        0.11979465186595917,
+        0.0,
+        0.0,
+        0.07776564359664917,
+        15.79914665222168,
+        0.04960820451378822,
+        0.0,
+        0.0
+      ],
+      "patch_singular_energy_fractions": [
+        0.8126702904701233,
+        0.12867708504199982,
+        0.056341033428907394,
+        0.0021150459069758654,
+        0.00013422912161331624,
+        3.143741196254268e-05,
+        2.0310435502324253e-05,
+        1.0609880519041326e-05
+      ],
+      "background_largest_eigenvalue_fraction": 0.16034886240959167,
+      "background_dominant_mode_target_alignment_squared": 0.6351555585861206,
+      "background_target_range_over_nearby_range_db": 0.08483915030956268
+    },
+    {
+      "frame": 89,
+      "central_power_relative_to_strongest_rx_db": [
+        -14.32802677154541,
+        -7.458734512329102,
+        -3.8863933086395264,
+        -1.9268916845321655,
+        -0.8402588963508606,
+        0.0,
+        -1.7383003234863281,
+        -0.8542078733444214
+      ],
+      "integrated_patch_relative_to_strongest_rx_db": [
+        -12.689491271972656,
+        -7.092084884643555,
+        -3.721072196960449,
+        -1.8809032440185547,
+        -0.8199160695075989,
+        0.0,
+        -1.7644822597503662,
+        -0.8800607919692993
+      ],
+      "own_patch_peak_uplift_db": [
+        1.3682825565338135,
+        0.14218881726264954,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "patch_singular_energy_fractions": [
+        0.9902130961418152,
+        0.009432243183255196,
+        0.00022983484086580575,
+        5.150059951120056e-05,
+        3.578724499675445e-05,
+        2.114530434482731e-05,
+        1.060915383277461e-05,
+        5.8028031162393745e-06
+      ],
+      "background_largest_eigenvalue_fraction": 0.2126276195049286,
+      "background_dominant_mode_target_alignment_squared": 0.971404492855072,
+      "background_target_range_over_nearby_range_db": 0.45988839864730835
+    },
+    {
+      "frame": 100,
+      "central_power_relative_to_strongest_rx_db": [
+        -2.6569488048553467,
+        -0.7715996503829956,
+        0.0,
+        -0.6280547380447388,
+        -2.9711294174194336,
+        -6.88323450088501,
+        -9.219983100891113,
+        -28.120952606201172
+      ],
+      "integrated_patch_relative_to_strongest_rx_db": [
+        -2.912557363510132,
+        -0.9069010019302368,
+        0.0,
+        -0.4873027205467224,
+        -2.5844168663024902,
+        -5.955146789550781,
+        -9.219793319702148,
+        -15.829306602478027
+      ],
+      "own_patch_peak_uplift_db": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.08699128031730652,
+        0.23505237698554993,
+        0.0,
+        10.796623229980469
+      ],
+      "patch_singular_energy_fractions": [
+        0.9770864844322205,
+        0.022555014118552208,
+        0.0003057220601476729,
+        2.5104101951001212e-05,
+        1.2887041521025822e-05,
+        8.350762982445303e-06,
+        4.147570052737137e-06,
+        2.2369290491042193e-06
+      ],
+      "background_largest_eigenvalue_fraction": 0.24638909101486206,
+      "background_dominant_mode_target_alignment_squared": 0.9824536442756653,
+      "background_target_range_over_nearby_range_db": 0.5427894592285156
+    },
+    {
+      "frame": 101,
+      "central_power_relative_to_strongest_rx_db": [
+        -0.5722314715385437,
+        0.0,
+        -0.5110933184623718,
+        -3.0883097648620605,
+        -8.609513282775879,
+        -15.806836128234863,
+        -2.8878591060638428,
+        -7.414786338806152
+      ],
+      "integrated_patch_relative_to_strongest_rx_db": [
+        -0.6012152433395386,
+        0.0,
+        -0.47522738575935364,
+        -2.9882540702819824,
+        -8.308137893676758,
+        -14.826534271240234,
+        -2.8796534538269043,
+        -7.379799842834473
+      ],
+      "own_patch_peak_uplift_db": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.2562167644500732,
+        0.0,
+        0.0
+      ],
+      "patch_singular_energy_fractions": [
+        0.9891930222511292,
+        0.010616682469844818,
+        0.0001463752705603838,
+        2.518035216780845e-05,
+        8.325611815962475e-06,
+        5.348144441086333e-06,
+        3.5578091228671838e-06,
+        1.5314733445848105e-06
+      ],
+      "background_largest_eigenvalue_fraction": 0.3583577573299408,
+      "background_dominant_mode_target_alignment_squared": 0.9867819547653198,
+      "background_target_range_over_nearby_range_db": 1.0925506353378296
+    },
+    {
+      "frame": 105,
+      "central_power_relative_to_strongest_rx_db": [
+        -11.21125316619873,
+        -4.3367156982421875,
+        -1.179148554801941,
+        0.0,
+        -0.4065020680427551,
+        -1.7811423540115356,
+        -16.739477157592773,
+        -6.739016532897949
+      ],
+      "integrated_patch_relative_to_strongest_rx_db": [
+        -10.696596145629883,
+        -4.284127712249756,
+        -1.1690268516540527,
+        0.0,
+        -0.39230749011039734,
+        -1.7395888566970825,
+        -15.500751495361328,
+        -6.59200382232666
+      ],
+      "own_patch_peak_uplift_db": [
+        0.2500712275505066,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.2176213264465332,
+        0.0
+      ],
+      "patch_singular_energy_fractions": [
+        0.9902601838111877,
+        0.009585420601069927,
+        0.00013783579925075173,
+        8.300260560645256e-06,
+        3.41934082825901e-06,
+        2.2398289729608223e-06,
+        1.6008591501304181e-06,
+        1.0093133369082352e-06
+      ],
+      "background_largest_eigenvalue_fraction": 0.39884400367736816,
+      "background_dominant_mode_target_alignment_squared": 0.9962897896766663,
+      "background_target_range_over_nearby_range_db": 1.2142527103424072
+    },
+    {
+      "frame": 127,
+      "central_power_relative_to_strongest_rx_db": [
+        -8.21822738647461,
+        0.0,
+        -2.0084497928619385,
+        -9.701086044311523,
+        -0.8400123119354248,
+        -0.6870179772377014,
+        -1.8760348558425903,
+        -12.791691780090332
+      ],
+      "integrated_patch_relative_to_strongest_rx_db": [
+        -7.53082275390625,
+        0.0,
+        -1.6928261518478394,
+        -8.688104629516602,
+        -0.834314227104187,
+        -0.5929349064826965,
+        -1.9376212358474731,
+        -10.735025405883789
+      ],
+      "own_patch_peak_uplift_db": [
+        0.7663118839263916,
+        0.0,
+        0.0,
+        1.7048590183258057,
+        0.0,
+        0.0,
+        0.0,
+        2.8855700492858887
+      ],
+      "patch_singular_energy_fractions": [
+        0.9666522145271301,
+        0.03079027682542801,
+        0.0014290980761870742,
+        0.000949117646086961,
+        0.00016319521819241345,
+        1.4991594980529044e-05,
+        7.145052904888871e-07,
+        4.377100992769556e-07
+      ],
+      "background_largest_eigenvalue_fraction": 0.4535256028175354,
+      "background_dominant_mode_target_alignment_squared": 0.9961975812911987,
+      "background_target_range_over_nearby_range_db": 1.6527869701385498
+    }
+  ]
+}
