@@ -285,11 +285,11 @@ def main() -> None:
         ylabel="Target-free baseline power [dB, arbitrary reference]",
         title="Same-range, near-target-Doppler background controls",
     )
-    axes[1].axhline(MODEL_SNR_DB, color="black", linestyle="--", label="model")
+    axes[1].axhline(MODEL_SNR_DB, color="black", linestyle="--", label="model, 10 dBsm")
     axes[1].set(
         xlabel="Target range [m]",
-        ylabel="R^-4 normalized SNR at 100 m [dB]",
-        title="Linear RX mean, provisional 10 dBsm normalization",
+        ylabel="SNR scaled to 100 m and 10 dBsm [dB]",
+        title="Linear RX mean; measured 11.27 dBsm reflector scaled to 10 dBsm",
     )
     for axis in axes:
         axis.grid(alpha=0.3)
