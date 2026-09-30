@@ -1,0 +1,300 @@
+{
+  "rx": 1,
+  "background_range_m": [
+    2.0,
+    15.0
+  ],
+  "background_exclusion_m": 1.5,
+  "background_spread_db": 1.0193762904741064,
+  "max_abs_window_change_db": 0.03972813655870433,
+  "cases": {
+    "400MHz-5m": {
+      "case": "400MHz-5m",
+      "nominal_range_m": 5.0,
+      "frames": 10,
+      "shape_chirp_sample_rx": [
+        1024,
+        512,
+        8
+      ],
+      "sample_rate_hz": 50000000.0,
+      "chirp_period_s": 1.596000038261991e-05,
+      "slope_hz_per_s": 39024353362169.375,
+      "center_frequency_hz": 77999802128.0,
+      "sampled_bandwidth_hz": 399609376.0,
+      "pre_payload_s": 5.540000074688578e-06,
+      "rx_gain_db": 3.0,
+      "adc_extrema": [
+        -929,
+        827
+      ],
+      "adc_rail_samples": 0,
+      "reflector_range_m": 5.720379990176714,
+      "reflector_peak_db_counts2": 46.9325623825826,
+      "reflector_peak_per_cpi_db_counts2": [
+        48.51561587187334,
+        48.08563864036026,
+        47.58396761279977,
+        47.81094103918625,
+        47.25853002041128,
+        47.00496505172593,
+        46.30051578044846,
+        44.54434370567259,
+        45.85510133085507,
+        44.36381391748813
+      ],
+      "far_doppler_background_db_counts2": -32.15874628334318,
+      "far_doppler_background_dbc": -79.09130866592578,
+      "far_doppler_at_reflector_dbc": -73.96452440314373,
+      "rx_coherence_background_median": 0.01888456682331461,
+      "rx_coherence_reflector_median": 0.4497068201857995,
+      "returns": [
+        {
+          "range_m": 5.720379990176714,
+          "static_power_db_counts2": 47.013956531581286,
+          "native_bin_range_m": 5.626603269026276,
+          "far_doppler_dbc_own_peak": -73.96452440314373,
+          "window_change_db": -0.03260323333593851
+        },
+        {
+          "range_m": 28.836341753759665,
+          "static_power_db_counts2": 34.011069850369815,
+          "native_bin_range_m": 28.883230114334882,
+          "far_doppler_dbc_own_peak": -59.29404156766302,
+          "window_change_db": -0.012555437059957703
+        },
+        {
+          "range_m": 23.58484536933514,
+          "static_power_db_counts2": 26.316928220099513,
+          "native_bin_range_m": 23.63173372991036,
+          "far_doppler_dbc_own_peak": -57.14343710400436,
+          "window_change_db": 0.016625413233461846
+        },
+        {
+          "range_m": 42.058859435971414,
+          "static_power_db_counts2": 21.504372334977973,
+          "native_bin_range_m": 42.0119710753962,
+          "far_doppler_dbc_own_peak": -52.95106186632445,
+          "window_change_db": -0.02731418089984248
+        }
+      ],
+      "rx": 1
+    },
+    "400MHz-10m": {
+      "case": "400MHz-10m",
+      "nominal_range_m": 10.0,
+      "frames": 10,
+      "shape_chirp_sample_rx": [
+        1024,
+        512,
+        8
+      ],
+      "sample_rate_hz": 50000000.0,
+      "chirp_period_s": 1.596000038261991e-05,
+      "slope_hz_per_s": 39024353362169.375,
+      "center_frequency_hz": 77999802128.0,
+      "sampled_bandwidth_hz": 399609376.0,
+      "pre_payload_s": 5.540000074688578e-06,
+      "rx_gain_db": 3.0,
+      "adc_extrema": [
+        -566,
+        416
+      ],
+      "adc_rail_samples": 0,
+      "reflector_range_m": 12.003420307256055,
+      "reflector_peak_db_counts2": 31.60944131483426,
+      "reflector_peak_per_cpi_db_counts2": [
+        29.143589872694907,
+        31.46323822564026,
+        31.597045799639663,
+        31.37283128256211,
+        32.249304752646296,
+        30.946071699638967,
+        31.292975859301578,
+        33.737014318151935,
+        31.292097879780364,
+        31.66858899786202
+      ],
+      "far_doppler_background_db_counts2": -32.82774762409826,
+      "far_doppler_background_dbc": -64.43718893893251,
+      "far_doppler_at_reflector_dbc": -63.36170237590838,
+      "rx_coherence_background_median": 0.0004704877196357012,
+      "rx_coherence_reflector_median": 0.032755792862725,
+      "returns": [
+        {
+          "range_m": 12.003420307256055,
+          "static_power_db_counts2": 31.435904929102712,
+          "native_bin_range_m": 12.003420307256055,
+          "far_doppler_dbc_own_peak": -63.36170237590838,
+          "window_change_db": -0.03972813655870433
+        },
+        {
+          "range_m": 29.164560277786197,
+          "static_power_db_counts2": 32.70277640349765,
+          "native_bin_range_m": 29.258336998936635,
+          "far_doppler_dbc_own_peak": -58.85481411868673,
+          "window_change_db": -0.005845193022368674
+        },
+        {
+          "range_m": 23.67862209048558,
+          "static_power_db_counts2": 26.159943582935632,
+          "native_bin_range_m": 23.63173372991036,
+          "far_doppler_dbc_own_peak": -57.01961695787229,
+          "window_change_db": 0.01540890742968957
+        },
+        {
+          "range_m": 34.46294502278594,
+          "static_power_db_counts2": 23.57413968088241,
+          "native_bin_range_m": 34.50983338336116,
+          "far_doppler_dbc_own_peak": -54.559308279574694,
+          "window_change_db": 0.0023516721976588753
+        }
+      ],
+      "rx": 1
+    },
+    "800MHz-5m": {
+      "case": "800MHz-5m",
+      "nominal_range_m": 5.0,
+      "frames": 10,
+      "shape_chirp_sample_rx": [
+        1024,
+        512,
+        8
+      ],
+      "sample_rate_hz": 50000000.0,
+      "chirp_period_s": 1.596000038261991e-05,
+      "slope_hz_per_s": 78163150475034.28,
+      "center_frequency_hz": 78000193280.0,
+      "sampled_bandwidth_hz": 800390656.0,
+      "pre_payload_s": 5.540000074688578e-06,
+      "rx_gain_db": 3.0,
+      "adc_extrema": [
+        -1180,
+        1074
+      ],
+      "adc_rail_samples": 0,
+      "reflector_range_m": 6.273840909234497,
+      "reflector_peak_db_counts2": 48.69931701777447,
+      "reflector_peak_per_cpi_db_counts2": [
+        49.289273780584466,
+        49.392362948622974,
+        48.61343806471845,
+        48.221716137767814,
+        48.76720005017472,
+        49.60252575148472,
+        47.768927850793936,
+        47.69055986316543,
+        49.137982084463594,
+        48.718236167320256
+      ],
+      "far_doppler_background_db_counts2": -32.04911688129732,
+      "far_doppler_background_dbc": -80.7484338990718,
+      "far_doppler_at_reflector_dbc": -74.95097816212925,
+      "rx_coherence_background_median": 0.02815232598325531,
+      "rx_coherence_reflector_median": 0.5007462536566515,
+      "returns": [
+        {
+          "range_m": 6.273840909234497,
+          "static_power_db_counts2": 49.317527160006435,
+          "native_bin_range_m": 6.367480325790235,
+          "far_doppler_dbc_own_peak": -74.95097816212925,
+          "window_change_db": -0.020862949909002566
+        },
+        {
+          "range_m": 34.669993979762275,
+          "static_power_db_counts2": 31.28256884397767,
+          "native_bin_range_m": 34.646584125623335,
+          "far_doppler_dbc_own_peak": -59.540285127126296,
+          "window_change_db": 0.013888883518230798
+        },
+        {
+          "range_m": 23.831231513435515,
+          "static_power_db_counts2": 28.793831948301815,
+          "native_bin_range_m": 23.784411805157646,
+          "far_doppler_dbc_own_peak": -59.7369616048259,
+          "window_change_db": -0.015426445883196076
+        },
+        {
+          "range_m": 28.677071320194997,
+          "static_power_db_counts2": 26.440056760243355,
+          "native_bin_range_m": 28.65366146605606,
+          "far_doppler_dbc_own_peak": -57.60747642988366,
+          "window_change_db": -0.003015033435844301
+        }
+      ],
+      "rx": 1
+    },
+    "800MHz-10m": {
+      "case": "800MHz-10m",
+      "nominal_range_m": 10.0,
+      "frames": 10,
+      "shape_chirp_sample_rx": [
+        1024,
+        512,
+        8
+      ],
+      "sample_rate_hz": 50000000.0,
+      "chirp_period_s": 1.596000038261991e-05,
+      "slope_hz_per_s": 78163150475034.28,
+      "center_frequency_hz": 78000193280.0,
+      "sampled_bandwidth_hz": 800390656.0,
+      "pre_payload_s": 5.540000074688578e-06,
+      "rx_gain_db": 3.0,
+      "adc_extrema": [
+        -708,
+        668
+      ],
+      "adc_rail_samples": 0,
+      "reflector_range_m": 12.056074881551366,
+      "reflector_peak_db_counts2": 37.83885633404617,
+      "reflector_peak_per_cpi_db_counts2": [
+        37.589633535948,
+        36.95039051945179,
+        38.39114933627033,
+        37.7093890019192,
+        38.24964045819255,
+        37.44794493336062,
+        37.826958858889846,
+        38.08392444490079,
+        37.911365266695846,
+        38.04769308193353
+      ],
+      "far_doppler_background_db_counts2": -33.06849317177143,
+      "far_doppler_background_dbc": -70.9073495058176,
+      "far_doppler_at_reflector_dbc": -67.80015768027033,
+      "rx_coherence_background_median": 0.002098544940824362,
+      "rx_coherence_reflector_median": 0.24225256407047832,
+      "returns": [
+        {
+          "range_m": 12.056074881551366,
+          "static_power_db_counts2": 38.30270466760397,
+          "native_bin_range_m": 11.985845319134562,
+          "far_doppler_dbc_own_peak": -67.80015768027033,
+          "window_change_db": -0.019976818798127703
+        },
+        {
+          "range_m": 34.69340383390121,
+          "static_power_db_counts2": 34.11565119990791,
+          "native_bin_range_m": 34.646584125623335,
+          "far_doppler_dbc_own_peak": -60.198650996664924,
+          "window_change_db": -0.012979180929188476
+        },
+        {
+          "range_m": 42.301606429054985,
+          "static_power_db_counts2": 26.13943892578661,
+          "native_bin_range_m": 42.32501628319392,
+          "far_doppler_dbc_own_peak": -56.20690606134079,
+          "window_change_db": 0.022754029946840608
+        },
+        {
+          "range_m": 23.901461075852318,
+          "static_power_db_counts2": 25.64839574525203,
+          "native_bin_range_m": 23.971690638269123,
+          "far_doppler_dbc_own_peak": -57.69280507947301,
+          "window_change_db": 0.012219290822589352
+        }
+      ],
+      "rx": 1
+    }
+  }
+}

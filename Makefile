@@ -70,6 +70,18 @@ study_260902_lannik_psi:
 	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/rx_stagger_amount_experiment.py
 	$(PYTHON) -m pytest studies/2026-09-02_lannik-psi -q
 
+# Regenerate the 2026-09-22 outdoor reflector study from the raw data, which are
+# not in the repo. Override their location with PHASE_NOISE_OUTDOOR_DATA=/path.
+PHASE_NOISE_OUTDOOR_DATA ?= $(HOME)/Data/carkit/2026-09-22_phase_noise_outdoor_reflector
+PHASE_NOISE_OUTDOOR_STUDY := studies/2026-09-22_phase-noise-outdoor
+.PHONY: study_260922_phase_noise_outdoor
+study_260922_phase_noise_outdoor:
+	$(PYTHON) -m pytest $(PHASE_NOISE_OUTDOOR_STUDY) -q
+	@export PHASE_NOISE_OUTDOOR_DATA="$(PHASE_NOISE_OUTDOOR_DATA)" MPLBACKEND=Agg; \
+	for step in scene phase model; do \
+		$(PYTHON) $(PHASE_NOISE_OUTDOOR_STUDY)/outdoor_$$step.py || exit 1; \
+	done
+
 .PHONY: clean
 clean:
 	rm -rf build dist *.egg-info

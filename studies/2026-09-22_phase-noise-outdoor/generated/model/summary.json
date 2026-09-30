@@ -1,0 +1,57 @@
+{
+  "rf_band": "77-81",
+  "offset_band_hz": [
+    1.0,
+    20000000.0
+  ],
+  "cases": {
+    "400MHz-5m": {
+      "reflector_range_m": 5.720379990176714,
+      "measured_df_rms_hz": 16804.295831257932,
+      "cw_typical_df_rms_hz": 3287.658062843192,
+      "excess_over_cw_typical_db": 14.170673532349124,
+      "cw_maximum_df_rms_hz": 5773.887263821711,
+      "excess_over_cw_maximum_db": 9.279040370419882,
+      "cw_typical_far_doppler_at_reflector_dbc": -85.0695729116211,
+      "cw_typical_far_doppler_broad_dbc": -83.63248105955452,
+      "measured_background_dbc": -79.09130866592578,
+      "raised_broad_minus_measured_background_db": 9.629501138720386
+    },
+    "400MHz-10m": {
+      "reflector_range_m": 12.003420307256055,
+      "measured_df_rms_hz": 16939.396963929772,
+      "cw_typical_df_rms_hz": 3287.3381390955474,
+      "excess_over_cw_typical_db": 14.241071343612472,
+      "cw_maximum_df_rms_hz": 5773.3419072404,
+      "excess_over_cw_maximum_db": 9.349413352507069,
+      "cw_typical_far_doppler_at_reflector_dbc": -81.13905312474014,
+      "cw_typical_far_doppler_broad_dbc": -78.5282603635966,
+      "measured_background_dbc": -64.43718893893251,
+      "raised_broad_minus_measured_background_db": 0.1499999189483816
+    },
+    "800MHz-5m": {
+      "reflector_range_m": 6.273840909234497,
+      "measured_df_rms_hz": 13785.336783523442,
+      "cw_typical_df_rms_hz": 3287.6389901955636,
+      "excess_over_cw_typical_db": 12.450665164999624,
+      "cw_maximum_df_rms_hz": 5773.854751799403,
+      "excess_over_cw_maximum_db": 7.559030522860252,
+      "cw_typical_far_doppler_at_reflector_dbc": -84.29502977742332,
+      "cw_typical_far_doppler_broad_dbc": -83.35777546515399,
+      "measured_background_dbc": -80.7484338990718,
+      "raised_broad_minus_measured_background_db": 9.841323598917427
+    },
+    "800MHz-10m": {
+      "reflector_range_m": 12.056074881551366,
+      "measured_df_rms_hz": 14117.240990479468,
+      "cw_typical_df_rms_hz": 3287.334499879688,
+      "excess_over_cw_typical_db": 12.65811861752338,
+      "cw_maximum_df_rms_hz": 5773.335703650595,
+      "excess_over_cw_maximum_db": 7.766460343977543,
+      "cw_typical_far_doppler_at_reflector_dbc": -82.26799123803671,
+      "cw_typical_far_doppler_broad_dbc": -80.52224297495908,
+      "measured_background_dbc": -70.9073495058176,
+      "raised_broad_minus_measured_background_db": 3.0432251483819073
+    }
+  }
+}
