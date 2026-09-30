@@ -36,18 +36,17 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
-- `2026-09-11_carkit-validation/` — validation of the range model against a
-  CARKIT walking-reflector measurement (CTRX8188F + FARAD-IV, TX1, eight RX
-  compared per channel). The measured per-RX SNR is 1.2–2.4 dB above the model
-  depending on the noise reference, so no correction follows; the study also
-  finds a Doppler pedestal scaling with target power × range². Results are in
-  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md). It also holds the
-  2026-09-22 outdoor corner-reflector captures, in which every strong return
-  carries the same per-chirp frequency error, 12–14 dB above the CTRX8188F CW
-  phase-noise table
-  ([`NOTES_OUTDOOR.md`](2026-09-11_carkit-validation/NOTES_OUTDOOR.md)). The
-  `walk_*.py` and `outdoor_*.py` scripts process the raw data (not in the repo)
-  via `make study_260911_carkit_validation`.
+- `2026-09-11_carkit-validation/` — validation of the CARKIT radar
+  (CTRX8188F, TX1, eight RX) against our models, from two measurements: a
+  walking corner reflector (2026-09-11) and a hand-held reflector at 5 and 10 m
+  with 400 and 800 MHz sweeps (2026-09-22). The measured per-RX SNR is
+  1.2–2.4 dB above the range model depending on the noise reference, so no
+  correction follows. Every strong return carries the same per-chirp frequency
+  error (about 14–17 kHz rms, a phase error of 2πτδf), 12–16 dB above what the
+  CTRX8188F CW phase-noise table predicts. Results are in
+  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the `walk_*.py` and
+  `outdoor_*.py` scripts process the raw data (not in the repo) via
+  `make study_260911_carkit_validation`.
 - `2026-09-02_lannik-psi/` — Lannik Psi antenna-concept study, 2026-09-02 to
   2026-10-01, concluded. It took the June config-3 estimate to a TX aperture
   concept, two RX prototype layouts, interlaced half-aperture MIMO to resolve
