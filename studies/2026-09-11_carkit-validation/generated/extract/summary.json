@@ -1,0 +1,63 @@
+{
+  "capture": {
+    "input": "/Users/patrik/Data/tmp/walk-hallesaker-tx1-1-psi",
+    "cpis": 200,
+    "shape_chirp_sample_rx": [
+      1024,
+      512,
+      8
+    ],
+    "sha256_verified": true,
+    "sample_rate_hz": 50000000.0,
+    "chirp_period_s": 1.596000038261991e-05,
+    "slope_hz_per_s": 9841918809813.977,
+    "sampled_bandwidth_hz": 100781248.0,
+    "sampled_sweep_center_hz": 76374237094.94145
+  },
+  "processing": {
+    "windows": "periodic Blackman, range and Doppler",
+    "padding": "4x range and Doppler for the target cell",
+    "search_range_m": [
+      3.0,
+      70.0
+    ],
+    "search_abs_velocity_mps": [
+      0.75,
+      12.0
+    ],
+    "far_noise": "farthest range quarter, |v| >= 1 m/s, native Doppler bins"
+  },
+  "legs": {
+    "outbound": {
+      "cpis": [
+        26,
+        70
+      ],
+      "range_m": [
+        15.245260089578892,
+        50.19780761202806
+      ]
+    },
+    "inbound": {
+      "cpis": [
+        89,
+        127
+      ],
+      "range_m": [
+        16.732602537342686,
+        50.56964322396901
+      ]
+    }
+  },
+  "report_reproduction": {
+    "report_value_db": 36.57,
+    "selected_count": 37,
+    "selected_frames_all_inbound": true,
+    "magnitude_sum_at_100m_selected_db": 36.9399121434556,
+    "magnitude_sum_at_100m_inbound_db": 36.708802175484486
+  },
+  "free_range_slope_of_mean_rx_signal_db_per_decade": {
+    "outbound": -30.023982373832887,
+    "inbound": -35.31298699054577
+  }
+}

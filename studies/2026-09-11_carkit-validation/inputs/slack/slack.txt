@@ -1,0 +1,113 @@
+Viktor Kärnstrand  [3:27 PM]
+Här är en rapport som räknar lite på räckvidd utifrån mätningar. Får man gärna kritisera lite antaganden å grejer och se om man ska räkna om något eller lägga till förtydliganden. Men jag tänker att rapporten i sig inte är viktig, vi ska bygga en radar. Men viktigt att se att vi ligger i rätt storleksordning och att vi fått koll på eventuella problem man kan se tidigt.
+PDF report.pdfPDF
+
+Patrik  [3:52 PM]
+Att faskalibreringen varierar med frekvens är precis vad man förväntar sig om kanalerna har olika grupplöptider (som resulterar från olika vågledarlängder). Det ser ut som grupplöptiderna = lutningen = -dPhi/dOmega är ungefär konstant, vilket indikerar att inget mer komplicerat pågår. Det vore bra om du explicit extraherar grupplöptiderna. Och du kan ju formulera om i rapporten utifrån att det observerade frekvensberoendet för faserna är helt förväntat. (edited) 
+
+Viktor Kärnstrand  [3:53 PM]
+Löser! Helt förväntat för dig kanske :wink:
+
+Patrik  [3:59 PM]
+Ta det inte som kritik. Helt OK att du inte stött på detta. Möjligen lite förvånande att inte Codex spontant resonerade i termer av grupplöptider / group delays.
+
+Patrik  [3:59 PM]
+Vi har haft anledning att resonera en hel del kring detta för våra befintliga Lannikar, och signalbehandlingen för Lannik-2 använder antagna eller (om tillgängligt) uppmätta grupplöptider för att korrigera kalibreringen när den används vid en annan centerfrekvens.
+
+Patrik  [4:03 PM]
+En sak du skulle kunna roa dig och Codex med är att extrahera reflektoravstånd separat i alla RX-kanaler. Vi gör detta i kalibreringen för Lannik-2, och det är den vägen vi får ut grupplöptiderna som läggs med i kalibreringsdata. Det är lätt gjort, bara att leta max och köra en kvadratisk interpolation, lämpligen med lite zero-padding för avstånds-FFT:n. Du kan ju be Codex göra det för CARKIT och se att det stämmer med fasskillnaderna.
+
+Patrik  [4:16 PM]
+Är kovariansskattningen gjord baserat på både positiva och negativa avstånd i RD eller bara det ena? Det verkar inte framgå av rapporten. I och med att vi här har reell sampling blir det olämpligt och missledande att använda båda, genom att det artificiellt skapar en extra komponent från konjugatet. (edited) 
+
+Patrik  [4:24 PM]
+Fasbrus ger ju en multiplikativ störning 1j*S*dphi, där S är målsignalen, så man förväntar sig att den korrelerar med målets styrvektor, och skalar med målsignalen (oavsett om denna ändras via TX-backoff eller antal aktiva TX). Dito för eventuella andra liknande multiplikativa effekter. Så jag tror att sammanfattningen av 1.4 är "ser ut som förväntat", men som sagt med ett frågetecken kring hur kovariansmatrisen beräknats. (edited) 
+
+Patrik  [4:33 PM]
+Och om vi ser att vi är fasbrusbegränsade i mätkammaren så är det ju meningslöst att ens tala om koherenta summeringsvinster, det blir självklart så att vi inte får ut den vinst vi skulle fått mot termiskt brus, och exakt vad vi i stället får ut blir bara en följd av hur stark vår reflektorsignal råkar vara i mätkammaren Så det bör absolut inte användas som ingångsvärde till några som helst räckviddsberäkningar. (edited) 
+
+Viktor Kärnstrand  [7:41 PM]
+Det jag hålla med om, att det färgade brusets intensitet helt är en produkt av reflektorns signalstyrka. För att använda det i en räckviddsanalys bör man i så fall kvantifiera hur stor effekten skulle bli i ett riktigt fall.
+
+Patrik  [7:58 PM]
+Och det har då inte med målet självt att göra utan med starka andra reflektioner i omgivningen, där exempelvis starkt klotter eller annat mål på nära håll kan höja brusnivån långt ut och försämra detektionsprestanda/räckvidd där. Det blir snabbt väldigt subtilt, men är något som man vill ha möjlighet att få med i sina räckviddsberäkningar för att kunna se hur det slår. Mitt införande av fasbrusmodell, fortfarande på branch och inte validerad, handlar om precis detta. Men detta är långt utom scope för din undersökning, där det nog inte blir meningsfullt att göra så mycket mer än att konstatera att effekten finns i mätkammaren och gör att man inte kan utvärdera koherent summering på ett meningsfullt sätt där. (edited) 
+
+Patrik  [12:43 PM]
+Avsnitt 3.1 känns lätt rörigt, med mycket resonerande och siffror där jag inte bryr mig om att försöka bena ut vad som görs. Jag är egentligen bara intresserarad av att få en enda fast uppmätt punkt som jag själv kan skala från, på tämligen rättframt sätt. Därefter kan vi jämföra våra resultat.
+
+Första frågan blir då om följande är korrekt uppfattat:
+Med 10 dBsm-reflektor (som vi antar är Swerling 0), vågform enligt tabell 6, och 1 TX (närmare bestämt TX1) aktiv, så får du efter range/doppler-FFT:er och icke-koherent summering av 8 RX att SNR = 36.57 dB på avstånd 100 m?Ytterligare frågor:
+
+Vilka FFT-fönster använde du här? (Dessa bestämmer dina fönstringsförluster.)
+Figurtexten i figur 10 säger att du använde zeropadding. Hur mycket? (Detta bestämmer om du fick några kvarstående straddlingförluster och i så fall hur stora.)
+Exakt hur definierar du SNR för varje mätning? Dvs med SNR = S / N, exakt hur räknar du fram dina S och N? Egentligen kanske onödigt att blanda in icke-koherenta summor, som mest ger risk för missförstånd kring definitioner. Enklare att bara tala om SNR per kanal, som borde bli väsentligen samma för alla kanaler, modulo gainskillnader.
+
+
+I avsnitt 3.2 reagerar jag vid snabb titt på några saker som ser lite konstiga ut, men jag bryr mig inte om att försöka bena ut det utan räknar hellre själv. Därefter kan vi jämföra. En allmän kommentar är dock att "nollmedelvärd cirkulärt komplex Gaussisk" målmodell brukar kallas Swerling 1.
+
+Patrik  [12:43 PM]
+Jag gjorde ett snabbt försök att matcha resultaten från rapporten mot mina modeller baserat på gissningar för det som var oklart, och det visar sig något oväntat att dina empiriska resultat då verkar bli ca 4 dB bättre än modellen, vilket verkar skumt. Jag hade nog snarare förväntat mig sämre empiriska resultat, då jag tror att antagandena i modellen är optimistiska på ett antal punkter. Så vi behöver definitivt reda ut detaljerna här innan vi drar några slutsatser alls. Och då är det nog bäst att jag får en kopia av kod och data, så att jag med hjälp av Codex kan se till att det inte finns några missförstånd. (edited) 
+
+Viktor Kärnstrand  [7:57 AM]
+Först, gällande signalbehandling: Jag använde Blackman-fönster i både fast och slow time, samt 4x padding i båda ledderna. Paddingen ledde till 0.4dB längre straddlingförsluster.
+
+Viktor Kärnstrand  [7:59 AM]
+Angående Definitionen av SNR: Brustet skattas på den bortre fjärdedelen av R/D-spektrat, DC-kanalen med omgivning undantagen, och skattas med RMS. SNR för en cell är alltså signalen dividerat på det globala brusvärdet för CPI:et. (edited) 
+
+Viktor Kärnstrand  [8:14 AM]
+Angående felkällor etc: Jag kan tänka mig ett antal möjliga felkällor.
+
+Reflektorns storlek: Matchad mot 10dbsm-reflektorn i labbet, och då var den ev någon dB starkare.
+Selektion av data: Mätserien då jag sprang med reflektorn innehåller fler datapunkter, men jag valde borde de som droppade mycket i styrka för att jag antog att reflektorn inte var korrekt riktad.
+
+
+Jag kan iaf kovertera datan till ett format som är lättare att processa så kan du och Codex ta en titt på det. Då är det framförallt benchmarken med reflektorn som är viktig. Kod har mest Codex slängt ihop så det är nog lättare att reproducerar. (edited) 
+
+Viktor Kärnstrand  [8:21 AM]
+En sak som förbryllar mig är detta: Om dina modeller är så pessimistiska, hur fick du fram en så lovande Pd-kurva? Där ligger Pd på 50% vid 994m, enligt mina beräkningar närmare 950m.
+
+Patrik  [10:31 AM]
+Saab idag, så grävande får bli imorgon. Men bra om jag då har data. Du får själv bedöma om det är bättre att jag får din kod eller att du konverterar och jag låter Codex göra om hela analysen.
+
+Patrik  [10:33 AM]
+Reflektor: Skulle du kunna mäta längden av den reflekterande delen (dvs exklusive extra dämpmaterial)? Det borde ge en övre gräns för målarean via standardformeln.
+
+Viktor Kärnstrand  [1:49 PM]
+Nu har jag handkodat lite mer. Får fortfarande samma resultat.
+rx18-magnitude-sum-spectrum-frame-127.png
+
+Viktor Kärnstrand  [3:16 PM]
+När jag vibar lite radarekvation så stämmer det ruskigt bra.
+
+Integrationstid: 10486ms
+Effektiv Integrationstid: 10486 / 2.99 = 3506ms (Blackman)
+Effektiv Bandbredd: 1 / 3506 = 285.19 Hz
+Brusfaktor: 10.2 dB
+Termiskt brus (kT): -173.98 dBm/Hz
+-----------------------------------------------
+Totalt Brus: -139.22dBm 
+
+TX Power: 14.5 dBm
+TX Gain: 15.0 dBi
+RX Gain: 15.0 dBi
+RCS: 10dBsm
+Range: 100m
+-----------------------------------------------
+Total Signal: -106.60 dBm
+
+TOTAL: -106.60 + 139.22 = 32.63dB (1RX)
+
+För 8RX koherent blir detta 41.66.
+
+För koherent summa uppmäter vi 41.6 (edited) 
+
+Viktor Kärnstrand  [3:26 PM]
+Men då vet jag sedan tidigare att den kalibreringen inte var perfekt och för de enskilda kanalerna så får vi värden mellan 35-37 dB så jag är nog benägen att hålla med om att vi får ca 4dB för högt.
+
+Viktor Kärnstrand  [3:28 PM]
+Ska gå tillbaka och kolla på när jag kontrollmätte reflektorn i labbet
+
+Viktor Kärnstrand  [3:54 PM]
+Här har jag jämfört reflektorn med den andra i mätkammaren, och det verkar vara drygt 1db skillnad. Alltså den jag använde verkar vara typ 11.25dB. (edited) 
+rcs-comparison.png Viktor Kärnstrand  [7:52 AM]
+Här är en bättre versionreflectors-angle-aligned.png

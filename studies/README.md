@@ -21,7 +21,10 @@ contain multiple scripts and supporting files:
 
 Scripts write working figures under their local `generated/` directory. Copy
 the reviewed files delivered outside the repo into `deliverables/` to archive
-them with the code and assumptions that produced them.
+them with the code and assumptions that produced them. When a study's raw
+inputs are not in the repo, it may also track small data summaries (JSON/CSV)
+and the figures its notes link to in `generated/`, so that its numbers and
+figures stay reviewable and downstream steps can run without the raw data.
 
 Run a study from the repo root with the project venv, e.g.:
 
@@ -33,6 +36,14 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
+- `2026-09-11_carkit-validation/` — validation of the range model against a
+  CARKIT walking-reflector measurement (CTRX8188F + FARAD-IV, TX1, eight RX
+  compared per channel). The measured per-RX SNR is 1.2–2.4 dB above the model
+  depending on the noise reference, so no correction follows; the study also
+  finds a Doppler pedestal scaling with target power × range². Results are in
+  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md). The `walk_*.py` scripts
+  process the raw capture (not in the repo) via
+  `make study_260911_carkit_validation`.
 - `2026-09-02_lannik-psi/` — Lannik Psi antenna-concept study, 2026-09-02 to
   2026-10-01, concluded. It took the June config-3 estimate to a TX aperture
   concept, two RX prototype layouts, interlaced half-aperture MIMO to resolve
