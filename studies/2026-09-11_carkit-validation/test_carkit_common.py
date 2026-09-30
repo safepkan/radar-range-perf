@@ -1,19 +1,21 @@
-"""Synthetic checks of the study's normalizations and estimators."""
+"""Synthetic checks of the shared estimators and the outdoor normalizations."""
 
 from __future__ import annotations
 
 import numpy as np
 
-from outdoor_common import (
-    FAR_DOPPLER_HZ,
+from carkit_common import (
     FloatArray,
     chirp_gains,
     cross_channel_cross,
     cross_channel_power,
     detrend,
-    doppler_window,
     enbw_bins,
     linear_rate,
+)
+from outdoor_common import (
+    FAR_DOPPLER_HZ,
+    doppler_window,
     range_spectrum,
     range_window,
     slow_time_spectrum,
@@ -25,6 +27,7 @@ CHIRP_PERIOD_S = 15.96e-6
 FAR = np.abs(np.fft.fftfreq(N_CHIRPS, CHIRP_PERIOD_S)) > FAR_DOPPLER_HZ
 # Doppler Hann window: a white sequence's power per bin is variance * ENBW / N.
 PER_BIN = enbw_bins(doppler_window(N_CHIRPS)) / N_CHIRPS
+WINDOW = range_window(N_SAMPLES)
 
 
 def returns(
@@ -71,7 +74,7 @@ def test_common_phase_rejects_independent_noise() -> None:
         phase = rng.normal(0, phase_std, size=(N_CHIRPS, 1))
         x = returns(rng, (23,), phase, noise_std=10.0)
         gains = chirp_gains(
-            x, np.array([23 * SAMPLE_RATE_HZ / N_SAMPLES]), SAMPLE_RATE_HZ
+            x, np.array([23 * SAMPLE_RATE_HZ / N_SAMPLES]), SAMPLE_RATE_HZ, WINDOW
         )
         spectrum = slow_time_spectrum(detrend(np.unwrap(np.angle(gains), axis=0)))
         measured += float(np.mean(cross_channel_power(spectrum)[FAR, 0])) / frames
@@ -92,7 +95,9 @@ def cross_return(shared: bool) -> tuple[FloatArray, float]:
         if shared:
             df[:, 1] = df[:, 0]
         x = returns(rng, beat_bins, 2 * np.pi * delays * df, noise_std=10.0)
-        phase = np.unwrap(np.angle(chirp_gains(x, beat_hz, SAMPLE_RATE_HZ)), axis=0)
+        phase = np.unwrap(
+            np.angle(chirp_gains(x, beat_hz, SAMPLE_RATE_HZ, WINDOW)), axis=0
+        )
         spectrum = slow_time_spectrum(detrend(phase)) / (
             2 * np.pi * delays[None, :, None]
         )

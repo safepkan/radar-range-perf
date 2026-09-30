@@ -116,7 +116,7 @@ maximum within ±5 m, over 15–51 m; all selected CPIs are inbound. The exact
 ### Noise reference
 
 The background at |v| ≥ 10 m/s relative to the far quarter
-([background.png](generated/background/background.png)):
+([background.png](generated/walk/background/background.png)):
 
 | Range | 15 m | 30 m | 50 m | 100 m | 200 m | 300 m |
 |---|---:|---:|---:|---:|---:|---:|
@@ -164,7 +164,7 @@ from the reference.
 The strongest-to-weakest RX power span at the target cell has a median of
 9 dB outbound and 11 dB inbound, up to 28 dB. In CPI 100, RX8 is 28 dB below
 the strongest channel at the common cell but 16 dB below over a surrounding
-patch ([rx_null_example.png](generated/dynamics/rx_null_example.png)). These are
+patch ([rx_null_example.png](generated/walk/dynamics/rx_null_example.png)). These are
 spatial and temporal nulls from a composite reflector-plus-person return, not
 fixed calibration differences. They also explain why Viktor's coherent RX sum
 (41.6 dB, about 39 dB after the same noise and RCS corrections) gains only
@@ -174,7 +174,7 @@ not computed here.
 ### CPI length
 
 Reprocessing each CPI as 128–1024-chirp segments
-([cpi_length.png](generated/dynamics/cpi_length.png)):
+([cpi_length.png](generated/walk/dynamics/cpi_length.png)):
 
 | Leg | Deficit against ideal at 1024 chirps | p10–p90 | Single-tone fraction | Power outside ±0.5 m/s |
 |---|---:|---:|---:|---:|
@@ -193,7 +193,7 @@ away there is no change. At |v| ≥ 20 m/s the median excess over same-range
 controls is 1.2 dB inbound and 0.05 dB outbound. Fitting
 `excess = 10 log10(1 + k S^a (R/30 m)^b)` to both legs
 ([walk_pedestal.py](walk_pedestal.py),
-[pedestal_scaling.png](generated/pedestal/pedestal_scaling.png)):
+[pedestal_scaling.png](generated/walk/pedestal/pedestal_scaling.png)):
 
 | Doppler band | a (p5–p95) | b (p5–p95) | RMS: free / a=1, b=2 / a=1, b=0 | Equivalent frequency error |
 |---|---|---|---|---:|
@@ -286,13 +286,14 @@ make study_260911_carkit_validation CARKIT_WALK_DATA=/path/to/capture
 ```
 
 The steps run in order and write `summary.json` (plus per-frame CSV) and
-figures under `generated/<step>/`. The JSON/CSV files and the figures linked
+figures under `generated/walk/<step>/`. The JSON/CSV files and the figures linked
 from these notes are tracked, so they are available without the raw capture;
 the other figures are only generated locally.
 
 | Script | Content |
 |---|---|
-| [carkit_common.py](carkit_common.py) | Capture loading and checks, spectra, legs, controls, constants |
+| [carkit_common.py](carkit_common.py) | Shared paths, I/O and estimators, also used by the outdoor steps |
+| [walk_common.py](walk_common.py) | Walk capture loading and checks, Blackman spectra, legs, controls, constants |
 | [walk_extract.py](walk_extract.py) | Target tracking, per-RX cell values, the report's statistic and selection |
 | [walk_background.py](walk_background.py) | Background spectrum, traffic CPIs, cross-RX coherence |
 | [walk_reference_snr.py](walk_reference_snr.py) | Target-free reference, averaging conventions, the breakdown |

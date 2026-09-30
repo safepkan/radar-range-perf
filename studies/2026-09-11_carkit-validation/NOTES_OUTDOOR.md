@@ -81,7 +81,7 @@ each capture. Neither affects the results, which use each capture's own delays
 and per-chirp phases; the motion itself is quantified under
 [Slow drift is motion](#slow-drift-is-motion).
 
-The [static scene](generated/scene/scene.png) has strong returns around 24,
+The [static scene](generated/outdoor/scene/scene.png) has strong returns around 24,
 29, 35 and 42 m; in 400MHz-10m the 29 m return is stronger than the reflector.
 In 800MHz-10m something moved at 0–10 m at about 1 kHz Doppler (2 m/s), below
 the Doppler band used here.
@@ -120,7 +120,7 @@ common cross-power, and the ratio
 is the correlation of the δf series at return k with the reflector's, free of
 additive noise. If every return's phase error is 2πτₖδf with one δf, then ρ = 1
 and all returns give the same δf rms.
-[test_outdoor_common.py](test_outdoor_common.py) checks the normalizations and
+[test_carkit_common.py](test_carkit_common.py) checks the normalizations and
 both estimators on synthetic data, including a negative case with independent
 errors per return (ρ ≈ 0).
 
@@ -130,7 +130,7 @@ errors per return (ρ ≈ 0).
 
 The remote-Doppler level at the reflector's range sits above a background that
 does not depend on the reflector
-([scene](generated/scene/scene.png), [range–Doppler maps](generated/scene/maps.png)):
+([scene](generated/outdoor/scene/scene.png), [range–Doppler maps](generated/outdoor/scene/maps.png)):
 
 | Case | Background [dBc/bin] | At reflector [dBc/bin] | Background [dB ADC-count²/bin] |
 |---|---:|---:|---:|
@@ -155,7 +155,7 @@ the carrier.
 ### Phase, not amplitude
 
 At the reflector, mean over remote Doppler, RX1
-([phase and amplitude spectra](generated/phase/phase_amplitude.png)), in
+([phase and amplitude spectra](generated/outdoor/phase/phase_amplitude.png)), in
 dB rad² or dBc per Doppler bin:
 
 | Case | Phase | Amplitude | Half the background | Phase − amplitude | Common to all RX |
@@ -175,7 +175,7 @@ nearest native bin instead.
 ### One frequency error at every return
 
 Equivalent δf rms over remote Doppler, and correlation with the reflector's δf
-series ([delay scaling](generated/phase/delay_scaling.png)):
+series ([delay scaling](generated/outdoor/phase/delay_scaling.png)):
 
 | Case | Returns [m] | δf rms [kHz] | ρ with reflector |
 |---|---|---|---|
@@ -229,7 +229,7 @@ constant extrapolation outside 10 kHz–10 MHz). The per-chirp phase is the
 Blackman–Harris-weighted mean of the phase difference over the payload, sampled
 once per chirp, so its slow-time PSD is the delay-filtered phase PSD times the
 weighting's response, folded at the PRF
-([comparison](generated/model/model.png)):
+([comparison](generated/outdoor/model/model.png)):
 
 | Case | Measured δf rms | CW typical | CW maximum | Excess over typical | Excess over maximum |
 |---|---:|---:|---:|---:|---:|
@@ -300,13 +300,13 @@ the raw data.
 ## Reproduction
 
 ```sh
-make study_260922_phase_noise_outdoor
+make study_260911_carkit_validation
 ```
 
 This runs the synthetic tests and then, reading the raw data from
-`$PHASE_NOISE_OUTDOOR_DATA` (default above), three steps of a few seconds each:
+`$CARKIT_OUTDOOR_DATA` (default above), three steps of a few seconds each:
 
-| Step | Output in `generated/` | Content |
+| Step | Output in `generated/outdoor/` | Content |
 |---|---|---|
 | [outdoor_scene.py](outdoor_scene.py) | `scene/` | Capture validation (sizes, SHA-256), reflector and scene returns, levels, RX coherence, window check |
 | [outdoor_phase.py](outdoor_phase.py) | `phase/` | Per-return phase and amplitude spectra, common δf, cross-return correlation, drift |

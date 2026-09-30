@@ -31,19 +31,22 @@ import numpy.typing as npt
 from scipy.stats import spearmanr
 
 from carkit_common import (
+    N_RX,
+    SPEED_OF_LIGHT,
+    FloatArray,
+    db,
+    write_summary,
+)
+from walk_common import (
     CARRIER_HZ,
     GENERATED_DIR,
     LEGS,
-    N_RX,
     PADDING,
-    SPEED_OF_LIGHT,
     Capture,
     ComplexArray,
-    FloatArray,
     Track,
     control_frames,
     data_argument,
-    db,
     leg_frames,
     load_capture,
     native_doppler,
@@ -51,7 +54,6 @@ from carkit_common import (
     range_spectrum,
     read_track,
     window,
-    write_summary,
 )
 
 matplotlib.use("Agg")

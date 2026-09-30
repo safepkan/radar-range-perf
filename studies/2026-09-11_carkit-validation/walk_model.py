@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 
-from carkit_common import (
+from walk_common import (
     GENERATED_DIR,
     REFERENCE_RANGE_M,
     REFERENCE_RCS_DBSM,

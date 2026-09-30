@@ -70,27 +70,21 @@ study_260902_lannik_psi:
 	MPLBACKEND=Agg $(PYTHON) studies/2026-09-02_lannik-psi/rx_stagger_amount_experiment.py
 	$(PYTHON) -m pytest studies/2026-09-02_lannik-psi -q
 
-# Regenerate the CARKIT walk study from the raw capture, which is not in the
-# repo. Override its location with CARKIT_WALK_DATA=/path/to/capture.
+# Regenerate the CARKIT validation study from the raw data, which are not in
+# the repo: the 2026-09-11 walk and the 2026-09-22 outdoor reflector captures.
+# Override their locations with CARKIT_WALK_DATA=/path and CARKIT_OUTDOOR_DATA=/path.
 CARKIT_WALK_DATA ?= $(HOME)/Data/tmp/walk-hallesaker-tx1-1-psi
+CARKIT_OUTDOOR_DATA ?= $(HOME)/Data/carkit/2026-09-22_phase_noise_outdoor_reflector
 CARKIT_STUDY := studies/2026-09-11_carkit-validation
+CARKIT_STEPS := walk_extract walk_background walk_reference_snr walk_dynamics \
+	walk_pedestal walk_model outdoor_scene outdoor_phase outdoor_model
 .PHONY: study_260911_carkit_validation
 study_260911_carkit_validation:
-	@export CARKIT_WALK_DATA="$(CARKIT_WALK_DATA)" MPLBACKEND=Agg; \
-	for step in extract background reference_snr dynamics pedestal model; do \
-		$(PYTHON) $(CARKIT_STUDY)/walk_$$step.py || exit 1; \
-	done
-
-# Regenerate the 2026-09-22 outdoor reflector study from the raw data, which are
-# not in the repo. Override their location with PHASE_NOISE_OUTDOOR_DATA=/path.
-PHASE_NOISE_OUTDOOR_DATA ?= $(HOME)/Data/carkit/2026-09-22_phase_noise_outdoor_reflector
-PHASE_NOISE_OUTDOOR_STUDY := studies/2026-09-22_phase-noise-outdoor
-.PHONY: study_260922_phase_noise_outdoor
-study_260922_phase_noise_outdoor:
-	$(PYTHON) -m pytest $(PHASE_NOISE_OUTDOOR_STUDY) -q
-	@export PHASE_NOISE_OUTDOOR_DATA="$(PHASE_NOISE_OUTDOOR_DATA)" MPLBACKEND=Agg; \
-	for step in scene phase model; do \
-		$(PYTHON) $(PHASE_NOISE_OUTDOOR_STUDY)/outdoor_$$step.py || exit 1; \
+	$(PYTHON) -m pytest $(CARKIT_STUDY) -q
+	@export CARKIT_WALK_DATA="$(CARKIT_WALK_DATA)" \
+		CARKIT_OUTDOOR_DATA="$(CARKIT_OUTDOOR_DATA)" MPLBACKEND=Agg; \
+	for step in $(CARKIT_STEPS); do \
+		$(PYTHON) $(CARKIT_STUDY)/$$step.py || exit 1; \
 	done
 
 .PHONY: clean

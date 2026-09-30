@@ -9,7 +9,7 @@ noise, with its local upper-tail selection (15-51 m, within 6 dB of the local
 R^-4-corrected maximum within +/-5 m). The headline comparison instead uses the
 target-free background from walk_reference_snr.py.
 
-Run first; later scripts read generated/extract/per_frame.csv.
+Run first; later scripts read generated/walk/extract/per_frame.csv.
 """
 
 from __future__ import annotations
@@ -23,22 +23,24 @@ import matplotlib
 import numpy as np
 
 from carkit_common import (
+    N_RX,
+    FloatArray,
+    db,
+    write_summary,
+)
+from walk_common import (
     GENERATED_DIR,
     LEGS,
-    N_RX,
     REFERENCE_RANGE_M,
     REPORT_SNR_DB,
     BoolArray,
     Capture,
-    FloatArray,
     data_argument,
-    db,
     leg_of,
     load_capture,
     native_doppler,
     padded_doppler,
     range_spectrum,
-    write_summary,
 )
 
 matplotlib.use("Agg")

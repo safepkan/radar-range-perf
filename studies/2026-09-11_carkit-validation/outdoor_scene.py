@@ -22,22 +22,24 @@ import matplotlib
 import numpy as np
 from scipy.signal import find_peaks
 
+from carkit_common import (
+    FloatArray,
+    db,
+    enbw_bins,
+    write_summary,
+)
 from outdoor_common import (
     ADC_BITS,
     CASES,
     GENERATED_DIR,
     REFLECTOR_GATE_M,
     Capture,
-    FloatArray,
     data_argument,
-    db,
     doppler_window,
-    enbw_bins,
     load_capture,
     range_spectrum,
     range_window,
     slow_time_spectrum,
-    write_summary,
 )
 
 matplotlib.use("Agg")

@@ -14,10 +14,10 @@ a=1, b=2.  The legs separate a from b because the outbound return is about
 12 dB weaker than the inbound return at the same range.
 
 The excess-to-peak ratio is also converted to the equivalent in-band RMS
-frequency error used by the 2026-09-22 phase-noise-outdoor study on the
-phase-noise branch, under the small-phase interpretation.  Amplitude
-fluctuations and RX-independent contributions are not separated here, so this
-is an equivalent quantity, not an RF source specification.
+frequency error used by the outdoor phase analysis (outdoor_phase.py), under
+the small-phase interpretation.  Amplitude fluctuations and RX-independent
+contributions are not separated here, so this is an equivalent quantity, not
+an RF source specification.
 """
 
 from __future__ import annotations
@@ -33,15 +33,17 @@ import numpy as np
 from scipy.optimize import least_squares
 
 from carkit_common import (
-    CARRIER_HZ,
-    GENERATED_DIR,
-    PADDING,
     SPEED_OF_LIGHT,
     FloatArray,
     db,
+    write_summary,
+)
+from walk_common import (
+    CARRIER_HZ,
+    GENERATED_DIR,
+    PADDING,
     window,
     window_enbw_bins,
-    write_summary,
 )
 
 matplotlib.use("Agg")

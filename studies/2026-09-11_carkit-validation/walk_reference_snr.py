@@ -3,7 +3,7 @@
 Signal: each RX's power at the common target cell from walk_extract.py.
 Background N0: the same RX's power within +/-1 native range bin and +/-1 m/s of
 the target's range and velocity, pooled over control CPIs without the
-reflector near that range (carkit_common.control_frames). Primary estimator:
+reflector near that range (walk_common.control_frames). Primary estimator:
 median / ln 2, robust to the traffic in the post-walk CPIs.
 
 Headline convention: average the RX SNRs linearly within each CPI, scale each
@@ -25,24 +25,26 @@ import matplotlib
 import numpy as np
 
 from carkit_common import (
-    GENERATED_DIR,
     N_RX,
+    FloatArray,
+    db,
+    write_summary,
+)
+from walk_common import (
+    GENERATED_DIR,
     RCS_CORRECTION_DB,
     REFERENCE_RANGE_M,
     REPORT_SNR_DB,
     BoolArray,
-    FloatArray,
     IntArray,
     control_frames,
     data_argument,
-    db,
     leg_frames,
     leg_of,
     load_capture,
     native_doppler,
     range_spectrum,
     read_track,
-    write_summary,
 )
 from walk_model import model_snr_db
 

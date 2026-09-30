@@ -1,7 +1,15 @@
-# Figures linked from NOTES.md. The raw capture is not in the repo, so they
+# Arrays passed between pipeline steps; regenerate with the make target.
+/generated/**/*.npz
+
+# Figures linked from the notes. The raw data are not in the repo, so they
 # cannot be regenerated from a checkout; track them so the links work here and
-# on GitHub. Keep this list in sync with the figure links in NOTES.md.
-!/generated/background/background.png
-!/generated/dynamics/cpi_length.png
-!/generated/dynamics/rx_null_example.png
-!/generated/pedestal/pedestal_scaling.png
+# on GitHub. Keep this list in sync with the figure links in the notes.
+!/generated/walk/background/background.png
+!/generated/walk/dynamics/cpi_length.png
+!/generated/walk/dynamics/rx_null_example.png
+!/generated/walk/pedestal/pedestal_scaling.png
+!/generated/outdoor/scene/scene.png
+!/generated/outdoor/scene/maps.png
+!/generated/outdoor/phase/phase_amplitude.png
+!/generated/outdoor/phase/delay_scaling.png
+!/generated/outdoor/model/model.png

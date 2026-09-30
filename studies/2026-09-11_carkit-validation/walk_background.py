@@ -27,18 +27,20 @@ import matplotlib
 import numpy as np
 
 from carkit_common import (
-    GENERATED_DIR,
-    LAST_TRACKED_FRAME,
     N_RX,
     SPEED_OF_LIGHT,
-    Capture,
     FloatArray,
-    data_argument,
     db,
+    write_summary,
+)
+from walk_common import (
+    GENERATED_DIR,
+    LAST_TRACKED_FRAME,
+    Capture,
+    data_argument,
     load_capture,
     native_doppler,
     range_spectrum,
-    write_summary,
 )
 
 matplotlib.use("Agg")
