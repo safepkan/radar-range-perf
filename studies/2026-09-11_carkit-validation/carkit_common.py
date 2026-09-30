@@ -92,6 +92,33 @@ def detrend(values: FloatArray, order: int = DETREND_ORDER) -> FloatArray:
     return np.asarray((flat - fitted).reshape(values.shape))
 
 
+def chirp_fluctuations(
+    gains: ComplexArray,
+    doppler_hz: FloatArray,
+    chirp_period_s: float,
+    order: int = DETREND_ORDER,
+) -> tuple[FloatArray, FloatArray]:
+    """Per-chirp phase [rad] and fractional amplitude, without phase unwrapping.
+
+    ``gains`` is [chirp, return, RX] and ``doppler_hz`` holds one Doppler per
+    return. Each return is derotated by its Doppler, a complex polynomial of
+    ``order`` per return and RX is fitted as the smooth return s, and z/s - 1
+    is split into its imaginary part (phase) and real part (amplitude). Being
+    linear in additive noise, it holds down to per-chirp SNRs where unwrapping
+    slips; for small fluctuations it equals the detrended phase and amplitude.
+    """
+    n_chirps = gains.shape[0]
+    chirp_time = np.arange(n_chirps) * chirp_period_s
+    derotated = (
+        gains * np.exp(-2j * np.pi * np.outer(chirp_time, doppler_hz))[:, :, None]
+    )
+    basis = np.polynomial.polynomial.polyvander(np.linspace(-1, 1, n_chirps), order)
+    flat = derotated.reshape(n_chirps, -1)
+    smooth = (basis @ np.linalg.lstsq(basis, flat, rcond=None)[0]).reshape(gains.shape)
+    ratio = derotated / smooth - 1
+    return np.asarray(ratio.imag), np.asarray(ratio.real)
+
+
 def linear_rate(values: FloatArray, step: float) -> FloatArray:
     """Least-squares slope along axis 0 per unit of ``step`` spacing."""
     time = (np.arange(values.shape[0]) - (values.shape[0] - 1) / 2) * step

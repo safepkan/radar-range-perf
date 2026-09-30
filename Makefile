@@ -77,7 +77,7 @@ CARKIT_WALK_DATA ?= $(HOME)/Data/tmp/walk-hallesaker-tx1-1-psi
 CARKIT_OUTDOOR_DATA ?= $(HOME)/Data/carkit/2026-09-22_phase_noise_outdoor_reflector
 CARKIT_STUDY := studies/2026-09-11_carkit-validation
 CARKIT_STEPS := walk_extract walk_background walk_reference_snr walk_dynamics \
-	walk_pedestal walk_model outdoor_scene outdoor_phase outdoor_model
+	walk_pedestal walk_long_range walk_model outdoor_scene outdoor_phase outdoor_model
 .PHONY: study_260911_carkit_validation
 study_260911_carkit_validation:
 	$(PYTHON) -m pytest $(CARKIT_STUDY) -q

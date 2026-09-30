@@ -6,6 +6,7 @@ import numpy as np
 
 from carkit_common import (
     FloatArray,
+    chirp_fluctuations,
     chirp_gains,
     cross_channel_cross,
     cross_channel_power,
@@ -117,6 +118,31 @@ def test_cross_return_correlation_of_independent_errors() -> None:
     rms_ratio, correlation = cross_return(shared=False)
     assert np.all(np.abs(rms_ratio - 1) < 0.05)
     assert abs(correlation) < 0.1
+
+
+def test_chirp_fluctuations_follow_a_moving_return_without_unwrapping() -> None:
+    """A static and an 11 kHz Doppler return share one delta_f at 8.5 dB SNR."""
+    rng = np.random.default_rng(4)
+    beat_bins = (23, 97)
+    delays = np.array([600e-9, 1.5e-6])
+    doppler_hz = np.array([0.0, 11e3])
+    beat_hz = np.array(beat_bins) * SAMPLE_RATE_HZ / N_SAMPLES
+    chirp_time = np.arange(N_CHIRPS) * CHIRP_PERIOD_S
+    df_std, frames = 20e3, 4
+    common = np.zeros(2)
+    cross = 0.0
+    for _ in range(frames):
+        df = rng.normal(0, df_std, size=N_CHIRPS)
+        phase = 2 * np.pi * (np.outer(df, delays) + np.outer(chirp_time, doppler_hz))
+        x = returns(rng, beat_bins, phase, noise_std=1500.0)
+        gains = chirp_gains(x, beat_hz, SAMPLE_RATE_HZ, WINDOW)
+        fluctuation, _ = chirp_fluctuations(gains, doppler_hz, CHIRP_PERIOD_S)
+        spectrum = slow_time_spectrum(fluctuation) / (2 * np.pi * delays[None, :, None])
+        common += cross_channel_power(spectrum)[FAR].sum(axis=0)
+        cross += float(cross_channel_cross(spectrum[:, :1], spectrum[:, 1:])[FAR].sum())
+    rms = np.sqrt(common / (FAR.sum() * PER_BIN * frames))
+    assert np.all(np.abs(rms / df_std - 1) < 0.1)
+    assert abs(cross / common[0] - 1) < 0.1
 
 
 def test_detrend_and_linear_rate() -> None:

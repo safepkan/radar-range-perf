@@ -1,0 +1,76 @@
+{
+  "reference_range_m": 39.414574865740555,
+  "frames_searched": [
+    128,
+    199
+  ],
+  "min_snr_db": 10.0,
+  "cpis": 67,
+  "cpis_excluded_mover_near_reference": [
+    177,
+    178,
+    179,
+    196,
+    197
+  ],
+  "cpis_with_vehicle": 30,
+  "reference_df_rms_hz": 19042.18593753934,
+  "rx_channels": 8,
+  "band_min_abs_velocity_mps": 10.0,
+  "groups": {
+    "45-80 m": {
+      "cpis": 13,
+      "mean_range_m": 62.69595408268913,
+      "beta": 0.8184172950136186,
+      "beta_p5_p95": [
+        0.6508696144173848,
+        1.0330676134048637
+      ],
+      "correlation": 0.4156475944398142,
+      "vehicle_df_rms_hz": 37494.393122017565,
+      "vehicle_amplitude_over_phase_db": -1.6737332474580582
+    },
+    "80-130 m": {
+      "cpis": 9,
+      "mean_range_m": 102.0680844523527,
+      "beta": 0.8073965860879129,
+      "beta_p5_p95": [
+        0.6452306312965695,
+        1.0226955347014748
+      ],
+      "correlation": 0.8150049414063775,
+      "vehicle_df_rms_hz": 18864.420491843928,
+      "vehicle_amplitude_over_phase_db": -9.283183453145206
+    },
+    "130-230 m": {
+      "cpis": 8,
+      "mean_range_m": 167.32353165245257,
+      "beta": 0.9599949885550089,
+      "beta_p5_p95": [
+        0.8043562385819655,
+        1.1793284697950666
+      ],
+      "correlation": 0.9414849309343706,
+      "vehicle_df_rms_hz": 19416.564695335233,
+      "vehicle_amplitude_over_phase_db": -13.427283871188656
+    }
+  },
+  "beyond_80_m": {
+    "cpis": 17,
+    "mean_range_m": 132.77653019357618,
+    "beta": 0.8792075990136047,
+    "beta_p5_p95": [
+      0.7246213825784884,
+      1.0824970261314926
+    ],
+    "correlation": 0.8753438056319576,
+    "vehicle_df_rms_hz": 19126.238708032695,
+    "vehicle_amplitude_over_phase_db": -11.83099400896814
+  },
+  "beyond_80_m_beta_by_min_snr": {
+    "6 dB": 0.85427990639967,
+    "8 dB": 0.8997134562563975,
+    "10 dB": 0.8792075990136047,
+    "12 dB": 0.8512050821197263
+  }
+}

@@ -44,22 +44,27 @@ that the CW phase-noise data do not predict.
   returns out to 42 m correlate 0.96–1.03 with each other, with additive noise
   removed; it is common to all eight RX channels and pure phase. In the walk,
   the Doppler pedestal it raises scales as target power^1.02 × range^2.00.
-- **It is 14–17 kHz rms over 5–31 kHz and does not depend on chirp slope:**
-  16.9 kHz at 9.84 MHz/µs in the walk, 16.8–16.9 kHz at 39 MHz/µs and
+- **The delay law holds to at least 170 m.** Vehicles passing after the walk
+  carry the δf of a static return at 39 m: beyond 80 m they share 0.88 of it
+  (p5–p95 0.72–1.08), and 0.96 at 130–230 m, where τ is about 1.1 µs. If
+  every return had the same phase error, the share would be about 0.3.
+- **It is 14–19 kHz rms over 5–31 kHz and does not depend on chirp slope:**
+  17–19 kHz at 9.84 MHz/µs in the walk, 16.8–16.9 kHz at 39 MHz/µs and
   13.8–14.1 kHz at 78 MHz/µs outdoors. Timing jitter between ramp and ADC
   would scale with slope.
-- **It is 12.5–16 dB above what the CTRX8188F CW phase-noise table predicts for
+- **It is 12.5–17 dB above what the CTRX8188F CW phase-noise table predicts for
   the same quantity**, and 7.6–9.3 dB above the table's maximum outdoors. The
   excess is at low frequency offsets only: the skirt that high offsets spread
   across range is at or below the table's prediction.
 - **For a weak target's own sensitivity it is negligible.** It matters around
   strong returns, whose pedestal it sets, and possibly for coherence at long
-  range: if the delay law holds, the phase error reaches about 0.7 rad at 1 km.
+  range: if the delay law holds beyond 170 m, the phase error reaches about
+  0.7 rad at 1 km.
 
 For the toolbox, the phase-noise model on `main` stays as a model of standard
 phase noise, with the sourced CW tables. A separate empirical per-chirp
 frequency-error term, fitted to the measured slow-time spectrum, is justified
-by these data; how far the 2πτδf law extends in range is open.
+by these data; whether the 2πτδf law saturates beyond 170 m is open.
 
 ## Measurements
 
@@ -301,6 +306,7 @@ channels.
 | Dataset | Slope | δf rms, 5–31 kHz | Estimator |
 |---|---:|---:|---|
 | Walk | 9.84 MHz/µs | 16.9 kHz | Pedestal excess over same-range controls, all of it treated as phase |
+| Walk | 9.84 MHz/µs | 19.0 kHz | Phase of a static return at 39 m common to all RX, after the walk |
 | Outdoor 400 MHz | 39.02 MHz/µs | 16.8–16.9 kHz | Reflector phase common to all RX |
 | Outdoor 800 MHz | 78.16 MHz/µs | 13.8–14.1 kHz | Reflector phase common to all RX |
 
@@ -336,6 +342,48 @@ Strong returns at 55–75 m and 150–165 m in the post-walk CPIs likewise show 
 remote-Doppler excess fully correlated between RX channels. Viktor's chamber
 component along the target steering vector is probably the same effect.
 
+### Walk: passing vehicles extend the delay law to 170 m
+
+After the walk, two vehicles approach at about 22 m/s from beyond 190 m
+([walk_long_range.py](walk_long_range.py),
+[long_range.png](generated/walk/long_range/long_range.png)). They are strong
+enough for a per-chirp phase (at least 10 dB above the per-chirp noise), but
+they fluctuate on their own: micro-Doppler and aspect changes. So each vehicle
+is compared with the strongest static return, at 39.4 m, in the same CPI.
+Cross-RX products remove additive noise, and the vehicle's own fluctuations are
+uncorrelated with the reference, so
+
+  β = C(reference, vehicle) / C(reference, reference)
+
+in δf units is the part of the reference's frequency error that the vehicle
+carries: 1 if the phase error is 2πτδf at both delays, τ_ref/τ_vehicle if every
+return had the same phase error. The reference's δf is stationary, so its
+power is pooled over the 67 post-walk CPIs without a moving return within 5 m
+of it; five CPIs where the vehicles pass it are excluded. The reference is only
+about 4 dB above the per-chirp noise, where phase unwrapping slips, so both
+phases come from an unwrap-free estimator: derotate each return by its Doppler,
+fit a complex cubic per CPI, and take Im(z/fit). Blackman windows and
+|v| ≥ 10 m/s, as in the pedestal step.
+
+| Vehicle range | CPIs | Mean range | β (p5–p95) | Correlation | Vehicle δf rms | Vehicle amplitude / phase |
+|---|---:|---:|---|---:|---:|---:|
+| 45–80 m | 13 | 63 m | 0.82 (0.65–1.03) | 0.42 | 37.5 kHz | −1.7 dB |
+| 80–130 m | 9 | 102 m | 0.81 (0.65–1.02) | 0.82 | 18.9 kHz | −9.3 dB |
+| 130–230 m | 8 | 167 m | 0.96 (0.80–1.18) | 0.94 | 19.4 kHz | −13.4 dB |
+| Beyond 80 m | 17 | 133 m | 0.88 (0.72–1.08) | 0.88 | 19.1 kHz | −11.8 dB |
+
+The reference's δf is 19.0 kHz rms. Beyond 80 m, β is 0.85–0.90 for vehicle
+SNR thresholds of 6–12 dB. Near 60 m the vehicles' own fluctuations dominate:
+their amplitude fluctuates almost as much as their phase, and the correlation
+drops to 0.42. At 130–230 m they are small (amplitude 13 dB below phase), and
+the vehicle's own δf, 19.4 kHz, matches the reference's: its phase power is
+the 12.6 dB higher that the delay law predicts for 167 m against 39 m.
+
+The law therefore holds to τ ≈ 1.1 µs. This does not yet test saturation: for
+phase noise, 4 sin²(πfτ) falls below (2πfτ)² by only 0.2 dB at 100 kHz and
+0.7 dB at 200 kHz at 167 m, whereas at 300 m the shortfall reaches 0.6 and
+2.4 dB.
+
 ### Outdoor: method
 
 For each strong return (the reflector and the three strongest scene returns
@@ -343,7 +391,9 @@ within 45 m), each chirp is projected onto a Blackman–Harris-weighted tone at
 the return's exact beat frequency, giving one complex amplitude per chirp and
 RX. Its unwrapped phase and fractional amplitude have a cubic removed per CPI
 before their Hann-windowed slow-time spectra are taken; a linear fit gives the
-drift. The detrended phase of a return is expressed as δf = φ/(2πτ).
+drift. The detrended phase of a return is expressed as δf = φ/(2πτ). All
+returns are at least 25 dB above the per-chirp noise, where unwrapping is
+safe.
 
 τ comes from the apparent, beat-derived range. The beat frequency measures the
 delay between the received signal and the LO at the mixer, which is exactly the
@@ -458,8 +508,8 @@ weighting's response, folded at the PRF
 
 A separate small-delay calculation with a direct transform of the weighting
 also gives 3.29 kHz for the typical table. The walk, at 76.37 GHz with the same
-sampling and PRI, is 16 dB above the lower-band typical table (2.64 kHz, a
-one-off calculation). The CW prediction's spectrum is flat over slow-time
+sampling and PRI, is 16–17 dB above the lower-band typical table (16.9 and
+19.0 kHz against 2.64 kHz, a one-off calculation). The CW prediction's spectrum is flat over slow-time
 frequency; the measured one rises.
 
 The full range–Doppler prediction (`phase_noise_fft`) averaged over remote
@@ -477,8 +527,8 @@ synthesizer loop bandwidth.
 ### Consequences at long range
 
 For a weak target the own pedestal is negligible, so the sensitivity reference
-is unaffected. If the delay law holds to long range, the phase error reaches
-about 0.7 rad at 1 km, which would mean up to about 2 dB coherent loss and a
+is unaffected. The delay law is tested to 170 m. If it holds to 1 km, the
+phase error reaches about 0.7 rad there, which would mean up to about 2 dB coherent loss and a
 large pedestal around strong returns. For phase noise the delay-squared law is
 the small-fτ limit of 4 sin²(πfτ); at 1 km it is reduced by 0.6, 1.7 and
 3.9 dB at 30, 50 and 75 kHz, so 0.7 rad is an upper estimate. A frequency
@@ -524,10 +574,12 @@ Measurements, in rough order of cost:
    with a spectrum analyser and harmonic mixer, compared with the flat
    −78 dBc/Hz, and the reference clock's phase noise; vary the pre-payload time
    and the PRI.
-3. **The building about 300 m from the office window**, to test the delay law
-   at long range. Captures with the walk waveform (unambiguous to about 381 m)
-   and with half the slope. If the law holds, the pedestal relative to the peak
-   is 20 dB higher than at 30 m. The 400/800 MHz waveforms alias there. Check
+3. **The building about 300 m from the office window**, to test whether the
+   delay law saturates. The passing vehicles confirm it to 170 m, where
+   saturation would stay below about 0.7 dB; at 300 m it could reach 2–3 dB.
+   Captures with the walk waveform (unambiguous to about 381 m) and with half
+   the slope. If the law holds, the pedestal relative to the peak is 20 dB
+   higher than at 30 m. The 400/800 MHz waveforms alias there. Check
    for ADC clipping from the window frame.
 4. **Repeat selected walk points at another height** to separate multipath.
 
@@ -556,13 +608,14 @@ generated locally.
 
 | Script | Content |
 |---|---|
-| [carkit_common.py](carkit_common.py) | Shared paths, I/O and estimators (per-chirp amplitudes, detrending, cross-RX common power) |
+| [carkit_common.py](carkit_common.py) | Shared paths, I/O and estimators (per-chirp amplitudes, detrending, unwrap-free phase, cross-RX common power) |
 | [walk_common.py](walk_common.py) | Walk capture loading and checks, Blackman spectra, legs, controls, constants |
 | [walk_extract.py](walk_extract.py) | Target tracking, per-RX cell values, the report's statistic and selection |
 | [walk_background.py](walk_background.py) | Background spectrum, traffic CPIs, cross-RX coherence |
 | [walk_reference_snr.py](walk_reference_snr.py) | Target-free reference, averaging conventions, the breakdown |
 | [walk_dynamics.py](walk_dynamics.py) | CPI length, Doppler structure, RX nulls, pedestal ratios |
 | [walk_pedestal.py](walk_pedestal.py) | Pedestal power/range fit and equivalent frequency error |
+| [walk_long_range.py](walk_long_range.py) | Delay law to about 200 m: passing vehicles against a static reference |
 | [walk_model.py](walk_model.py) | Model and comparison |
 | [outdoor_common.py](outdoor_common.py) | Outdoor capture loading and checks, Blackman–Harris/Hann spectra, cases |
 | [outdoor_scene.py](outdoor_scene.py) | Capture validation, reflector and scene returns, levels, RX coherence, window check |

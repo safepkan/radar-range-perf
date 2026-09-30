@@ -29,6 +29,8 @@ from carkit_common import (
     write_summary,
 )
 from walk_common import (
+    FAR_RANGE_FRACTION,
+    NOISE_ABS_VELOCITY_MIN_MPS,
     GENERATED_DIR,
     LEGS,
     REFERENCE_RANGE_M,
@@ -48,8 +50,6 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 SEARCH_RANGE_M = (3.0, 70.0)
 SEARCH_ABS_VELOCITY_MPS = (0.75, 12.0)
-FAR_RANGE_FRACTION = 0.75
-NOISE_ABS_VELOCITY_MIN_MPS = 1.0
 SELECTION_RANGE_M = (15.0, 51.0)
 SELECTION_NEIGHBORHOOD_M = 5.0
 SELECTION_TOLERANCE_DB = 6.0

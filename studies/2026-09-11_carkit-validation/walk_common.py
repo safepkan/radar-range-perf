@@ -43,6 +43,10 @@ DEFAULT_DATA_DIR = Path.home() / "Data" / "tmp" / "walk-hallesaker-tx1-1-psi"
 # bandwidth, matching the report. Used only to convert Doppler to velocity.
 CARRIER_HZ = 76.374237e9
 PADDING = 4
+# Far-quarter noise: the farthest quarter of the range axis, native Doppler bins
+# with |v| at least this, per RX.
+FAR_RANGE_FRACTION = 0.75
+NOISE_ABS_VELOCITY_MIN_MPS = 1.0
 
 # Contiguous walk legs with a reliably tracked reflector (inclusive CPI indices).
 LEGS: dict[str, tuple[int, int]] = {"outbound": (26, 70), "inbound": (89, 127)}
