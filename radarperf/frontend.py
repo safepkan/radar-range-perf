@@ -134,8 +134,9 @@ def ctrx8188f(**overrides: object) -> GenericFrontend:
 
     Controlled datasheet typical values: 14.5 dBm/ch output power; RX noise figure
     10.2 dB (low-noise mode @ 10 MHz, the datasheet headline). Ultra-low-noise
-    mode reaches 9.7 dB @ 10 MHz. TX phase noise -100 dBc/Hz at 1 MHz, not yet
-    modelled.
+    mode reaches 9.7 dB @ 10 MHz. Separate single-return phase-noise diagnostics
+    use :func:`radarperf.phase_noise.ctrx8188f_phase_noise`; the link-budget
+    engine does not yet include phase noise.
     """
     base = GenericFrontend(
         tx_power_w=dbm_to_watt(14.5),

@@ -21,6 +21,7 @@ build/
 
 # Plots / local working artifacts
 local/
+/tmp/
 *.png
 !studies/**/deliverables/**/*.png
 !studies/**/inputs/*.png

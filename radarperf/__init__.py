@@ -26,7 +26,16 @@ Example
 
 from __future__ import annotations
 
-from . import antenna, detection, frontend, sweeps, target, trajectory, units
+from . import (
+    antenna,
+    detection,
+    frontend,
+    phase_noise,
+    sweeps,
+    target,
+    trajectory,
+    units,
+)
 from .antenna import (
     AntennaPair,
     ConstantGainAntenna,
@@ -133,6 +142,7 @@ __all__ = [
     "units",
     "detection",
     "frontend",
+    "phase_noise",
     "target",
     "trajectory",
     "sweeps",

@@ -12,7 +12,7 @@ choose a backend; that is left to the caller.
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, cast
+from typing import Literal, Optional, Sequence, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,8 +20,10 @@ import numpy.typing as npt
 from matplotlib.axes import Axes
 from matplotlib.projections.polar import PolarAxes
 
+from .phase_noise import PhaseNoiseResult, SingleReturnPhaseNoise
 from .protocols import Antenna
 from .sweeps import AcquisitionSweep, Map2D, RangeSweep
+from .units import linear_to_db
 
 # Default principal-plane sweep for antenna pattern cuts: +/-90 deg, 0.5 deg step.
 _PATTERN_ANGLES_DEG = np.linspace(-90.0, 90.0, 361)
@@ -337,6 +339,118 @@ def plot_pattern_uv(
         unit = f"{'relative ' if relative else ''}{kind} "
         unit += "[dB]" if relative else "[dBi]"
         ax.figure.colorbar(mesh, ax=ax, label=unit)
+    return ax
+
+
+def plot_phase_noise_spectrum(
+    model: SingleReturnPhaseNoise,
+    offset_hz: npt.NDArray[np.float64],
+    *,
+    ax: Axes | None = None,
+) -> Axes:
+    """Source and residual SSB density, before filtering/FFT, in dBc/Hz."""
+    ax = _new_ax(ax)
+    residual = model.residual_psd_per_hz(offset_hz)
+    if np.any(offset_hz <= 0):
+        raise ValueError("spectrum plot requires positive offsets")
+    if model.shared is not None:
+        ax.semilogx(
+            offset_hz,
+            linear_to_db(model.shared.ssb_linear_per_hz(offset_hz)),
+            label="shared source (assumed)",
+        )
+    if model.independent is not None:
+        ax.semilogx(
+            offset_hz,
+            linear_to_db(model.independent.ssb_linear_per_hz(offset_hz)),
+            label="independent residual",
+        )
+    ax.semilogx(offset_hz, linear_to_db(residual), label="after delay cancellation")
+    ax.set_xlabel("offset from return [Hz]")
+    ax.set_ylabel("SSB density [dBc/Hz]")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    return ax
+
+
+def plot_phase_noise_cut(
+    result: PhaseNoiseResult,
+    *,
+    axis: Literal["range", "doppler"] = "range",
+    at: float | None = None,
+    include_carrier: bool = True,
+    ax: Axes | None = None,
+) -> Axes:
+    """Power/bin relative to the carrier peak along a range or Doppler cut.
+
+    ``at`` selects the other coordinate: Doppler in Hz for a range cut, range
+    in metres for a Doppler cut. Uses the nearest bin, defaulting to the
+    deterministic carrier peak. The selected coordinate appears in the title.
+    """
+    if axis not in ("range", "doppler"):
+        raise ValueError("axis must be range or doppler")
+    if at is not None and not np.isfinite(at):
+        raise ValueError("cut coordinate must be finite")
+    ax = _new_ax(ax)
+    peak_index = np.unravel_index(
+        np.argmax(result.carrier_power), result.carrier_power.shape
+    )
+    row, col = int(peak_index[0]), int(peak_index[1])
+    if axis == "range":
+        if at is not None:
+            row = int(np.argmin(np.abs(result.doppler_hz - at)))
+        x = result.range_m
+        pn = result.phase_noise_dbc[row]
+        carrier = result.carrier_dbc[row]
+        total = result.total_dbc[row]
+        ax.set_xlabel("apparent range [m]")
+        ax.set_title(f"Doppler = {result.doppler_hz[row]:.1f} Hz")
+    else:
+        if at is not None:
+            col = int(np.argmin(np.abs(result.range_m - at)))
+        x = result.doppler_hz
+        pn = result.phase_noise_dbc[:, col]
+        carrier = result.carrier_dbc[:, col]
+        total = result.total_dbc[:, col]
+        ax.set_xlabel("Doppler [Hz]")
+        ax.set_title(f"apparent range = {result.range_m[col]:.3f} m")
+    ax.plot(x, pn, label="phase noise")
+    if include_carrier:
+        ax.plot(x, carrier, "--", label="carrier / window leakage")
+        ax.plot(x, total, alpha=0.7, label="expected total")
+    ax.set_ylabel("power/bin [dBc to carrier peak]")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    return ax
+
+
+def plot_phase_noise_map(
+    result: PhaseNoiseResult,
+    *,
+    ax: Axes | None = None,
+    floor_dbc: float = -140.0,
+    ceiling_dbc: float = -40.0,
+    colorbar: bool = True,
+) -> Axes:
+    """Expected phase-noise power/bin, excluding deterministic target leakage."""
+    if min(result.phase_noise_power.shape) < 2:
+        raise ValueError("map requires at least two range and Doppler bins")
+    if not np.isfinite([floor_dbc, ceiling_dbc]).all() or floor_dbc >= ceiling_dbc:
+        raise ValueError("color limits must be finite with floor < ceiling")
+    ax = _new_ax(ax)
+    mesh = ax.pcolormesh(
+        result.range_m,
+        result.velocity_mps,
+        np.maximum(result.phase_noise_dbc, floor_dbc),
+        shading="auto",
+        vmin=floor_dbc,
+        vmax=ceiling_dbc,
+    )
+    ax.set_xlabel("apparent range [m]")
+    ax.set_ylabel("Doppler velocity [m/s]")
+    ax.set_title("expected phase noise")
+    if colorbar:
+        ax.figure.colorbar(mesh, ax=ax, label="power/bin [dBc to carrier peak]")
     return ax
 
 

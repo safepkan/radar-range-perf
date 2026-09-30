@@ -55,6 +55,8 @@ smoke:
 	$(PYTHON) examples/ddma_combinations.py
 	MPLBACKEND=Agg $(PYTHON) examples/pd_vs_range.py
 	MPLBACKEND=Agg $(PYTHON) examples/plotting_demo.py
+	MPLBACKEND=Agg $(PYTHON) examples/phase_noise.py
+	MPLBACKEND=Agg $(PYTHON) examples/phase_noise_tutorial.py
 
 # Regenerate every working figure of the Lannik Psi study headlessly and run
 # its study-local tests. Figures land under the study's generated/ directory
