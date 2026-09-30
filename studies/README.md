@@ -36,6 +36,14 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
+- `2026-09-22_phase-noise-outdoor/` — outdoor corner-reflector captures with
+  the CARKIT radar at nominal 5 and 10 m, with 400 and 800 MHz sweeps. Every
+  strong return carries the same per-chirp frequency error (about 14–17 kHz rms,
+  a phase error of 2πτδf), 12–14 dB above what the CTRX8188F CW phase-noise
+  table predicts. Results are in
+  [`NOTES.md`](2026-09-22_phase-noise-outdoor/NOTES.md); the `outdoor_*.py`
+  scripts process the raw data (not in the repo) via
+  `make study_260922_phase_noise_outdoor`.
 - `2026-09-11_carkit-validation/` — validation of the range model against a
   CARKIT walking-reflector measurement (CTRX8188F + FARAD-IV, TX1, eight RX
   compared per channel). The measured per-RX SNR is 1.2–2.4 dB above the model
