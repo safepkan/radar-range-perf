@@ -48,6 +48,7 @@ from lannik_psi import (
     TARGET,
     BoresightSinr,
     CoverageCut,
+    Product,
     RxAntennaLayout,
     lannik_psi,
     load_tx_antenna,
@@ -346,6 +347,24 @@ def mimo_tx_gain_dbi(
     )
 
 
+def required_detection_snr_db(product: Product) -> tuple[float, ...]:
+    """Required SNR [dB] at each detection level, at the product's per-beam Pfa."""
+    processing_budget = product.radar.processing.budget(
+        product.waveform,
+        product.radar.frontend.n_tx,
+        product.radar.frontend.n_rx,
+    )
+    return tuple(
+        required_snr_db(
+            level,
+            product.radar.default_pfa,
+            swerling=TARGET.swerling,
+            n_pulses=processing_budget.n_noncoherent,
+        )
+        for level in DETECTION_LEVELS
+    )
+
+
 def range_at_required_snr(
     boresight: BoresightSinr,
     relative_gain_db: FloatArray,
@@ -485,7 +504,14 @@ def compute_rx_height_trade(
     square_boresight: BoresightSinr,
     detection_snr_db: tuple[float, ...],
 ) -> RxHeightTrade:
-    """Sweep dense RX subarray height and evaluate its vertical cell edge."""
+    """Sweep dense RX subarray height and evaluate its vertical cell edge.
+
+    Every height uses the square variant's boresight curve and its detection
+    thresholds (``detection_snr_db``, at its per-beam Pfa). Taller subarrays
+    form fewer beams; at the supplied height the large variant's own per-beam
+    Pfa would lower the thresholds by about 0.1 dB. Binary resolution involves
+    no false-alarm threshold.
+    """
     wavelength_m = SPEED_OF_LIGHT / CENTER_FREQUENCY_HZ
     square_height_lambda = RX_SOURCE_SUBARRAY_WIDTH_M / wavelength_m
     source_height_lambda = RX_SOURCE_SUBARRAY_HEIGHT_M / wavelength_m
@@ -1147,6 +1173,8 @@ def print_range_diagnostics(
     quadrants: tuple[TxQuadrant, ...],
     cuts: tuple[MimoRangeCut, ...],
     height_trade: RxHeightTrade,
+    square_boresight: BoresightSinr,
+    square_detection_snr_db: tuple[float, ...],
 ) -> None:
     """Print boresight sensitivity and representative resolution ranges."""
     coherent_gain_db = float(tx_antenna.gain_dbi_uv(0.0, 0.0))
@@ -1196,6 +1224,16 @@ def print_range_diagnostics(
         f"{height_trade.alias_correlation_db[square_index]:.1f} dB): "
         f"{square_ranges_text}"
     )
+    square_mimo_ranges_m = square_boresight.range_at(
+        np.asarray(square_detection_snr_db) - (mimo_gain_db - coherent_gain_db)
+    )
+    print(
+        "  square comparison boresight MIMO, Pd="
+        + " / ".join(f"{level:.0%}" for level in DETECTION_LEVELS)
+        + ": "
+        + " / ".join(f"{range_m:.0f}" for range_m in square_mimo_ranges_m)
+        + " m"
+    )
 
 
 def main() -> None:
@@ -1209,20 +1247,7 @@ def main() -> None:
     if not isinstance(rx_antenna, MultiBeamUniformArrayAntenna):
         raise TypeError("Lannik Psi RX must be a MultiBeamUniformArrayAntenna")
     boresight = BoresightSinr.of(product)
-    processing_budget = product.radar.processing.budget(
-        product.waveform,
-        product.radar.frontend.n_tx,
-        product.radar.frontend.n_rx,
-    )
-    detection_snr_db = tuple(
-        required_snr_db(
-            level,
-            product.radar.default_pfa,
-            swerling=TARGET.swerling,
-            n_pulses=processing_budget.n_noncoherent,
-        )
-        for level in DETECTION_LEVELS
-    )
+    detection_snr_db = required_detection_snr_db(product)
     range_cuts = tuple(
         compute_mimo_range_cut(
             cut,
@@ -1236,13 +1261,21 @@ def main() -> None:
     )
     square_product = lannik_psi(RX_SQUARE_LAYOUT)
     square_boresight = BoresightSinr.of(square_product)
+    square_detection_snr_db = required_detection_snr_db(square_product)
     height_trade = compute_rx_height_trade(
         tx_antenna,
         quadrants,
         square_boresight,
-        detection_snr_db,
+        square_detection_snr_db,
     )
-    print_range_diagnostics(tx_antenna, quadrants, range_cuts, height_trade)
+    print_range_diagnostics(
+        tx_antenna,
+        quadrants,
+        range_cuts,
+        height_trade,
+        square_boresight,
+        square_detection_snr_db,
+    )
     generated_dir = Path(__file__).parent / "generated" / "mimo"
     generated_dir.mkdir(parents=True, exist_ok=True)
     plot_left_right_half_beams(

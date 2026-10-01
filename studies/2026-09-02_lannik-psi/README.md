@@ -119,10 +119,12 @@ with range, such as the atmosphere, it is their effective value at that
 range. Fixed-dB terms move the Pd 50% and 90% ranges by the same ratio; terms
 that grow with range cost more at the longer Pd 50% range.
 
-The proposed TX aperture has 23.5 dBi directivity. The placeholder's ideal
-array of eight 17 dBi elements has 26 dBi, so the TX aperture costs 2.5 dB:
-its defocus phase widens the beam. The large RX subarrays, 21.5 dBi against
-the 17 dBi placeholder per channel, more than make up for that, by 4.5 dB.
+The steps before the 76.5 GHz row are at 77 GHz, the frequency of the
+supplied antenna data. There the proposed TX aperture has 23.5 dBi
+directivity. The placeholder's ideal array of eight 17 dBi elements has
+26 dBi, so the TX aperture costs 2.5 dB: its defocus phase widens the beam.
+The large RX subarrays, 21.5 dBi against the 17 dBi placeholder per channel,
+more than make up for that, by 4.5 dB.
 Forming 64 beams to cover the RX principal region takes back 1.2 dB of it.
 Holding the false-alarm probability per range–Doppler cell means testing each
 beam at a lower Pfa (see [NOTES.md](NOTES.md), "False alarms over the RX
@@ -145,8 +147,8 @@ Pd 50% range and the equivalent SNR change:
 | Sea-level instead of 1000 m atmosphere | −1.3% | −0.2 dB |
 | Noise figure 9.7 dB (our reading of the +3 dB RX gain setting) | +2.8% | +0.5 dB |
 
-Losses combine in dB. A 0.8 dB radome and 1 dB of TX derating together would
-cost about 2.5 dB, 13% of range. Rain and the chirp error grow with range, so
+Losses combine in dB. A 0.8 dB radome and 1 dB of TX derating together cost
+2.5 dB, 14% of range. Rain and the chirp error grow with range, so
 they cost more at the Pd 50% range than at shorter ones; at the Pd 90% range
 the 21 kHz chirp error costs 5.4% and light rain 6.6%.
 

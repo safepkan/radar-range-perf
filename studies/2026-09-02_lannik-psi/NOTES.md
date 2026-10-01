@@ -208,7 +208,8 @@ system loss is 2.10 dB (2.02 dB antenna, 0.08 dB chirp coherence) and the
 two-way atmospheric loss 0.40 dB. `lannik_psi.py` prints the itemised link
 budget at the Pd 90% range.
 
-**Sensitivities** on the large-RX baseline, each changing one term:
+**Sensitivities** on the large-RX baseline, each changing one term except the
+last, which combines two:
 
 | Change | Pd range (50% / 90%) | Pd 50% change | Equivalent SNR | Pd 90% change |
 |---|---:|---:|---:|---:|
@@ -221,9 +222,14 @@ budget at the Pd 90% range.
 | Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | −9.9% | −1.80 dB | −6.6% |
 | Per-chirp frequency error 21 kHz | 809 / 541 m | −11.3% | −2.09 dB | −5.4% |
 | Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | +6.7% | +1.12 dB | +6.4% |
+| Radome 0.8 dB one way and TX power 1 dB lower, together | 789 / 493 m | −13.6% | −2.53 dB | −13.8% |
 
-The small variant's sensitivities are similar. Rain and the chirp error cost it
-1–1.5 percentage points less, because its ranges are shorter.
+`lannik_psi.py` prints the same table for the small variant. Fixed-dB terms
+cost it practically the same fraction of range. Rain and the chirp error cost
+it less, because its ranges are shorter: at Pd 50%, 8.5% for light rain and
+8.7% for the 21 kHz error, against 9.9% and 11.3% for the large variant; at
+Pd 90%, 5.6% and 3.9%, against 6.6% and 5.4%. Ignoring the multiple testing
+would gain it 7.2% rather than 6.7%, because it forms more beams.
 
 The radome value is the upper end of the one published radome example in
 `docs/losses.md` (1.2–1.6 dB two way); it is an example, not a typical value.
@@ -369,7 +375,7 @@ column stagger, which changes neither gain nor beamwidth):
 | Principal region | ±12.0° az × ±12.0° el | ±12.0° az × ±6.0° el |
 | RX beams formed | 128 (8 × 8 + offset copy) | 64 (8 × 4 + offset copy) |
 | Effective false-alarm tests per cell | 80 | 56 |
-| Worst / mean beam-straddle loss | 0.30 / 0.12 dB | 0.70 dB worst |
+| Worst / mean beam-straddle loss | 0.30 / 0.12 dB | 0.69 / 0.25 dB |
 
 Values are at 76.5 GHz. The large rectangle, without its stagger, has been the
 plotted product and computational baseline since 2026-09-04; ordering the
@@ -488,7 +494,7 @@ variant at 6° elevation.
 
 **Result:** Within one fundamental steering cell, the large variant's 64-beam
 interleaved RX grid has a worst sampled beam-straddling loss of approximately
-0.70 dB. In a free-space radar equation this corresponds to approximately 3.9%
+0.7 dB. In a free-space radar equation this corresponds to approximately 3.9%
 range loss. The small variant's 128-beam grid loses at most 0.30 dB (1.7%);
 along the principal cuts its range ripple is at most 1.7% in elevation and
 1.0% in azimuth. Beam density also sets the multiple-testing cost; the two

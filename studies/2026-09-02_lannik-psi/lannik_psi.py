@@ -13,8 +13,8 @@ and, under an interactive Matplotlib backend, opens the figures.
 
 Scenario
 --------
-* Target: 1 m^2 RCS, Swerling 1, at boresight and at the edges of the
-  customer use case's +/-8 degree field of view.
+* Target: 1 m^2 RCS, Swerling 1, at boresight and 6 degrees off boresight
+  horizontally and vertically (``OFF_AXIS_REFERENCE_DEG``).
 * Acquisition: closing at 15 m/s, 20 Hz frame rate, 2-of-3 confirmation.
 * Pfa = 1e-6 per range-Doppler cell over all RX beams; ``per_beam_pfa``
   converts it to the per-beam value for each beam set.
@@ -28,7 +28,8 @@ of the run. The plot is zoomed to the product's detection range.
 The plotted product is the large RX variant, modelled without its column
 stagger: the computational baseline for range performance. The small RX
 variant (2 x 4 square subarrays), ordered first as a project choice, is the
-main comparison; the printed checkpoints and field-of-view ranges cover both.
+main comparison; the printed checkpoints, off-axis ranges and sensitivities
+cover both.
 
 Changes from the 2026-06-22 config-3 baseline
 ----------------------------------------------
@@ -41,10 +42,10 @@ Changes from the 2026-06-22 config-3 baseline
   with the fourth root of power).
 * RX antenna: the previous 17 dBi constant-gain channel placeholder has been
   replaced by an analytical uniform rectangular subarray pattern plus the
-  steered array factor of a parametric eight-channel URA. Until 2026-10-01 the
-  baseline used the supplied 2.42 x 4.83-lambda rectangular subarrays in a
-  densely packed 4 x 2 layout, giving 30.5 dBi effective boresight RX gain
-  with ideal coherent combination of the 8 RX channels in processing.
+  steered array factor of a parametric eight-channel URA. The baseline, the
+  large variant, uses the supplied 2.42 x 4.83-lambda rectangular subarrays in
+  a densely packed 4 x 2 layout. Ideal coherent combination of the 8 RX
+  channels remains in processing, giving 30.5 dBi effective boresight RX gain.
 * Front end, waveform and evaluation scenario: unchanged.
 * Boresight range checkpoints (Pd=50%/90%; Pacq=50%/90%): the June baseline was
   994/614 m and 1474/1372 m; after introducing only the TX aperture it was
@@ -1124,7 +1125,7 @@ def print_diagnostics(product: Product, acq: AcquisitionSweep) -> None:
     for level in DETECTION_LEVELS:
         print(
             f"  Pacq {level:.0%} (2-of-3)  : "
-            f"{format_range_m(pacq_ranges[level]):>7}"
+            f"{format_range_m(pacq_ranges[level]):>7}  (illustration)"
         )
     if np.isfinite(pd09) and unambiguous_range_m < pd09:
         print(
@@ -1156,7 +1157,7 @@ def plot_product(product: Product, acq: AcquisitionSweep, path: Path) -> None:
     ax.plot(
         acq.range_m,
         acq.confirmation_pd,
-        label=f"Pacq 2-of-3 ({format_level_ranges(pacq_ranges)})",
+        label=f"Pacq 2-of-3, illustration ({format_level_ranges(pacq_ranges)})",
     )
     for level in DETECTION_LEVELS:
         ax.axhline(level, color="0.6", lw=0.8, ls=":")
@@ -2213,8 +2214,14 @@ def breakdown_products() -> tuple[tuple[str, Product], ...]:
     )
 
 
-def sensitivity_products() -> tuple[tuple[str, Product], ...]:
-    """Single-term changes to the large-RX baseline: losses and adverse effects."""
+def sensitivity_products(
+    rx_layout: RxAntennaLayout = RX_LAYOUT,
+) -> tuple[tuple[str, Product], ...]:
+    """Changes to one RX variant's baseline: losses and adverse effects.
+
+    Each row changes one term, except the last, which combines two to show that
+    losses add in dB.
+    """
     # Rain attenuation only (ITU-R P.838-3); the toolbox's rain clutter model is
     # not validated at 77 GHz.
     light_rain = Atmosphere(
@@ -2224,26 +2231,41 @@ def sensitivity_products() -> tuple[tuple[str, Product], ...]:
         )
     )
     return (
-        ("Baseline", lannik_psi()),
+        ("Baseline", lannik_psi(rx_layout)),
         (
             "TX power -1 dB",
-            lannik_psi(losses=replace(LOSSES, tx_power_derating_db=1.0)),
+            lannik_psi(rx_layout, losses=replace(LOSSES, tx_power_derating_db=1.0)),
         ),
-        ("NF 9.7 dB", lannik_psi(noise_figure_db=9.7)),
-        ("NF 13.2 dB", lannik_psi(noise_figure_db=13.2)),
+        ("NF 9.7 dB", lannik_psi(rx_layout, noise_figure_db=9.7)),
+        ("NF 13.2 dB", lannik_psi(rx_layout, noise_figure_db=13.2)),
         (
             "Radome 0.8 dB one way",
-            lannik_psi(losses=replace(LOSSES, radome_one_way_loss_db=0.8)),
+            lannik_psi(rx_layout, losses=replace(LOSSES, radome_one_way_loss_db=0.8)),
         ),
-        ("Sea-level standard atmosphere", lannik_psi(environment=Atmosphere())),
-        ("Light rain, 1 mm/h", lannik_psi(environment=light_rain)),
+        (
+            "Sea-level standard atmosphere",
+            lannik_psi(rx_layout, environment=Atmosphere()),
+        ),
+        ("Light rain, 1 mm/h", lannik_psi(rx_layout, environment=light_rain)),
         (
             "Chirp frequency error 21 kHz",
-            lannik_psi(losses=replace(LOSSES, chirp_frequency_error_rms_hz=21.0e3)),
+            lannik_psi(
+                rx_layout,
+                losses=replace(LOSSES, chirp_frequency_error_rms_hz=21.0e3),
+            ),
         ),
         (
             "Pfa 1e-6 per beam (multiple tests ignored)",
-            lannik_psi(pfa_per_beam=EARLIER_PFA_PER_BEAM),
+            lannik_psi(rx_layout, pfa_per_beam=EARLIER_PFA_PER_BEAM),
+        ),
+        (
+            "Radome 0.8 dB and TX power -1 dB together",
+            lannik_psi(
+                rx_layout,
+                losses=replace(
+                    LOSSES, radome_one_way_loss_db=0.8, tx_power_derating_db=1.0
+                ),
+            ),
         ),
     )
 
@@ -2292,15 +2314,18 @@ def print_range_breakdown() -> None:
         previous = ranges
 
 
-def print_sensitivities() -> None:
-    """Print the boresight Pd ranges of single-term changes to the baseline."""
-    print("\nSensitivities, large-RX baseline, boresight single-scan Pd = 50% / 90%")
+def print_sensitivities(rx_layout: RxAntennaLayout = RX_LAYOUT) -> None:
+    """Print the boresight Pd ranges of changes to one RX variant's baseline."""
+    print(
+        f"\nSensitivities, {variant_name(rx_layout)}, boresight single-scan "
+        "Pd = 50% / 90%"
+    )
     print(
         "| Change | Pd range | Pd=50% vs baseline | Equivalent dB | Pd=90% vs baseline |"
     )
     print("|---|---:|---:|---:|---:|")
     baseline: dict[float, float] = {}
-    for label, product in sensitivity_products():
+    for label, product in sensitivity_products(rx_layout):
         ranges = pd_ranges(product)
         if label == "Baseline":
             baseline = ranges
@@ -2415,7 +2440,7 @@ def plot_coverage_summary(
     fig.colorbar(mesh, ax=axes, label="single-scan Pd", shrink=0.8)
     fig.suptitle(
         "Lannik Psi single-scan Pd coverage: 50% dashed, 90% solid "
-        "(axis scales differ)",
+        "(offset axis stretched)",
         fontsize=13,
     )
     fig.text(
@@ -2515,7 +2540,8 @@ def main() -> None:
     small = lannik_psi(RX_SQUARE_LAYOUT)
     print_range_breakdown()
     print_off_axis_ranges((product, small))
-    print_sensitivities()
+    for layout in (RX_SUPPLIED_LAYOUT, RX_SQUARE_LAYOUT):
+        print_sensitivities(layout)
     print_acquisition_illustration(product)
     for layout in (RX_SUPPLIED_LAYOUT, RX_SQUARE_LAYOUT):
         print_beam_pfa_trade(layout)
