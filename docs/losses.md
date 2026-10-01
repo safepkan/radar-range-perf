@@ -54,8 +54,8 @@ print(budget)
 |---|---|---|---|---|
 | TX power | `Frontend.tx_power_w` | datasheet typical | CTRX8188F: 14.5 dBm typical, 13.0 dBm minimum per channel | [1] Table 22 |
 | TX power derating | `SystemLosses.tx_power_derating_db` | 0 | CTRX8188F: up to 1 dB over temperature with closed-loop power control; up to 1.5 dB variation over a ramp in 76–77 GHz; 1.5 dB from typical to minimum | [1] Tables 22, 24 |
-| Noise figure | `Frontend.noise_figure_db` | datasheet typical | CTRX8188F, low-noise mode, 10 MHz IF: 10.2 dB typical, 13.2 dB maximum | [1] Table 30 |
-| NF derating | `SystemLosses.noise_figure_derating_db` | 0 | CTRX8188F: up to 3 dB from typical to maximum; for a negative RX gain step, up to the step's magnitude; 0.3 dB higher at 1 MHz IF than at 10 MHz | [1] Table 30 |
+| Noise figure | `Frontend.noise_figure_db` | datasheet typical | CTRX8188F, 10 MHz IF: low-noise mode 10.2 dB typical, 13.2 dB maximum (the preset); ultra-low-noise mode 9.7 dB typical, 12.7 dB maximum. We read the modes as RX gain 0 dB and +3 dB (below) | [1] Table 30 |
+| NF derating | `SystemLosses.noise_figure_derating_db` | 0 | CTRX8188F: up to 3 dB from typical to maximum; for a negative RX gain step, up to the step's magnitude; 0.3 dB (low-noise) or 0.2 dB (ultra-low-noise) higher at 1 MHz IF than at 10 MHz | [1] Table 30 |
 | Noise bandwidth | `FmcwWaveform.noise_bandwidth_hz` | the sample rate (ideal anti-alias filter) | none | |
 | ADC quantisation, IF gain shape | not modelled | | none | |
 
@@ -63,6 +63,25 @@ The CTRX8188F datasheet quotes RF parameters at the waveguide port on the far
 side of a 1.2 mm reference PCB, so the package-to-PCB transition is inside its
 figures for the reference footprint and stack-up ([1] Section 5, Figure 5). A
 different PCB, or anything between that plane and the antenna, is a feed loss.
+
+The datasheet gives the noise figure for a "low noise operation mode" and an
+"ultra low noise operation mode" ([1] Table 30). We read the two modes as the
+RX gain steps 0 dB and +3 dB, not as a separate setting:
+
+- Every Table 30 row for either mode (nominal conversion gain, noise figure at
+  1 MHz and at 10 MHz IF) is specified at one gain step: 0 dB for low-noise,
+  +3 dB for ultra-low-noise.
+- The two modes' nominal conversion gains are 3 dB apart, the size of that
+  step, at minimum, typical and maximum: 38, 41.5 and 45 dB FS/mW against 41.0,
+  44.5 and 48.0 dB FS/mW.
+- The datasheet does not mention the modes outside Table 30, and the user
+  manual [11] has no noise-mode setting. Its receiver configuration offers a
+  gain select with steps +3, 0, −3, −6, −12 and −18 dB, in `Configure_RX()`
+  (Table 46) and per ramp segment (`RX_GAINSET_SEL`, Table 120).
+
+Infineon has not confirmed this reading yet. If it holds, a receiver at +3 dB
+gain has the ultra-low-noise figures, 0.5 dB below the preset at 10 MHz IF:
+use `frontend.ctrx8188f(noise_figure_db=9.7)`.
 
 ### Feed and antenna
 
@@ -240,3 +259,6 @@ For each study or one-off calculation, state:
    <https://www.itu.int/rec/R-REC-P.838>.
 10. F. J. Harris, "On the use of windows for harmonic analysis with the
     discrete Fourier transform", *Proc. IEEE*, vol. 66, no. 1, 1978, Table 1.
+11. Infineon, CTRX8188F User Manual, rev. 0.20, 2025-11-10 (restricted, NDA):
+    Table 46 (`Configure_RX()` request), Table 120 (ramp segment
+    configuration CONFIG0).
