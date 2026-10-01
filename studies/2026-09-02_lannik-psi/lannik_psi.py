@@ -2178,36 +2178,35 @@ def breakdown_products() -> tuple[tuple[str, Product], ...]:
             ),
         ),
         (
+            "+ Pfa per cell over all beams",
+            lannik_psi(
+                RX_SUPPLIED_LAYOUT,
+                losses=EARLIER_LOSSES,
+                environment=EARLIER_ENVIRONMENT,
+                center_frequency_hz=source,
+            ),
+        ),
+        (
             "+ 76.5 GHz",
             lannik_psi(
                 RX_SUPPLIED_LAYOUT,
                 losses=EARLIER_LOSSES,
                 environment=EARLIER_ENVIRONMENT,
-                pfa_per_beam=EARLIER_PFA_PER_BEAM,
             ),
         ),
         (
             "+ atmosphere at 1000 m",
-            lannik_psi(
-                RX_SUPPLIED_LAYOUT,
-                losses=EARLIER_LOSSES,
-                pfa_per_beam=EARLIER_PFA_PER_BEAM,
-            ),
+            lannik_psi(RX_SUPPLIED_LAYOUT, losses=EARLIER_LOSSES),
         ),
         (
             "+ antenna loss",
             lannik_psi(
                 RX_SUPPLIED_LAYOUT,
                 losses=replace(LOSSES, chirp_frequency_error_rms_hz=0.0),
-                pfa_per_beam=EARLIER_PFA_PER_BEAM,
             ),
         ),
         (
-            "+ per-chirp frequency error",
-            lannik_psi(RX_SUPPLIED_LAYOUT, pfa_per_beam=EARLIER_PFA_PER_BEAM),
-        ),
-        (
-            "+ Pfa per cell over all beams: large RX (baseline)",
+            "+ per-chirp frequency error: large RX (baseline)",
             lannik_psi(RX_SUPPLIED_LAYOUT),
         ),
         ("Small RX, same assumptions", lannik_psi(RX_SQUARE_LAYOUT)),

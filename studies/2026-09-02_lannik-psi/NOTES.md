@@ -443,11 +443,11 @@ equivalent SNR change is 40 log10 of the range ratio.
 | Same model, current toolbox (window straddle computed: 0.47 instead of 0.6 dB per axis) | 1009 / 623 m | +1.6% | +0.27 dB | +1.5% |
 | Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% | −2.54 dB | −13.6% |
 | Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% | +4.51 dB | +29.7% |
-| 76.5 GHz instead of 77 GHz | 1127 / 696 m | −0.3% | −0.06 dB | −0.3% |
-| Atmosphere at 1000 m, 0.22 dB/km | 1096 / 684 m | −2.8% | −0.49 dB | −1.7% |
-| Antenna loss, 1.01 dB each side | 978 / 610 m | −10.7% | −1.97 dB | −10.9% |
-| Per-chirp frequency error, 3.5 kHz | 974 / 608 m | −0.5% | −0.08 dB | −0.2% |
-| **Pfa per cell over all beams: large-RX baseline** | **913 / 572 m** | −6.2% | −1.12 dB | −6.0% |
+| Pfa per cell over all beams, not per beam | 1058 / 655 m | −6.5% | −1.17 dB | −6.2% |
+| 76.5 GHz instead of 77 GHz | 1054 / 652 m | −0.3% | −0.05 dB | −0.3% |
+| Atmosphere at 1000 m, 0.22 dB/km | 1027 / 642 m | −2.6% | −0.46 dB | −1.6% |
+| Antenna loss, 1.01 dB each side | 916 / 572 m | −10.7% | −1.97 dB | −10.9% |
+| **Per-chirp frequency error, 3.5 kHz: large-RX baseline** | **913 / 572 m** | −0.4% | −0.07 dB | −0.1% |
 | Small RX instead, same assumptions | 767 / 479 m | −15.9% | −3.02 dB | −16.1% |
 
 Fixed-dB terms move both ranges by the same ratio. The small differences come
@@ -459,8 +459,10 @@ The steps through "large RX subarrays" correspond to the September
 checkpoints quoted elsewhere in these notes, which used 0.6 dB straddle per
 axis: 1114 / 688 m for the September baseline, 859 / 531 m with the TX
 aperture alone. The square first-cut candidate, now the small variant, was
-937 / 578 m in September. The terms added on 2026-10-01 cost 3.7 dB, 19% of
-the large variant's Pd 50% range; the baseline ends 8% below the June
+937 / 578 m in September. The false-alarm accounting follows the RX step
+directly, because it is the price of forming many beams: it takes back
+1.2 dB of the RX subarrays' 4.5 dB. The remaining adjustments cost 2.5 dB,
+14% of the large variant's Pd 50% range; the baseline ends 8% below the June
 estimate.
 
 At boresight and at 6° off boresight (`lannik_psi.py` prints this table):

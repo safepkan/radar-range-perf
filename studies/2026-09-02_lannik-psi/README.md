@@ -100,11 +100,11 @@ baseline. Each row adds one change to the row above.
 | Same model, current toolbox (computed window straddle) | 1009 m | +1.6% | +0.27 dB |
 | Proposed TX aperture instead of the TX placeholder | 872 m | −13.6% | −2.54 dB |
 | Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 m | +29.7% | +4.51 dB |
-| 76.5 GHz instead of 77 GHz | 1127 m | −0.3% | −0.06 dB |
-| Atmosphere at 1000 m | 1096 m | −2.8% | −0.49 dB |
-| Antenna loss, 1.0 dB each side | 978 m | −10.7% | −1.97 dB |
-| Per-chirp frequency error, 3.5 kHz | 974 m | −0.5% | −0.08 dB |
-| Pfa per range–Doppler cell over all beams: **large-RX baseline** | **913 m** | −6.2% | −1.12 dB |
+| Pfa per range–Doppler cell over all beams, not per beam | 1058 m | −6.5% | −1.17 dB |
+| 76.5 GHz instead of 77 GHz | 1054 m | −0.3% | −0.05 dB |
+| Atmosphere at 1000 m | 1027 m | −2.6% | −0.46 dB |
+| Antenna loss, 1.0 dB each side | 916 m | −10.7% | −1.97 dB |
+| Per-chirp frequency error, 3.5 kHz: **large-RX baseline** | **913 m** | −0.4% | −0.07 dB |
 | Small RX instead, same assumptions | 767 m | −15.9% | −3.02 dB |
 
 The equivalent SNR change is 40 log10 of the range ratio: the dB change
@@ -118,9 +118,13 @@ that grow with range cost more at the longer Pd 50% range.
 The proposed TX aperture has 23.5 dBi directivity. The placeholder's ideal
 array of eight 17 dBi elements has 26 dBi, so the TX aperture costs 2.5 dB:
 its defocus phase widens the beam. The large RX subarrays, 21.5 dBi against
-the 17 dBi placeholder per channel, more than make up for that. The atmosphere,
-loss and false-alarm terms added on 2026-10-01 then cost 3.7 dB, 19% of
-range, leaving the baseline 8% short of the June estimate.
+the 17 dBi placeholder per channel, more than make up for that, by 4.5 dB.
+Forming 64 beams to cover the RX principal region takes back 1.2 dB of it.
+Holding the false-alarm probability per range–Doppler cell means testing each
+beam at a lower Pfa (see [NOTES.md](NOTES.md), "False alarms over the RX
+beams"). The remaining adjustments (centre frequency, atmosphere, antenna loss
+and chirp error) cost 2.5 dB, 14% of range, leaving the baseline 8% short of
+the June estimate.
 
 ### Sensitivity to additional losses and adverse conditions
 
