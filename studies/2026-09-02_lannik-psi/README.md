@@ -107,6 +107,10 @@ baseline. Each row adds one change to the row above.
 | Per-chirp frequency error, 3.5 kHz: **large-RX baseline** | **913 m** | −0.4% | −0.07 dB |
 | Small RX instead, same assumptions | 767 m | −15.9% | −3.02 dB |
 
+In total, the large-RX baseline's Pd 50% range is 8.1% below the published
+June figure, 913 m against 994 m, or 1.48 dB: the sum of the steps. The small
+variant is 22.8% (4.50 dB) below it.
+
 The equivalent SNR change is 40 log10 of the range ratio: the dB change
 that would move the range as much under the R⁻⁴ law. For fixed-dB terms it is
 close to the term itself (the 2.02 dB two-way antenna loss shows as 1.97 dB,
@@ -123,8 +127,7 @@ Forming 64 beams to cover the RX principal region takes back 1.2 dB of it.
 Holding the false-alarm probability per range–Doppler cell means testing each
 beam at a lower Pfa (see [NOTES.md](NOTES.md), "False alarms over the RX
 beams"). The remaining adjustments (centre frequency, atmosphere, antenna loss
-and chirp error) cost 2.5 dB, 14% of range, leaving the baseline 8% short of
-the June estimate.
+and chirp error) cost 2.5 dB, 14% of range.
 
 ### Sensitivity to additional losses and adverse conditions
 

@@ -450,6 +450,10 @@ equivalent SNR change is 40 log10 of the range ratio.
 | **Per-chirp frequency error, 3.5 kHz: large-RX baseline** | **913 / 572 m** | −0.4% | −0.07 dB | −0.1% |
 | Small RX instead, same assumptions | 767 / 479 m | −15.9% | −3.02 dB | −16.1% |
 
+In total, the large-RX baseline's Pd 50% range is 8.1% below the published
+June figure, 913 m against 994 m, or 1.48 dB: the sum of the steps. The small
+variant is 22.8% (4.50 dB) below it.
+
 Fixed-dB terms move both ranges by the same ratio. The small differences come
 from the atmospheric loss, which changes with the range it acts over. Terms
 that grow with range (atmosphere, chirp error) cost more at the longer Pd 50%
@@ -462,8 +466,7 @@ aperture alone. The square first-cut candidate, now the small variant, was
 937 / 578 m in September. The false-alarm accounting follows the RX step
 directly, because it is the price of forming many beams: it takes back
 1.2 dB of the RX subarrays' 4.5 dB. The remaining adjustments cost 2.5 dB,
-14% of the large variant's Pd 50% range; the baseline ends 8% below the June
-estimate.
+14% of the large variant's Pd 50% range.
 
 At boresight and at 6° off boresight (`lannik_psi.py` prints this table):
 
