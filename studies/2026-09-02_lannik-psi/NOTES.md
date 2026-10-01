@@ -203,23 +203,24 @@ stated choice. The values are in `LOSSES` and `ENVIRONMENT` in
 | RX angle straddle | in the antenna model | The best-of-beams RX envelope already contains it, so `beamforming_loss_db` stays 0 |
 | Channel phase errors | 0 dB | CTRX8188F TX phase setting accuracy ≤ 4° and RX channel-to-channel drift ≤ 3.5° (Tables 24, 30); 4° rms would cost 0.02 dB |
 
-With these terms the system loss at the baseline's Pd=90% range (572 m, large
-variant) is 2.05 dB and the two-way atmospheric loss 0.25 dB; `lannik_psi.py`
-prints the itemised link budget.
+With these terms, at the baseline's Pd 50% range (913 m, large variant), the
+system loss is 2.10 dB (2.02 dB antenna, 0.08 dB chirp coherence) and the
+two-way atmospheric loss 0.40 dB. `lannik_psi.py` prints the itemised link
+budget at the Pd 90% range.
 
 **Sensitivities** on the large-RX baseline, each changing one term:
 
-| Change | Pd range | Pd=90% range |
-|---|---:|---:|
-| Baseline | 913 / 572 m | |
-| TX power 1 dB lower (temperature, Table 24) | 863 / 540 m | −5.5% |
-| NF 9.7 dB (RX gain +3 dB, our reading) | 938 / 588 m | +2.9% |
-| NF 13.2 dB (datasheet maximum) | 772 / 482 m | −15.6% |
-| Radome 0.8 dB one way | 835 / 522 m | −8.7% |
-| Sea-level standard atmosphere (0.35 dB/km) | 901 / 566 m | −0.9% |
-| Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | −6.6% |
-| Per-chirp frequency error 21 kHz | 809 / 541 m | −5.4% |
-| Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | +6.4% |
+| Change | Pd range (50% / 90%) | Pd 50% change | Equivalent SNR | Pd 90% change |
+|---|---:|---:|---:|---:|
+| Baseline | 913 / 572 m | | | |
+| TX power 1 dB lower (temperature, Table 24) | 863 / 540 m | −5.4% | −0.97 dB | −5.5% |
+| NF 9.7 dB (RX gain +3 dB, our reading) | 938 / 588 m | +2.8% | +0.48 dB | +2.9% |
+| NF 13.2 dB (datasheet maximum) | 772 / 482 m | −15.4% | −2.92 dB | −15.6% |
+| Radome 0.8 dB one way | 835 / 522 m | −8.5% | −1.55 dB | −8.7% |
+| Sea-level standard atmosphere (0.35 dB/km) | 901 / 566 m | −1.3% | −0.23 dB | −0.9% |
+| Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | −9.9% | −1.80 dB | −6.6% |
+| Per-chirp frequency error 21 kHz | 809 / 541 m | −11.3% | −2.09 dB | −5.4% |
+| Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | +6.7% | +1.12 dB | +6.4% |
 
 The small variant's sensitivities are similar. Rain and the chirp error cost it
 1–1.5 percentage points less, because its ranges are shorter.
@@ -231,7 +232,7 @@ baseline keeps 0 dB. The light-rain case adds only ITU-R P.838-3 rain
 attenuation (1.1 dB/km one way at 1 mm/h); the toolbox's rain clutter is not
 validated at 77 GHz, and fog and cloud are not modelled. The 21 kHz error was
 measured on CARKIT with 60 ns flyback and wait and 4.2 µs pre-payload. Rain and
-the chirp error cost relatively more at longer ranges, because they grow with
+the chirp error cost more at the longer Pd 50% range, because they grow with
 range.
 
 ### False alarms over the RX beams
@@ -433,28 +434,34 @@ illustration of that (see the [README](README.md)).
 
 **Result, 2026-10-01:** step by step from config 3 of the June comparison to
 the current large-RX baseline; `lannik_psi.py` prints this table. Each row
-adds one change to the row above.
+adds one change to the row above. The change is in the Pd 50% range; the
+equivalent SNR change is 40 log10 of the range ratio.
 
-| Step | Pd range | Change in Pd 90% range |
-|---|---:|---:|
-| June config 3, as published (17 dBi placeholders, coherent TX and RX, free space) | 994 / 614 m | |
-| Same model, current toolbox (window straddle computed: 0.47 instead of 0.6 dB per axis) | 1009 / 623 m | +1.5% |
-| Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% |
-| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% |
-| 76.5 GHz instead of 77 GHz | 1127 / 696 m | −0.3% |
-| Atmosphere at 1000 m, 0.22 dB/km | 1096 / 684 m | −1.7% |
-| Antenna loss, 1.01 dB each side | 978 / 610 m | −10.9% |
-| Per-chirp frequency error, 3.5 kHz | 974 / 608 m | −0.2% |
-| **Pfa per cell over all beams: large-RX baseline** | **913 / 572 m** | −6.0% |
-| Small RX instead, same assumptions | 767 / 479 m | −16.1% |
+| Step | Pd range (50% / 90%) | Pd 50% change | Equivalent SNR | Pd 90% change |
+|---|---:|---:|---:|---:|
+| June config 3, as published (17 dBi placeholders, coherent TX and RX, free space) | 994 / 614 m | | | |
+| Same model, current toolbox (window straddle computed: 0.47 instead of 0.6 dB per axis) | 1009 / 623 m | +1.6% | +0.27 dB | +1.5% |
+| Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% | −2.54 dB | −13.6% |
+| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% | +4.51 dB | +29.7% |
+| 76.5 GHz instead of 77 GHz | 1127 / 696 m | −0.3% | −0.06 dB | −0.3% |
+| Atmosphere at 1000 m, 0.22 dB/km | 1096 / 684 m | −2.8% | −0.49 dB | −1.7% |
+| Antenna loss, 1.01 dB each side | 978 / 610 m | −10.7% | −1.97 dB | −10.9% |
+| Per-chirp frequency error, 3.5 kHz | 974 / 608 m | −0.5% | −0.08 dB | −0.2% |
+| **Pfa per cell over all beams: large-RX baseline** | **913 / 572 m** | −6.2% | −1.12 dB | −6.0% |
+| Small RX instead, same assumptions | 767 / 479 m | −15.9% | −3.02 dB | −16.1% |
+
+Fixed-dB terms move both ranges by the same ratio. The small differences come
+from the atmospheric loss, which changes with the range it acts over. Terms
+that grow with range (atmosphere, chirp error) cost more at the longer Pd 50%
+range.
 
 The steps through "large RX subarrays" correspond to the September
 checkpoints quoted elsewhere in these notes, which used 0.6 dB straddle per
 axis: 1114 / 688 m for the September baseline, 859 / 531 m with the TX
-aperture alone. The square
-first-cut candidate, now the small variant, was 937 / 578 m in September. The
-loss and false-alarm terms added on 2026-10-01 cost 18% of the large
-variant's Pd 90% range; the baseline ends 7% below the June estimate.
+aperture alone. The square first-cut candidate, now the small variant, was
+937 / 578 m in September. The terms added on 2026-10-01 cost 3.7 dB, 19% of
+the large variant's Pd 50% range; the baseline ends 8% below the June
+estimate.
 
 At boresight and at 6° off boresight (`lannik_psi.py` prints this table):
 

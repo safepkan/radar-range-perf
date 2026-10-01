@@ -2257,35 +2257,60 @@ def pd_ranges(
     return ranges_at_levels(acq.range_m, acq.pd)
 
 
+def equivalent_db(range_m: float, reference_m: float) -> float:
+    """SNR change that moves a range by this ratio under R^-4: 40 log10(ratio).
+
+    For fixed-dB terms this is the term itself. For range-dependent terms
+    (atmosphere, chirp coherence) it is their effective value at that range.
+    """
+    return float(40.0 * np.log10(range_m / reference_m))
+
+
 def print_range_breakdown() -> None:
-    """Print boresight Pd ranges step by step from the June comparison."""
+    """Print boresight Pd ranges step by step from the June comparison.
+
+    Changes refer to the Pd = 50% range; the Pd = 90% change is printed for
+    comparison. Fixed-dB terms move both by the same ratio; range-dependent
+    terms cost more at the longer Pd = 50% range.
+    """
     print("\nRange breakdown, boresight single-scan Pd = 50% / 90%")
-    print("| Step | Pd range | Pd=90% change |")
-    print("|---|---:|---:|")
+    print("| Step | Pd range | Pd=50% change | Equivalent dB | Pd=90% change |")
+    print("|---|---:|---:|---:|---:|")
     published = JUNE_PUBLISHED_PD_RANGES_M
     print(
-        f"| June config 3, as published | {published[0]:.0f} / {published[1]:.0f} m | |"
+        f"| June config 3, as published | {published[0]:.0f} / {published[1]:.0f} m "
+        "| | | |"
     )
-    previous = published[1]
+    previous = {0.5: published[0], 0.9: published[1]}
     for label, product in breakdown_products():
         ranges = pd_ranges(product)
-        change = 100.0 * (ranges[0.9] / previous - 1.0)
-        print(f"| {label} | {ranges[0.5]:.0f} / {ranges[0.9]:.0f} m | {change:+.1f}% |")
-        previous = ranges[0.9]
+        print(
+            f"| {label} | {ranges[0.5]:.0f} / {ranges[0.9]:.0f} m | "
+            f"{100.0 * (ranges[0.5] / previous[0.5] - 1.0):+.1f}% | "
+            f"{equivalent_db(ranges[0.5], previous[0.5]):+.2f} dB | "
+            f"{100.0 * (ranges[0.9] / previous[0.9] - 1.0):+.1f}% |"
+        )
+        previous = ranges
 
 
 def print_sensitivities() -> None:
     """Print the boresight Pd ranges of single-term changes to the baseline."""
     print("\nSensitivities, large-RX baseline, boresight single-scan Pd = 50% / 90%")
-    print("| Change | Pd range | Pd=90% vs baseline |")
-    print("|---|---:|---:|")
-    baseline = float("nan")
+    print(
+        "| Change | Pd range | Pd=50% vs baseline | Equivalent dB | Pd=90% vs baseline |"
+    )
+    print("|---|---:|---:|---:|---:|")
+    baseline: dict[float, float] = {}
     for label, product in sensitivity_products():
         ranges = pd_ranges(product)
         if label == "Baseline":
-            baseline = ranges[0.9]
-        change = 100.0 * (ranges[0.9] / baseline - 1.0)
-        print(f"| {label} | {ranges[0.5]:.0f} / {ranges[0.9]:.0f} m | {change:+.1f}% |")
+            baseline = ranges
+        print(
+            f"| {label} | {ranges[0.5]:.0f} / {ranges[0.9]:.0f} m | "
+            f"{100.0 * (ranges[0.5] / baseline[0.5] - 1.0):+.1f}% | "
+            f"{equivalent_db(ranges[0.5], baseline[0.5]):+.2f} dB | "
+            f"{100.0 * (ranges[0.9] / baseline[0.9] - 1.0):+.1f}% |"
+        )
 
 
 def print_off_axis_ranges(products: tuple[Product, ...]) -> None:

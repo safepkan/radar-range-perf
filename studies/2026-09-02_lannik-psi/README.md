@@ -91,48 +91,57 @@ These numbers assume:
 Config 3 of the [2026-06-22 configuration comparison](../2026-06-22_config-comparison/)
 was the starting point. It was a boresight-only estimate: CTRX8188F with
 17 dBi placeholder antennas, coherent TX and RX, free space, no system losses.
-Boresight single-scan Pd ranges, step by step to the current large-RX
-baseline:
+Boresight single-scan Pd 50% range, step by step to the current large-RX
+baseline. Each row adds one change to the row above.
 
-| Step | Pd 50% / 90% | Change in Pd 90% range |
-|---|---:|---:|
-| June config 3, as published | 994 / 614 m | |
-| Same model, current toolbox (computed window straddle) | 1009 / 623 m | +1.5% |
-| Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% |
-| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% |
-| 76.5 GHz instead of 77 GHz | 1127 / 696 m | −0.3% |
-| Atmosphere at 1000 m | 1096 / 684 m | −1.7% |
-| Antenna loss, 1.0 dB each side | 978 / 610 m | −10.9% |
-| Per-chirp frequency error, 3.5 kHz | 974 / 608 m | −0.2% |
-| Pfa per range–Doppler cell over all beams: **large-RX baseline** | **913 / 572 m** | −6.0% |
-| Small RX instead, same assumptions | 767 / 479 m | −16.1% |
+| Step | Pd 50% range | Change | Equivalent SNR |
+|---|---:|---:|---:|
+| June config 3, as published | 994 m | | |
+| Same model, current toolbox (computed window straddle) | 1009 m | +1.6% | +0.27 dB |
+| Proposed TX aperture instead of the TX placeholder | 872 m | −13.6% | −2.54 dB |
+| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 m | +29.7% | +4.51 dB |
+| 76.5 GHz instead of 77 GHz | 1127 m | −0.3% | −0.06 dB |
+| Atmosphere at 1000 m | 1096 m | −2.8% | −0.49 dB |
+| Antenna loss, 1.0 dB each side | 978 m | −10.7% | −1.97 dB |
+| Per-chirp frequency error, 3.5 kHz | 974 m | −0.5% | −0.08 dB |
+| Pfa per range–Doppler cell over all beams: **large-RX baseline** | **913 m** | −6.2% | −1.12 dB |
+| Small RX instead, same assumptions | 767 m | −15.9% | −3.02 dB |
+
+The equivalent SNR change is 40 log10 of the range ratio: the dB change
+that would move the range as much under the R⁻⁴ law. For fixed-dB terms it is
+close to the term itself (the 2.02 dB two-way antenna loss shows as 1.97 dB,
+because the atmospheric loss falls at the shorter range). For terms that grow
+with range, such as the atmosphere, it is their effective value at that
+range. Fixed-dB terms move the Pd 50% and 90% ranges by the same ratio; terms
+that grow with range cost more at the longer Pd 50% range.
 
 The proposed TX aperture has 23.5 dBi directivity. The placeholder's ideal
 array of eight 17 dBi elements has 26 dBi, so the TX aperture costs 2.5 dB:
 its defocus phase widens the beam. The large RX subarrays, 21.5 dBi against
-the 17 dBi placeholder per channel, more than make up for that. The new loss and false-alarm terms then
-cost about 18%, leaving the baseline 7% short of the June estimate at
-Pd 90%.
+the 17 dBi placeholder per channel, more than make up for that. The atmosphere,
+loss and false-alarm terms added on 2026-10-01 then cost 3.7 dB, 19% of
+range, leaving the baseline 8% short of the June estimate.
 
 ### Sensitivity to additional losses and adverse conditions
 
 The baseline leaves out terms that are unknown or design-dependent. Each row
 changes one term, as change in the large variant's boresight single-scan
-Pd 90% range:
+Pd 50% range and the equivalent SNR change:
 
-| Change | Pd 90% range |
-|---|---:|
-| Noise figure at the datasheet maximum, 13.2 dB instead of 10.2 dB | −15.6% |
-| Radome, 0.8 dB one way (one published example) | −8.7% |
-| Light rain, 1 mm/h (attenuation only) | −6.6% |
-| TX power 1 dB lower (temperature) | −5.5% |
-| Per-chirp frequency error of 21 kHz (tight ramp timing) | −5.4% |
-| Sea-level instead of 1000 m atmosphere | −0.9% |
-| Noise figure 9.7 dB (our reading of the +3 dB RX gain setting) | +2.9% |
+| Change | Pd 50% range | Equivalent SNR |
+|---|---:|---:|
+| Noise figure at the datasheet maximum, 13.2 dB instead of 10.2 dB | −15.4% | −2.9 dB |
+| Per-chirp frequency error of 21 kHz (tight ramp timing) | −11.3% | −2.1 dB |
+| Light rain, 1 mm/h (attenuation only) | −9.9% | −1.8 dB |
+| Radome, 0.8 dB one way (one published example) | −8.5% | −1.6 dB |
+| TX power 1 dB lower (temperature) | −5.4% | −1.0 dB |
+| Sea-level instead of 1000 m atmosphere | −1.3% | −0.2 dB |
+| Noise figure 9.7 dB (our reading of the +3 dB RX gain setting) | +2.8% | +0.5 dB |
 
-Losses combine in dB. A 0.8 dB radome and 1 dB of TX derating together
-would cost 2.6 dB, about 14% of range. Rain and the chirp error grow with range and cost more
-at longer ranges.
+Losses combine in dB. A 0.8 dB radome and 1 dB of TX derating together would
+cost about 2.5 dB, 13% of range. Rain and the chirp error grow with range, so
+they cost more at the Pd 50% range than at shorter ones; at the Pd 90% range
+the 21 kHz chirp error costs 5.4% and light rain 6.6%.
 
 ### Relation to the customer use case
 
