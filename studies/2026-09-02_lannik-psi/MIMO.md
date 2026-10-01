@@ -14,11 +14,34 @@ channel-array ambiguities.
 Last substantial update: 2026-09-11.
 
 **RFQ update, 2026-09-17:** Appendix B of the illustrated
-[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) uses mode-specific
+[technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md) uses mode-specific
 half-aperture correlation checks alongside directional gain and a full-pattern
 review. Its numerical thresholds are proposed feasibility targets, not yet
 validated system acceptance limits. See
-[internal RFQ review](rfq/internal/REVIEW.md) for the rationale and checks.
+[internal RFQ review](deliverables/2026-09-17_rfq/internal/REVIEW.md) for the rationale and checks.
+
+**Model update, 2026-10-01:** The ranges in this note come from the September
+model: 77 GHz, free space, no system losses, and `Pfa=1e-6` per beam test.
+The study now runs at 76.5 GHz with the ITU-R reference atmosphere at 1000 m,
+an antenna loss on each side, the per-chirp frequency error, and `Pfa=1e-6`
+per range–Doppler cell over all RX beams (see [NOTES.md](NOTES.md), "Loss and
+environment assumptions" and "False alarms over the RX beams").
+Correlations, required SNRs and other SNR-domain results are unchanged.
+Detection ranges are 17–18% shorter. Binary-resolution ranges, which involve
+no false-alarm threshold, are 11–12% shorter. Representative values, rerun
+with `quadrant_mimo.py` and `lannik_psi.py`:
+
+| Quantity | September | 2026-10-01 |
+|---|---:|---:|
+| Large RX boresight Pd=50/90%, coherent | 1115 / 688 m | 913 / 572 m |
+| Large RX boresight Pd=50/90%, four-quadrant MIMO | 788 / 487 m | 651 / 406 m |
+| Small RX boresight Pd=50/90%, coherent | 937 / 579 m | 767 / 479 m |
+| Small RX boresight Pd=50/90%, four-quadrant MIMO | 663 / 409 m | 547 / 341 m |
+| Square edge, 99% resolution after 1/2/4 updates | 253 / 407 / 541 m | 226 / 363 / 481 m |
+| Large RX vertical edge, 99% resolution after 1/2/4 updates | 421 / 673 / 884 m | 374 / 594 / 776 m |
+
+The principal edges quoted as ±11.9° and ±5.9° below are ±12.0° and ±6.0° at
+76.5 GHz. The first prototype is now the small (square) variant.
 
 ## Motivation and current conclusion
 
@@ -73,7 +96,7 @@ prototype is the rotated square-subarray URA, whose aliases all sit at
 in every stagger variant, and as the fallback for the vertical family. The
 horizontal-edge discrimination of about -3 dB, which comes entirely from the
 prescribed TX defocus, is therefore a priority for the TX specification; see
-[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+[technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md).
 
 **Scheduling decision, 2026-09-11:** Start with periodically interlaced MIMO
 rather than purely on-demand bursts. Schedule both split directions: a
@@ -218,7 +241,7 @@ Because the antenna supplier implements our concept, this dependence is
 something to specify rather than hope for. The supplier-facing formulation,
 with per-port pattern deliverables and acceptance thresholds on the
 alias-pair correlations, is drafted in
-[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+[technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md).
 
 ## Single-CPI detection results
 
@@ -448,7 +471,7 @@ tolerates slower resolution:
    the two measurements are in different CPIs, so target RCS fluctuation
    enters the ratio; MIMO measures all four quadrant responses in one CPI and
    cancels the unknown amplitude exactly. The TX pattern requirement in
-   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) is unchanged.
+   [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md) is unchanged.
 2. **Gain-trajectory evidence in the tracker.** As a target or the platform
    moves, the received amplitude follows the two-way gain pattern at the
    true direction; the alias hypothesis predicts a different profile. This is

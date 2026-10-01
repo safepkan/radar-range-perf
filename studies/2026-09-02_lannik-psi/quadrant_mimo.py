@@ -13,8 +13,9 @@ are exact grating-lobe aliases for the physical RX channel array, and estimates
 ideal MIMO detection range and binary ambiguity-resolution range for an
 illustrative interlaced schedule.
 
-This deliberately excludes waveform orthogonality loss, calibration error,
-phase noise, processing-capacity and multiple-target effects.
+Ranges use the main study's atmosphere and system losses through its
+boresight SINR curve. This deliberately excludes waveform orthogonality loss,
+calibration error, processing-capacity and multiple-target effects.
 
 Run from the repository root with::
 
@@ -38,21 +39,22 @@ from lannik_psi import (
     CENTER_FREQUENCY_HZ,
     COVERAGE_CUTS,
     DETECTION_LEVELS,
-    PFA,
+    PFA_PER_CELL,
     RADIATOR_GAIN_DBI,
     RX_SQUARE_LAYOUT,
     RX_SOURCE_SUBARRAY_HEIGHT_M,
     RX_SOURCE_SUBARRAY_WIDTH_M,
     RX_SUPPLIED_LAYOUT,
     TARGET,
+    BoresightSinr,
     CoverageCut,
+    Product,
     RxAntennaLayout,
     lannik_psi,
     load_tx_antenna,
     rx_principal_cut_angles_deg,
 )
 from radarperf import (
-    Geometry,
     MultiBeamUniformArrayAntenna,
     RectangularArrayAntenna,
     required_snr_db,
@@ -67,7 +69,6 @@ UV_LIMIT = 0.55
 UV_SAMPLES = 441
 CORRELATION_FLOOR_DB = -35.0
 FIELD_CHUNK_SIZE = 4096
-RANGE_REFERENCE_M = 100.0
 RANGE_CUT_LIMIT_DEG = 30.0
 RANGE_CUT_SAMPLES = 1201
 AMBIGUITY_SUCCESS_PROBABILITY = 0.99
@@ -346,15 +347,35 @@ def mimo_tx_gain_dbi(
     )
 
 
-def range_at_required_snr(
-    snr_at_reference_db: FloatArray, required_db: float | FloatArray
-) -> FloatArray:
-    """Convert directional reference-range SNR into an R^-4 range boundary."""
-    return np.asarray(
-        RANGE_REFERENCE_M
-        * 10.0 ** ((np.asarray(snr_at_reference_db) - required_db) / 40.0),
-        dtype=float,
+def required_detection_snr_db(product: Product) -> tuple[float, ...]:
+    """Required SNR [dB] at each detection level, at the product's per-beam Pfa."""
+    processing_budget = product.radar.processing.budget(
+        product.waveform,
+        product.radar.frontend.n_tx,
+        product.radar.frontend.n_rx,
     )
+    return tuple(
+        required_snr_db(
+            level,
+            product.radar.default_pfa,
+            swerling=TARGET.swerling,
+            n_pulses=processing_budget.n_noncoherent,
+        )
+        for level in DETECTION_LEVELS
+    )
+
+
+def range_at_required_snr(
+    boresight: BoresightSinr,
+    relative_gain_db: FloatArray,
+    required_db: float | FloatArray,
+) -> FloatArray:
+    """Range at which directional SNR reaches ``required_db``.
+
+    Directional SNR is the boresight range curve plus ``relative_gain_db``, the
+    direction's two-way gain change from the coherent boresight gain.
+    """
+    return boresight.range_at(np.asarray(required_db) - np.asarray(relative_gain_db))
 
 
 def required_binary_alias_snr_db(
@@ -401,7 +422,7 @@ def compute_mimo_range_cut(
     tx_antenna: RectangularArrayAntenna,
     quadrants: tuple[TxQuadrant, ...],
     rx_antenna: MultiBeamUniformArrayAntenna,
-    coherent_boresight_snr_db: float,
+    boresight: BoresightSinr,
     detection_snr_db: tuple[float, ...],
 ) -> MimoRangeCut:
     """Compute coherent/MIMO detection and binary resolution range in one cut."""
@@ -418,25 +439,17 @@ def compute_mimo_range_cut(
     coherent_boresight_tx_gain_db = float(tx_antenna.gain_dbi_uv(0.0, 0.0))
     boresight_rx_gain_db = float(rx_antenna.gain_dbi(0.0, 0.0))
     rx_relative_db = rx_gain_db - boresight_rx_gain_db
-    coherent_snr_db = (
-        coherent_boresight_snr_db
-        + coherent_tx_gain_db
-        - coherent_boresight_tx_gain_db
-        + rx_relative_db
+    coherent_relative_db = (
+        coherent_tx_gain_db - coherent_boresight_tx_gain_db + rx_relative_db
     )
-    mimo_snr_db = (
-        coherent_boresight_snr_db
-        + mimo_tx_gain_db
-        - coherent_boresight_tx_gain_db
-        + rx_relative_db
-    )
+    mimo_relative_db = mimo_tx_gain_db - coherent_boresight_tx_gain_db + rx_relative_db
 
     coherent_ranges = tuple(
-        range_at_required_snr(coherent_snr_db, required_db)
+        range_at_required_snr(boresight, coherent_relative_db, required_db)
         for required_db in detection_snr_db
     )
     mimo_ranges = tuple(
-        range_at_required_snr(mimo_snr_db, required_db)
+        range_at_required_snr(boresight, mimo_relative_db, required_db)
         for required_db in detection_snr_db
     )
 
@@ -458,7 +471,9 @@ def compute_mimo_range_cut(
             error_probability=1.0 - AMBIGUITY_SUCCESS_PROBABILITY,
             update_count=update_count,
         )
-        resolution_range = range_at_required_snr(mimo_snr_db, required_resolution_db)
+        resolution_range = range_at_required_snr(
+            boresight, mimo_relative_db, required_resolution_db
+        )
         ambiguity_ranges.append(
             np.asarray(np.where(inside_principal, np.nan, resolution_range))
         )
@@ -486,10 +501,17 @@ def compute_mimo_range_cut(
 def compute_rx_height_trade(
     tx_antenna: RectangularArrayAntenna,
     quadrants: tuple[TxQuadrant, ...],
-    square_boresight_snr_db: float,
+    square_boresight: BoresightSinr,
     detection_snr_db: tuple[float, ...],
 ) -> RxHeightTrade:
-    """Sweep dense RX subarray height and evaluate its vertical cell edge."""
+    """Sweep dense RX subarray height and evaluate its vertical cell edge.
+
+    Every height uses the square variant's boresight curve and its detection
+    thresholds (``detection_snr_db``, at its per-beam Pfa). Taller subarrays
+    form fewer beams; at the supplied height the large variant's own per-beam
+    Pfa would lower the thresholds by about 0.1 dB. Binary resolution involves
+    no false-alarm threshold.
+    """
     wavelength_m = SPEED_OF_LIGHT / CENTER_FREQUENCY_HZ
     square_height_lambda = RX_SOURCE_SUBARRAY_WIDTH_M / wavelength_m
     source_height_lambda = RX_SOURCE_SUBARRAY_HEIGHT_M / wavelength_m
@@ -505,23 +527,23 @@ def compute_rx_height_trade(
     # At a densely packed subarray's principal edge, h*v/lambda = 0.5.
     # The best periodic channel-array beam has unity array factor there.
     rx_edge_relative_db = 20.0 * np.log10(np.abs(np.sinc(height_lambda * edge_v)))
-    coherent_snr_db = (
-        square_boresight_snr_db
-        + rx_boresight_delta_db
+    coherent_relative_db = (
+        rx_boresight_delta_db
         + coherent_tx_gain_db
         - coherent_boresight_tx_gain_db
         + rx_edge_relative_db
     )
-    mimo_snr_db = (
-        square_boresight_snr_db
-        + rx_boresight_delta_db
+    mimo_relative_db = (
+        rx_boresight_delta_db
         + mimo_tx_gain_db
         - coherent_boresight_tx_gain_db
         + rx_edge_relative_db
     )
-    coherent_pd50_range_m = range_at_required_snr(coherent_snr_db, detection_snr_db[0])
+    coherent_pd50_range_m = range_at_required_snr(
+        square_boresight, coherent_relative_db, detection_snr_db[0]
+    )
     mimo_detection_ranges_m = tuple(
-        range_at_required_snr(mimo_snr_db, required_db)
+        range_at_required_snr(square_boresight, mimo_relative_db, required_db)
         for required_db in detection_snr_db
     )
 
@@ -531,7 +553,8 @@ def compute_rx_height_trade(
     alias_correlation_db = 10.0 * np.log10(np.maximum(correlation, 1.0e-30))
     ambiguity_ranges_m = tuple(
         range_at_required_snr(
-            mimo_snr_db,
+            square_boresight,
+            mimo_relative_db,
             required_binary_alias_snr_db(
                 correlation,
                 error_probability=1.0 - AMBIGUITY_SUCCESS_PROBABILITY,
@@ -920,7 +943,8 @@ def plot_mimo_detection_range_cuts(cuts: tuple[MimoRangeCut, ...], path: Path) -
     fig.text(
         0.5,
         0.018,
-        "1 m² Swerling-1 target | Pfa=1e-6 | same full-length CPI and total "
+        f"1 m² Swerling-1 target | Pfa {PFA_PER_CELL:.0e} per cell over the "
+        "coherent RX beams | same full-length CPI and total "
         "eight-port TX power | ideal coherent RX/TX-channel processing | "
         "no MIMO implementation loss",
         ha="center",
@@ -1149,6 +1173,8 @@ def print_range_diagnostics(
     quadrants: tuple[TxQuadrant, ...],
     cuts: tuple[MimoRangeCut, ...],
     height_trade: RxHeightTrade,
+    square_boresight: BoresightSinr,
+    square_detection_snr_db: tuple[float, ...],
 ) -> None:
     """Print boresight sensitivity and representative resolution ranges."""
     coherent_gain_db = float(tx_antenna.gain_dbi_uv(0.0, 0.0))
@@ -1198,11 +1224,21 @@ def print_range_diagnostics(
         f"{height_trade.alias_correlation_db[square_index]:.1f} dB): "
         f"{square_ranges_text}"
     )
+    square_mimo_ranges_m = square_boresight.range_at(
+        np.asarray(square_detection_snr_db) - (mimo_gain_db - coherent_gain_db)
+    )
+    print(
+        "  square comparison boresight MIMO, Pd="
+        + " / ".join(f"{level:.0%}" for level in DETECTION_LEVELS)
+        + ": "
+        + " / ".join(f"{range_m:.0f}" for range_m in square_mimo_ranges_m)
+        + " m"
+    )
 
 
 def main() -> None:
     """Run the idealized four-quadrant MIMO ambiguity experiment."""
-    product = lannik_psi()
+    product = lannik_psi(RX_SUPPLIED_LAYOUT, name="Lannik Psi, large RX")
     tx_antenna = load_tx_antenna()
     quadrants = split_tx_quadrants(tx_antenna)
     halves = split_tx_left_right(tx_antenna)
@@ -1210,45 +1246,36 @@ def main() -> None:
     rx_antenna = product.radar.antenna.rx
     if not isinstance(rx_antenna, MultiBeamUniformArrayAntenna):
         raise TypeError("Lannik Psi RX must be a MultiBeamUniformArrayAntenna")
-    coherent_boresight_snr_db = product.radar.link_budget(
-        TARGET, Geometry(range_m=RANGE_REFERENCE_M)
-    ).snr_db
-    processing_budget = product.radar.processing.budget(
-        product.waveform,
-        product.radar.frontend.n_tx,
-        product.radar.frontend.n_rx,
-    )
-    detection_snr_db = tuple(
-        required_snr_db(
-            level,
-            PFA,
-            swerling=TARGET.swerling,
-            n_pulses=processing_budget.n_noncoherent,
-        )
-        for level in DETECTION_LEVELS
-    )
+    boresight = BoresightSinr.of(product)
+    detection_snr_db = required_detection_snr_db(product)
     range_cuts = tuple(
         compute_mimo_range_cut(
             cut,
             tx_antenna,
             quadrants,
             rx_antenna,
-            coherent_boresight_snr_db,
+            boresight,
             detection_snr_db,
         )
         for cut in COVERAGE_CUTS
     )
     square_product = lannik_psi(RX_SQUARE_LAYOUT)
-    square_boresight_snr_db = square_product.radar.link_budget(
-        TARGET, Geometry(range_m=RANGE_REFERENCE_M)
-    ).snr_db
+    square_boresight = BoresightSinr.of(square_product)
+    square_detection_snr_db = required_detection_snr_db(square_product)
     height_trade = compute_rx_height_trade(
         tx_antenna,
         quadrants,
-        square_boresight_snr_db,
-        detection_snr_db,
+        square_boresight,
+        square_detection_snr_db,
     )
-    print_range_diagnostics(tx_antenna, quadrants, range_cuts, height_trade)
+    print_range_diagnostics(
+        tx_antenna,
+        quadrants,
+        range_cuts,
+        height_trade,
+        square_boresight,
+        square_detection_snr_db,
+    )
     generated_dir = Path(__file__).parent / "generated" / "mimo"
     generated_dir.mkdir(parents=True, exist_ok=True)
     plot_left_right_half_beams(

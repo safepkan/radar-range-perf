@@ -33,51 +33,12 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
-- `2026-09-02_lannik-psi/` — Lannik Psi design study, carried forward from
-  config 3 of the 2026-06-22 comparison. It retains the same closing-target
-  evaluation scenario and now models the proposed tapered 16 x 16 TX aperture,
-  an analytical uniform rectangular RX subarray and a parametric eight-channel
-  RX URA. The current coherent-study baseline again uses the supplied
-  2.42 x 4.83-wavelength rectangular subarrays in a densely packed 4 x 2
-  layout and a periodic 64-beam steering set. The square RX geometry remains
-  an explicit comparison candidate. The beam set samples one fundamental
-  array-factor cell with an 8 x 4 grid plus an equally sized half-cell-offset
-  grid; it reproduces the
-  best array-factor envelope throughout visible u/v space through periodic
-  aliases. Static single-scan Pd coverage is shown in polar and Cartesian
-  horizontal, vertical and diagonal cuts, with principal-region edges marked
-  to expose the resulting angular ambiguity. The supplied
-  presentation, MATLAB loader and TX/RX aperture data are archived under the
-  study's `inputs/`. A separate `quadrant_mimo.py` experiment evaluates how
-  well four ideal orthogonal TX-quadrant signatures distinguish the RX
-  grating-lobe aliases, compares coherent and MIMO detection range, and models
-  accumulation of binary ambiguity evidence in an illustrative interlaced
-  schedule without adding experimental architecture to the main coherent-TX
-  script. The living system-design record is maintained in
-  [`NOTES.md`](2026-09-02_lannik-psi/NOTES.md), with the MIMO investigation in
-  [`MIMO.md`](2026-09-02_lannik-psi/MIMO.md). The separate experimental
-  `rx_layout_experiment.py` script shows the likely fixed rotated-square
-  geometry and focuses the active electrical trade on staggered versus
-  unstaggered rectangular RX phase-center layouts, without changing the main
-  range baseline. Its decision rationale and near-term investigation plan are
-  maintained separately in [`RX_LAYOUT.md`](2026-09-02_lannik-psi/RX_LAYOUT.md).
-  A companion `rx_resolution_experiment.py` compares targeted resolution events
-  using one coherent observation followed by variable MIMO illumination, with
-  plots under `generated/experimental/on_demand/` and study-local tests.
-  `rx_stagger_amount_experiment.py` extends it to several coherent frames and
-  a height/4 stagger, sweeps the stagger amount, screens competing lobes over
-  the TX beam, and shows that the MIMO discrimination originates in the TX
-  defocus phase. The illustrated supplier-facing
-  [technical description for RFQ](2026-09-02_lannik-psi/rfq/TECHNICAL_DESCRIPTION.md)
-  and its PDF, figure sources and internal review are under
-  [`rfq/`](2026-09-02_lannik-psi/rfq/README.md).
-  The 2026-09-10 meeting chose the two first prototypes: the rectangular
-  subarrays with a two-pitch (height/4) alternating column stagger and the
-  rotated 2 x 4 square-subarray URA. The presentation given at that meeting
-  is kept as presented, with its exports and figures, under
-  `deliverables/2026-09-10_presentation/`; figures published on Slack on
-  2026-09-03 are under `deliverables/2026-09-03_slack/`. See the
-  `deliverables/README.md` there for the archiving rule.
+- `2026-09-02_lannik-psi/` — Lannik Psi antenna-concept study, 2026-09-02 to
+  2026-10-01, concluded. It took the June config-3 estimate to a TX aperture
+  concept, two RX prototype layouts, interlaced half-aperture MIMO to resolve
+  the RX grating-lobe ambiguities, and the antenna RFQ, archived as issued
+  under the study's `deliverables/`. Start with its
+  [README](2026-09-02_lannik-psi/README.md).
 - `2026-06-22_config-comparison/` — Pd (single scan) and 2-of-3 acquisition
   probability vs range for the current Lannik Omega, a modified Lannik Omega,
   and a separate future product. The scenario and per-configuration assumptions

@@ -1,27 +1,21 @@
 # Lannik Psi system-design working notes
 
-These notes keep the Lannik Psi design study on track. The study is doing
+These notes kept the Lannik Psi design study on track. The study did
 groundwork for the system design; additions to the general `radarperf` toolbox
-are supporting work, not the main subject of this document.
+were supporting work, not the main subject of this document.
 
 This is a living engineering notebook and possible source for a later report or
 design document. It is deliberately not a transcript. Numerical configuration
 in [`lannik_psi.py`](lannik_psi.py) is authoritative when this document and the
 code differ.
 
-Last substantial update: 2026-09-11.
-
-**RFQ technical-description update, 2026-09-17:** The illustrated
-[technical description](rfq/TECHNICAL_DESCRIPTION.md), PDF and figure-generation
-tools now live under [rfq/](rfq/README.md). It describes the selected TX modes,
-both RX layouts, proposed targets, and early versus final data needs, with
-coordinate and metric details in appendices. The operating band is confirmed
-as 76–77 GHz, centred at 76.5 GHz; horizontal or vertical linear polarization
-is still to be chosen. Reference geometry may be adjusted by joint evaluation;
-exact mechanical interfaces are defined separately. The existing model remains
-at 77 GHz and the published reference calculations retain that label.
-Presentation discrepancies, metric rationale and internal decisions are in
-the [internal RFQ review](rfq/internal/REVIEW.md).
+Last substantial update: 2026-10-01, when the study concluded. Start with the
+[README](README.md) for the outcome, current numbers and open items; this
+notebook holds the range and antenna models and the reasoning behind them.
+Sections and status entries are dated. Ranges quoted before 2026-10-01 were
+computed in free space without system losses and with `Pfa=1e-6` per beam
+test; [Range checkpoints](#range-checkpoints) shows the step to the current
+assumptions.
 
 ## Status labels
 
@@ -50,13 +44,14 @@ The immediate goals are to:
 4. Develop the interlaced-MIMO approach needed to resolve RX channel-array
    aliases while retaining as much RX aperture and gain as practical.
 
-The study is still exploratory. Requirements, operating modes, angular coverage
-objectives, and acquisition-versus-tracking use cases are not yet sufficiently
-defined to finish the antenna or scheduling architecture. The broad direction
-is nevertheless established: the system design will rely on MIMO measurements
-to resolve the coherent-mode angular ambiguities.
+The study was exploratory throughout: requirements, operating modes and
+acquisition-versus-tracking use cases were not defined well enough to finish
+the antenna or scheduling architecture. It established the broad direction:
+the system design relies on interlaced MIMO measurements to resolve the
+coherent-mode angular ambiguities. It concluded on 2026-10-01 after the
+antenna RFQ led to an order; the decision log at the end records the steps.
 
-### End-of-week project status
+### Status history, 2026-09-04 to 2026-09-11
 
 **Design direction, 2026-09-04:** The project is proceeding on the assumption
 that RX ambiguities will be resolved using the MIMO approach developed here.
@@ -100,7 +95,7 @@ two-pitch (height/4) stagger with eight-row subarrays (42.3 mm tall; the
 margin to the edge allows it). The second prototype is the rotated 2 × 4 square-subarray
 URA, whose vertical aliases sit at ±11.9° like its horizontal ones and are a
 mid-to-short-range matter. The main remaining work is the TX-side
-specification; see [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) and
+specification; see [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md) and
 the decision record in [RX_LAYOUT.md](RX_LAYOUT.md).
 
 **Source fact, 2026-09-10:** The same supplier has already produced a separate
@@ -110,7 +105,7 @@ narrow-beam long-range demonstrations. Its measurements are under review;
 nothing worrying has been seen so far. If per-port patterns were measured,
 they are the first available check of the supplier's ability to realize a
 prescribed amplitude and phase distribution, and of the quadrant-squint
-metrics in [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+metrics in [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md).
 
 **Scheduling decision, 2026-09-11:** Use periodically interlaced MIMO as the
 initial operating direction, scheduling both left/right-half MIMO for the
@@ -137,43 +132,11 @@ Supplied antenna material is archived in [`inputs/`](inputs/):
   supplied-size rectangular layout with alternating vertical channel-pair
   offsets; the one-pitch offset was not chosen by analysis.
 
-Run the complete study from the repository root:
-
-```text
-venv/bin/python studies/2026-09-02_lannik-psi/lannik_psi.py
-```
-
-To regenerate every working figure of all study scripts headlessly and run
-the study-local tests (about 3.5 minutes on the development Mac):
-
-```text
-make study_260902_lannik_psi
-```
-
-Only reviewed or delivered outputs are copied to [`deliverables/`](deliverables/);
+The scripts, what each one computes and how to run them are listed in the
+[README](README.md#scripts). Working figures are written to
+[`generated/`](generated/) and are not treated as reviewed deliverables. Only
+reviewed or delivered outputs are copied to [`deliverables/`](deliverables/);
 see its README for the archiving rule and the record of what was published.
-
-Run the separate idealized four-quadrant MIMO ambiguity experiment with:
-
-```text
-venv/bin/python studies/2026-09-02_lannik-psi/quadrant_mimo.py
-```
-
-Its architectural rationale, results and follow-up questions are maintained in
-the dedicated [`MIMO.md`](MIMO.md) note.
-
-Run the provisional RX geometry and channel-array-factor comparison with:
-
-```text
-venv/bin/python studies/2026-09-02_lannik-psi/rx_layout_experiment.py
-```
-
-Its decision context and investigation plan are maintained in
-[`RX_LAYOUT.md`](RX_LAYOUT.md). The supplier-facing antenna requirements
-draft is [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
-
-Working figures are written to [`generated/`](generated/) and are intentionally
-not treated as reviewed deliverables.
 
 ## Current evaluation baseline
 
@@ -185,9 +148,14 @@ not treated as reviewed deliverables.
 - Initial boresight study: radial approach closing at 15 m/s.
 - Frame rate: 20 Hz.
 - Confirmation: sliding 2-of-3.
-- Pfa: `1e-6`.
-- Free-space propagation.
-- No clutter or phase noise.
+- Pfa: `1e-6` per range–Doppler cell over all RX beams (since 2026-10-01;
+  before, `1e-6` per beam test). See
+  [False alarms over the RX beams](#false-alarms-over-the-rx-beams).
+- No clutter.
+
+Since 2026-10-01 the propagation is the ITU-R reference atmosphere at 1000 m
+rather than free space, and named system losses are included; both are listed
+under [Loss and environment assumptions](#loss-and-environment-assumptions).
 
 ### Front end and waveform
 
@@ -196,15 +164,141 @@ not treated as reviewed deliverables.
 - CTRX8188F, 8 TX and 8 RX channels.
 - 14.5 dBm nominal power per active TX channel.
 - 10.2 dB RX noise figure.
-- Center frequency: 77 GHz.
+- Center frequency: 76.5 GHz, the centre of the confirmed 76–77 GHz band
+  (77 GHz until 2026-10-01). The supplied antenna data refer to 77 GHz; the
+  model keeps their physical apertures, so directivities scale with frequency
+  squared (−0.06 dB each) and angles in u/v scale by 77/76.5.
 - 1024 samples × 512 chirps at 50 MHz.
 - Assumed chirp slope: 2 MHz/µs.
 - Range resolution: approximately 3.66 m.
 - Maximum unambiguous range: approximately 1874 m.
 
 The chirp slope was not supplied by the source comparison. It is currently
-chosen only to keep the unambiguous range beyond the relevant detection range;
-boresight SNR is independent of it in this model.
+chosen only to keep the unambiguous range beyond the relevant detection range.
+Boresight SNR is independent of it, except that it sets the IF at which the
+noise figure applies. The chirp repetition interval is not set; with 512
+chirps in a 20 Hz frame it must stay below 97.6 µs, before any MIMO CPIs are
+interlaced. The waveform is to be designed later; its choices should avoid
+avoidable losses, in particular ramp timing that raises the per-chirp
+frequency error (see below).
+
+### Loss and environment assumptions
+
+**Model assumptions, 2026-10-01**, following the checklist in
+[`docs/losses.md`](../../docs/losses.md). Each value has a source; a zero is a
+stated choice. The values are in `LOSSES` and `ENVIRONMENT` in
+[`lannik_psi.py`](lannik_psi.py).
+
+| Term | Value | Basis |
+|---|---|---|
+| TX power | 14.5 dBm per port, no derating | CTRX8188F typical output power (datasheet Table 22). Up to 1 dB lower over temperature with closed-loop power control (Table 24): see sensitivities |
+| Noise figure | 10.2 dB, no derating | Low-noise mode at 10 MHz IF (Table 30). With the assumed slope the IF is 10 MHz at 750 m and 1 MHz at 75 m, where the datasheet gives 0.3 dB more; nothing in between. Our firmware runs RX gain +3 dB, which by our reading of the noise modes (not yet confirmed by Infineon) gives 9.7 dB |
+| Feed | 0 dB | The datasheet RF figures are at the waveguide port of its reference PCB. The antenna's own feed network is inside its radiation efficiency. The Lannik Psi PCB-to-antenna transition is not characterised |
+| Antenna | 1.01 dB each, TX and RX | The TX and RX patterns are directivities. RFQ targets: radiation efficiency ≥ 80 % including feed dissipation (0.97 dB) and return loss ≥ 20 dB (0.04 dB mismatch). A target, not a supplier figure; replace it with the supplier's prediction when the design feedback arrives |
+| Radome | 0 dB | Bare antenna; no radome or housing is defined for Lannik Psi |
+| Propagation | 0.22 dB/km one way | ITU-R P.676-13 at 76.5 GHz in the ITU-R P.835-7 reference atmosphere at 1000 m (8.5 °C, 898.8 hPa, 4.55 g/m³ water vapour; `Atmosphere.itu_reference(1000)`), for a horizontal path. The customer use cases put the platform at 1000–5000 m (l2-sp, `requirements/05-external_customer_requirements/FMV/track_2/Use-cases Interceptor Radar.sdoc`), and attenuation falls with height, so the floor is the conservative case. Sea level would give 0.35 dB/km. No rain |
+| Per-chirp frequency error | 3.5 kHz rms | Measured on CARKIT (same MMIC) with the ramp timing our firmware programs (2 µs flyback, 83.7 µs wait, 4.0 µs pre-payload): 0.02 dB at 500 m, 0.09 dB at 1 km. Lannik Psi's ramp timing is not set; the CARKIT study measured 14–30 kHz with tighter timing. The value assumes the waveform design keeps the well-timed ramps |
+| Phase noise within a chirp | not modelled | At most 0.06 dB at 300 m–1 km with the datasheet's maximum phase-noise table (`docs/losses.md`) |
+| Windows, straddle, CFAR | 1.76 + 1.76 dB, 0.47 + 0.47 dB, 1.0 dB | Hann range and Doppler windows without padding, computed by the toolbox; CFAR is the toolbox default (cell averaging with 32 reference cells) |
+| RX angle straddle | in the antenna model | The best-of-beams RX envelope already contains it, so `beamforming_loss_db` stays 0 |
+| Channel phase errors | 0 dB | CTRX8188F TX phase setting accuracy ≤ 4° and RX channel-to-channel drift ≤ 3.5° (Tables 24, 30); 4° rms would cost 0.02 dB |
+
+With these terms, at the baseline's Pd 50% range (913 m, large variant), the
+system loss is 2.10 dB (2.02 dB antenna, 0.08 dB chirp coherence) and the
+two-way atmospheric loss 0.40 dB. `lannik_psi.py` prints the itemised link
+budget at the Pd 90% range.
+
+**Sensitivities** on the large-RX baseline, each changing one term except the
+last, which combines two:
+
+| Change | Pd range (50% / 90%) | Pd 50% change | Equivalent SNR | Pd 90% change |
+|---|---:|---:|---:|---:|
+| Baseline | 913 / 572 m | | | |
+| TX power 1 dB lower (temperature, Table 24) | 863 / 540 m | −5.4% | −0.97 dB | −5.5% |
+| NF 9.7 dB (RX gain +3 dB, our reading) | 938 / 588 m | +2.8% | +0.48 dB | +2.9% |
+| NF 13.2 dB (datasheet maximum) | 772 / 482 m | −15.4% | −2.92 dB | −15.6% |
+| Radome 0.8 dB one way | 835 / 522 m | −8.5% | −1.55 dB | −8.7% |
+| Sea-level standard atmosphere (0.35 dB/km) | 901 / 566 m | −1.3% | −0.23 dB | −0.9% |
+| Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | −9.9% | −1.80 dB | −6.6% |
+| Per-chirp frequency error 21 kHz | 809 / 541 m | −11.3% | −2.09 dB | −5.4% |
+| Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | +6.7% | +1.12 dB | +6.4% |
+| Radome 0.8 dB one way and TX power 1 dB lower, together | 789 / 493 m | −13.6% | −2.53 dB | −13.8% |
+
+`lannik_psi.py` prints the same table for the small variant. Fixed-dB terms
+cost it practically the same fraction of range. Rain and the chirp error cost
+it less, because its ranges are shorter: at Pd 50%, 8.5% for light rain and
+8.7% for the 21 kHz error, against 9.9% and 11.3% for the large variant; at
+Pd 90%, 5.6% and 3.9%, against 6.6% and 5.4%. Ignoring the multiple testing
+would gain it 7.2% rather than 6.7%, because it forms more beams.
+
+The radome value is the upper end of the one published radome example in
+`docs/losses.md` (1.2–1.6 dB two way); it is an example, not a typical value.
+The use cases place the radar behind a radome, but none is defined yet, so the
+baseline keeps 0 dB. The light-rain case adds only ITU-R P.838-3 rain
+attenuation (1.1 dB/km one way at 1 mm/h); the toolbox's rain clutter is not
+validated at 77 GHz, and fog and cloud are not modelled. The 21 kHz error was
+measured on CARKIT with 60 ns flyback and wait and 4.2 µs pre-payload. Rain and
+the chirp error cost more at the longer Pd 50% range, because they grow with
+range.
+
+### False alarms over the RX beams
+
+**Model assumption, 2026-10-01:** The false-alarm probability is `1e-6` per
+range–Doppler cell for the best-of-beams detector as a whole, not per beam.
+In each cell the detector compares the largest beam power with one threshold.
+The beams are formed from only eight channels, but at a threshold this high,
+partially correlated beams exceed it almost independently. The large
+variant's 64 beams act as about 56 independent tests and the small variant's
+128 as about 80, not 8. Each beam must be tested at `1.8e-8` or `1.2e-8`,
+which costs 1.1–1.2 dB of SNR at Pd=90%, about 6–7% of range.
+`per_beam_pfa()` in `lannik_psi.py` computes this for each product's own beam
+set. It writes the noise vector as a Gamma-distributed power times a
+uniformly distributed direction, so the rare exceedances themselves need not
+be simulated.
+
+**Why correlated beams count as separate tests:** "Eight independent beams"
+describes how the noise *energy* is shared. It is the right count for
+averages, for the coherent gain and for low thresholds. A false alarm at
+`Pfa=1e-6` is a rare *extreme*. For two beams whose complex outputs have
+correlation coefficient `|r| < 1`, both exceeding a threshold `T` (in units
+of the noise power) has probability of order `exp(-2T/(1 + |r|))`, against
+`exp(-T)` for one. The ratio, `exp(-T (1 - |r|)/(1 + |r|))` up to a slowly
+varying factor, vanishes as `T` grows: Gaussian extremes are asymptotically
+independent. Two beams therefore act as one test only if `1 - |r|` is small
+compared with `2/T`. At `T` ≈ 14–18 that means a power correlation `|r|^2`
+well above 0.9, that is, beams within a small fraction of a beamwidth.
+Neighbouring beams on a half-beamwidth grid are not that close, so most of
+them count fully.
+
+For a continuous scan the count saturates. The Euler-characteristic formula
+for the maximum of a smooth random field, applied to one periodic u/v cell,
+gives about `N_h N_v sqrt(λ_h λ_v) (2T - 1)/(2π)` tests, with
+`λ = (π²/3)(1 - 1/N²)` per axis of `N` channels. For eight channels in two
+dimensions this is 128 tests (`continuum_effective_tests()`). It grows
+roughly as `T` per channel for a two-dimensional scan and as `sqrt(T)` per
+channel for a one-dimensional one. The same applies to anything that tests
+the maximum over finely sampled, correlated hypotheses, such as zero-padded
+range or Doppler FFTs.
+
+The effective number of tests grows with beam density, but the
+multiple-testing cost and the straddle loss trade almost exactly. For the
+large variant (`lannik_psi.py` prints this table for both variants):
+
+| Beam spacing | Beams | Effective tests | Per-beam Pfa | SNR cost | Straddle worst / mean | Cost + mean straddle |
+|---:|---:|---:|---:|---:|---:|---:|
+| 6.0° | 16 | 16 | 6.2e-8 | 0.80 dB | 3.02 / 1.04 dB | 1.84 dB |
+| 4.5° | 36 | 35 | 2.9e-8 | 1.00 dB | 1.26 / 0.45 dB | 1.45 dB |
+| 3.0° (model) | 64 | 56 | 1.8e-8 | 1.12 dB | 0.69 / 0.25 dB | 1.37 dB |
+| 2.0° | 144 | 85 | 1.2e-8 | 1.22 dB | 0.30 / 0.11 dB | 1.33 dB |
+| 1.5° | 256 | 101 | 9.9e-9 | 1.26 dB | 0.17 / 0.06 dB | 1.32 dB |
+
+The small variant, with twice as many beams per spacing, has 80 tests and
+1.33 dB at 3°, and 32 tests and 1.47 dB at 6°. Beyond about half-beamwidth
+spacing, a sparser grid saves processing at little average cost, though its
+worst-case straddle grows. `1e-6` per cell is a placeholder: the false-alarm
+rate the tracker and platform can accept is still to be set. With 512 range
+bins (the real-sampled 1024-sample chirp) and 512 Doppler bins, `1e-6` per
+cell gives about 0.26 false alarms per frame, or 5 per second at 20 Hz.
 
 ## Current antenna model
 
@@ -231,17 +325,20 @@ presentation.
   scaling of all weights has no effect and the taper redistributes a fixed
   total aperture power.
 - A constant 6.45 dBi radiator gain is inferred so that the supplied taper gives
-  approximately 23.5 dBi boresight gain.
+  approximately 23.5 dBi boresight gain at 77 GHz, the frequency of the
+  supplied data. At the 76.5 GHz model frequency the same radiator area gives
+  6.39 dBi.
+- Mutual coupling, feed-network loss, embedded element patterns, and installed
+  antenna effects are not represented; the antenna loss in the loss table
+  stands in for efficiency and mismatch.
 - Processing adds `10 log10(8)` for the total power of eight active TX channels,
   but does not add another ideal TX-array directivity term.
 - The model assumes all eight ports contribute equal full power, but does not
   represent the intended two-equal-power-feeds-per-quadrant partition.
-- Mutual coupling, feed-network loss, embedded element patterns, and installed
-  antenna effects are not represented.
 
 The modeled boresight array-factor contribution is approximately 17.05 dB,
-giving 23.5 dBi after adding the inferred radiator gain. The principal-plane
-3 dB beamwidths are approximately 12.5°.
+giving 23.4 dBi at 76.5 GHz after adding the radiator gain. The principal-plane
+3 dB beamwidths are approximately 12.6° (12.5° at 77 GHz).
 
 ### RX
 
@@ -256,25 +353,37 @@ giving 23.5 dBi after adding the inferred radiator gain. The principal-plane
 **Current computational baseline:**
 
 - Each channel is an analytical, uniformly illuminated rectangular aperture.
-- The supplied subarray width and height are retained: 9.41 × 18.81 mm, or
-  approximately 2.42 × 4.83 wavelengths.
-- The default 4 × 2 channel layout is packed without gaps, giving a complete RX
-  extent of 37.62 × 37.62 mm. The layout is parametrized and can instead be
-  changed to 2 × 4 or given explicit larger channel spacings.
 - The analytical aperture efficiency is 0.963. This is calibrated so that the
   original 9.41 × 18.81 mm aperture reproduces the previous 21.50 dBi
   32-radiator model; it is a modeling calibration, not a measured efficiency.
+  The antenna loss above comes on top of it.
+- Channels are packed without gaps; the layout is parametrized and can be
+  given explicit larger channel spacings.
 - The ideal coherent gain of the eight RX channels remains in processing.
-- The subarray gain is approximately 21.5 dBi. Effective boresight RX gain is
-  approximately 30.5 dBi after `10 log10(8)` coherent gain.
-- With the 4 × 2 layout, an individual formed beam is approximately 5.2° wide
-  in both azimuth and elevation because the complete RX aperture is square.
 
-The supplied rectangle is again the configuration used by `lannik_psi.py`.
-Preliminary interlaced-MIMO results suggest that its closer vertical aliases
-may be resolvable in signal processing, allowing the extra 3 dB of RX aperture
-gain to be retained. The 2.42λ square and intermediate heights remain explicit
-comparison candidates rather than discarded designs.
+The two prototype variants as modelled (the large variant without its H/4
+column stagger, which changes neither gain nor beamwidth):
+
+| | Small variant (first prototype) | Large variant (baseline) |
+|---|---|---|
+| Subarray | 9.41 × 9.41 mm (2.40λ square) | 9.41 × 18.81 mm (2.40 × 4.80λ) |
+| Channel layout | 2 × 4, 18.81 × 37.62 mm | 4 × 2, 37.62 × 37.62 mm |
+| Subarray gain | 18.4 dBi | 21.4 dBi |
+| Effective RX gain | 27.5 dBi | 30.5 dBi |
+| Formed-beam 3 dB width, az × el | 10.5° × 5.2° | 5.2° × 5.2° |
+| Array-factor periods, u × v | 0.417 × 0.417 | 0.417 × 0.208 |
+| Principal region | ±12.0° az × ±12.0° el | ±12.0° az × ±6.0° el |
+| RX beams formed | 128 (8 × 8 + offset copy) | 64 (8 × 4 + offset copy) |
+| Effective false-alarm tests per cell | 80 | 56 |
+| Worst / mean beam-straddle loss | 0.30 / 0.12 dB | 0.69 / 0.25 dB |
+
+Values are at 76.5 GHz. The large rectangle, without its stagger, has been the
+plotted product and computational baseline since 2026-09-04; ordering the
+small variant first was a project choice. The text below on periods and the
+beam grid was written for the large variant at 77 GHz. At 76.5 GHz its periods are 0.4167 and 0.2083
+and its principal edges ±12.0° and ±6.0°. The small variant's square periods
+put both principal edges at ±12.0°, outside the TX 3 dB beam; its beam grid
+follows the same construction.
 
 Swapping 4 × 2 to 2 × 4 while retaining the same subarray orientation changes
 which phase-center spacing is repeated two or four times, but not the
@@ -304,8 +413,10 @@ The current model forms 64 RX beams:
   integer number of cells, so the grid wraps without a seam.
 
 `MultiBeamUniformArrayAntenna` returns the best-gain beam at each direction.
-This is an optimistic envelope: it does not yet include multiple-testing Pfa,
-correlated beam noise, computational limits, or scheduling cost.
+This is an optimistic envelope: it does not include computational limits or
+scheduling cost. Since 2026-10-01 the multiple-testing Pfa, including the
+correlation between beams, is accounted for (see
+[False alarms over the RX beams](#false-alarms-over-the-rx-beams)).
 
 The same 64-beam set is used for every calculation. Its periodic aliases
 repeat its best array-factor sampling over the visible u/v disk. This removes
@@ -319,26 +430,76 @@ also accounting for the changed subarray geometry.
 
 ## Range checkpoints
 
-All entries are boresight results for the inherited scenario. Values are
-Pd=50%/90% and Pacq=50%/90% respectively.
+Boresight single-scan Pd = 50% / 90% ranges for the inherited scenario.
+Since 2026-10-01 the study reports single-scan Pd only. Acquisition
+probability with a confirmation rule (Pacq) depends strongly on the assumed
+trajectory, frame rate and acquisition criterion. In the June comparison it
+mainly showed that acquisition ranges come out well beyond single-scan Pd
+ranges, with a sharper transition from 0 to 100%; `lannik_psi.py` keeps an
+illustration of that (see the [README](README.md)).
 
-| Model stage | Pd range | Pacq range |
+**Result, 2026-10-01:** step by step from config 3 of the June comparison to
+the current large-RX baseline; `lannik_psi.py` prints this table. Each row
+adds one change to the row above. The change is in the Pd 50% range; the
+equivalent SNR change is 40 log10 of the range ratio.
+
+| Step | Pd range (50% / 90%) | Pd 50% change | Equivalent SNR | Pd 90% change |
+|---|---:|---:|---:|---:|
+| June config 3, as published (17 dBi placeholders, coherent TX and RX, free space) | 994 / 614 m | | | |
+| Same model, current toolbox (window straddle computed: 0.47 instead of 0.6 dB per axis) | 1009 / 623 m | +1.6% | +0.27 dB | +1.5% |
+| Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% | −2.54 dB | −13.6% |
+| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% | +4.51 dB | +29.7% |
+| Pfa per cell over all beams, not per beam | 1058 / 655 m | −6.5% | −1.17 dB | −6.2% |
+| 76.5 GHz instead of 77 GHz | 1054 / 652 m | −0.3% | −0.05 dB | −0.3% |
+| Atmosphere at 1000 m, 0.22 dB/km | 1027 / 642 m | −2.6% | −0.46 dB | −1.6% |
+| Antenna loss, 1.01 dB each side | 916 / 572 m | −10.7% | −1.97 dB | −10.9% |
+| **Per-chirp frequency error, 3.5 kHz: large-RX baseline** | **913 / 572 m** | −0.4% | −0.07 dB | −0.1% |
+| Small RX instead, same assumptions | 767 / 479 m | −15.9% | −3.02 dB | −16.1% |
+
+In total, the large-RX baseline's Pd 50% range is 8.1% below the published
+June figure, 913 m against 994 m, or 1.48 dB: the sum of the steps. The small
+variant is 22.8% (4.50 dB) below it.
+
+Fixed-dB terms move both ranges by the same ratio. The small differences come
+from the atmospheric loss, which changes with the range it acts over. Terms
+that grow with range (atmosphere, chirp error) cost more at the longer Pd 50%
+range.
+
+The steps through "large RX subarrays" correspond to the September
+checkpoints quoted elsewhere in these notes, which used 0.6 dB straddle per
+axis: 1114 / 688 m for the September baseline, 859 / 531 m with the TX
+aperture alone. The square first-cut candidate, now the small variant, was
+937 / 578 m in September. The false-alarm accounting follows the RX step
+directly, because it is the price of forming many beams: it takes back
+1.2 dB of the RX subarrays' 4.5 dB. The remaining adjustments cost 2.5 dB,
+14% of the large variant's Pd 50% range.
+
+At boresight and at 6° off boresight (`lannik_psi.py` prints this table):
+
+| Direction (az, el) | Large RX | Small RX |
 |---|---:|---:|
-| June config-3 placeholder model | 994 / 614 m | 1474 / 1372 m |
-| Proposed TX aperture, old RX placeholder | 859 / 531 m | 1264 / 1174 m |
-| Proposed TX and supplied-size RX aperture (current) | 1114 / 688 m | 1662 / 1549 m |
-| Square RX subarray first-cut candidate | 937 / 578 m | 1384 / 1288 m |
+| (0°, 0°) | 913 / 572 m | 767 / 479 m |
+| (6°, 0°) | 744 / 465 m | 625 / 390 m |
+| (0°, 6°) | 628 / 392 m | 625 / 390 m |
 
-Adding multiple RX look directions does not change the boresight checkpoints;
-it changes off-boresight coverage.
+Six degrees is about the TX 3 dB half-width (6.3°) and the large variant's
+vertical principal edge (6.0°). The customer use cases' ±8° field of view is
+indicative, and the design deliberately trades beamwidth for gain. The large
+variant's taller subarrays narrow its vertical coverage to that of the small
+variant at 6° elevation.
 
 ## Main results and current conclusions
 
 ### RX beam spacing
 
-**Result:** Within one fundamental steering cell, the 64-beam interleaved RX
-grid has a worst sampled beam-straddling loss of approximately 0.70 dB. In a
-free-space radar equation this corresponds to approximately 3.9% range loss.
+**Result:** Within one fundamental steering cell, the large variant's 64-beam
+interleaved RX grid has a worst sampled beam-straddling loss of approximately
+0.7 dB. In a free-space radar equation this corresponds to approximately 3.9%
+range loss. The small variant's 128-beam grid loses at most 0.30 dB (1.7%);
+along the principal cuts its range ripple is at most 1.7% in elevation and
+1.0% in azimuth. Beam density also sets the multiple-testing cost; the two
+trade almost exactly (see
+[False alarms over the RX beams](#false-alarms-over-the-rx-beams)).
 
 **Interpretation:** The chosen grid samples every distinct array-factor
 steering vector at the desired density. Adding nominal beam directions in
@@ -436,12 +597,15 @@ defocus phase rather than the quadrant geometry; see
 
 The initial ideal experiment is promising for both RX candidates. With the
 2.42λ square subarrays, 99% binary resolution at a principal edge reaches
-approximately 253/407/541 m after one/two/four MIMO updates. With the supplied
-2.42λ × 4.83λ rectangle, the corresponding nominal vertical-edge ranges are
-approximately 421/673/884 m, while retaining 3 dB more RX gain. The square is
-therefore retained as a comparison rather than the main computational
-baseline; MIMO has reopened the supplied-height rectangle and intermediate
-heights as viable candidates.
+approximately 226/363/481 m after one/two/four MIMO updates with the
+2026-10-01 assumptions (253/407/541 m in the September model). With the
+supplied 2.42λ × 4.83λ rectangle, the corresponding nominal vertical-edge
+ranges are approximately 374/594/776 m (421/673/884 m), while retaining 3 dB
+more RX gain. Binary resolution does not involve the false-alarm threshold, so
+these moved only with the losses and atmosphere. For comparison, the small
+variant's single-scan Pd=90% range at its ±12.0° principal edges is 205 m. In
+September this result reopened the supplied-height rectangle as the main
+candidate; the order now starts with the square.
 
 The experiment began by treating MIMO as an independent `Pfa=1e-6` detector
 with the existing waveform. Gated soft cell likelihoods remain a more natural
@@ -464,14 +628,29 @@ figure contains:
 
 The diagonal plane is defined by `u = v = sin(theta) / sqrt(2)`.
 
-For the current constant-RCS, free-space, noise-limited model, a fixed-Pd range
-boundary follows
+For a constant-RCS, free-space, noise-limited model, a fixed-Pd range boundary
+follows
 
 ```text
 R_Pd(theta) = R_Pd(0) * 10**(
     (G_two_way(theta) - G_two_way(0)) / 40
 )
 ```
+
+With gaseous attenuation and the coherence loss this is no longer exact,
+because both grow with range. SINR still separates into a boresight range curve
+plus the direction-only two-way gain difference; since 2026-10-01 the coverage
+maps and every SNR-to-range conversion in the study scripts use that curve
+(`BoresightSinr` in `lannik_psi.py`).
+
+**Small variant, 2026-10-01** (`lannik_psi(RX_SQUARE_LAYOUT)`; the plotted
+coverage maps show the large baseline): horizontal and vertical coverage are
+practically identical, because both the TX aperture and the small RX
+subarrays are square. At the ±12.0° principal edges the two-way gain is
+14.9 dB below boresight, and a 1 m² target reaches Pd=90% at 205 m and Pd=50%
+at 330 m (computed from the boresight curve and the best-beam two-way gain).
+Detections outside the principal region beyond those ranges need targets
+well above 1 m². The bullets below describe the large rectangle.
 
 **Results:**
 
@@ -561,7 +740,7 @@ proves impractical.
    patterns, which follow from the prescribed quadratic (defocus) phase. The
    per-port pattern deliverables, acceptance metrics and stability guidance
    to give the supplier are drafted in
-   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+   [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md).
 
 The previous calculation based on the apparent eight equal geometric groups
 gave very unequal group powers. That remains evidence that those labels should
@@ -684,20 +863,27 @@ Before optimizing the antenna or schedule, clarify at least:
 - TX power normalization does not enforce or validate the intended partition
   into two equal-power feeds per quadrant.
 - The RX subarray is an ideal continuous uniform aperture. Its efficiency is
-  calibrated from the earlier discrete model; feed loss, edge effects and
-  embedded radiator behavior are not modeled.
-- No mutual coupling, feed-network efficiency, mismatch, radome, or installed
-  element patterns.
-- No phase noise or clutter.
-- Best-over-RX-beams detection ignores beam correlation and multiple-testing
-  Pfa.
+  calibrated from the earlier discrete model; edge effects and embedded
+  radiator behavior are not modeled.
+- Antenna efficiency and mismatch are a single loss per side taken from the
+  RFQ targets, not from a supplier design. No mutual coupling, radome, PCB
+  transition or installed element patterns.
+- Phase noise only as the per-chirp frequency error's coherence loss, measured
+  on CARKIT with a different ramp timing from the one Lannik Psi will use. No
+  clutter, so no phase-noise skirts of strong returns.
+- The model runs at the 76.5 GHz centre frequency only; nothing is evaluated
+  across the 76–77 GHz band.
+- Best-over-RX-beams detection takes the best beam's SNR and holds the
+  false-alarm probability per cell; it ignores detections in neighbouring
+  beams and assumes white noise of equal power in every channel.
 - RX angle estimates remain ambiguous between periodic channel-array replicas;
   the supplied rectangle's vertical principal edges lie near the TX 3 dB
   mainlobe boundary. The main coherent-TX script does not resolve these aliases.
 - The separate MIMO experiment remains idealized and binary. Its assumptions
   and limitations are maintained in [`MIMO.md`](MIMO.md).
-- Current Pacq is evaluated only for the inherited boresight radial approach.
-- Static directional coverage currently shows Pd only; Pacq requires an
+- Pacq is no longer reported. The acquisition illustration covers radial
+  approaches at 15 and 50 m/s on boresight with a 2-of-3 rule.
+- Static directional coverage shows Pd only; Pacq requires an
   explicit trajectory and revisit schedule.
 - No TX-mode timing, waveform switching, scheduler, or tracker model.
 - Far-out sidelobe and grating-lobe coverage should not be interpreted as a
@@ -705,47 +891,17 @@ Before optimizing the antenna or schedule, clarify at least:
 
 ## Candidate next steps
 
-No order is implied; requirements and the TX clarification should drive the
-choice.
-
-1. Have the antenna supplier assess an equal-power two-feed partition of each
-   desired TX quadrant and provide realized-gain/pattern tolerances.
-2. Formulate the TX-side specification for the supplier: which quadrant-
-   pattern properties are binding, which deliverables verify them, and how
-   much of the detailed design is left open; start from
-   [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
-3. Judge any later change to the decided stagger offset with the
-   multi-frame event model and the in-beam competitor map, not only the
-   exact reciprocal-cell size.
-4. Add a simple study runner for the two decided prototype variants (the
-   height/4-staggered rectangle and the rotated square URA) and promote them
-   to clearly named toolbox-level Lannik Psi prototype presets; the main
-   range model must then support staggered RX phase centres.
-5. Write acquisition, track-maintenance and time-to-unambiguous-publication use
-   cases with an allowable wrong-cell probability.
-6. Extend the MIMO single-scan analysis to enumerate all plausible aliases and
-   combine complex-signature correlation with gain/RCS plausibility and pattern
-   uncertainty; see [`MIMO.md`](MIMO.md).
-7. Once the physical eight-port split is available, compare coherent,
-   four-quadrant MIMO and eight-TX MIMO at equal power, time and processing cost.
-8. If justified, introduce an explicit per-subarray TX model with independently
-   represented internal weights, channel powers, and phase offsets.
-9. Derive an ideal TX pattern from one or more desired Cartesian coverage
-   boundaries before optimizing physical weights.
-10. Evaluate optimistic envelopes of a few TX phase modes before adding schedule
-    and revisit penalties.
-11. Add joint acquisition, maintenance and ambiguity-resolution coverage once
-    the relevant trajectory, publication and scheduling assumptions are defined.
-12. Connect soft ambiguity-cell likelihoods to a small multiple-hypothesis
-    tracker model using the fixed interlace; compare triggered or adaptive
-    scheduling only as possible post-release work.
-13. Once the Lannik Psi product design settles, promote the final configuration
-    to a reusable toolbox-level preset while retaining this dated study as the
-    rationale and reproducible design history.
+The study's open items and handover list are in the [README](README.md#open-items-and-handover).
+The list kept here until 2026-10-01 is in the repository history; its RFQ and
+prototype-decision items are done, and the rest are folded into the README.
 
 ## Key generated figures
 
-- `pd_pacq_vs_range.png` — inherited boresight Pd/Pacq baseline.
+- `coverage_summary.png` — Cartesian single-scan Pd coverage of both RX
+  variants in the horizontal and vertical planes; the README's headline
+  figure, archived with the large-RX polar/Cartesian maps in
+  `deliverables/2026-10-01_conclusion/`.
+- `pd_pacq_vs_range.png` — boresight Pd, with the illustrative 2-of-3 Pacq.
 - `antenna_geometry_excitations.png` — modeled TX radiator amplitudes and
   relative phases beside the RX subarray geometry and channel phase centers.
 - `tx_sum_beam_uv.png`, `tx_sum_beam_cuts.png` — proposed TX aperture.
@@ -780,12 +936,14 @@ choice.
 - `generated/experimental/on_demand/stagger_amount_vertical_edge.png` —
   vertical-edge wrong-lobe probability after one, two and four coherent
   frames plus MIMO illumination, for URA, height/8 and height/4 stagger.
-
-## Decision log
-
 - `generated/experimental/on_demand/stagger_in_beam_competitors.png` —
   strongest gain-admissible alias competitor for every in-beam true
   direction, coherent and MIMO, for the same three layouts.
+
+The main-script figures show the large RX baseline.
+
+## Decision log
+
 - **2026-09-02:** Named the product Lannik Psi and created a clean study based
   on config 3 of the 2026-06-22 comparison.
 - **2026-09-02:** Replaced placeholder TX gain with the supplied complete
@@ -864,7 +1022,7 @@ choice.
   URA gain plausibility covers only about ±2° around the horizontal plane
   once alias-lobe skirts are admitted. Added equal-total-height variants
   (7 rows, two-pitch stagger) and drafted the supplier-facing
-  [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+  [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md).
 - **2026-09-10, review:** Corrected a phase-wrapping bug in the defocus
   sensitivity sweep and the in-beam MIMO competitor search; added the
   diagonal competitor family and a systematic RX column-group phase error to
@@ -882,3 +1040,32 @@ choice.
   useful recorded data from both MIMO configurations. Its coherent-frame cost
   and ambiguity-resolution latency are accepted; the cadence remains to be
   selected.
+- **2026-09-17:** Completed the RFQ technical description, with 76–77 GHz
+  (76.5 GHz centre) confirmed and the polarization left open. It is archived
+  as issued in [deliverables/2026-09-17_rfq/](deliverables/2026-09-17_rfq/README.md).
+- **2026-10-01:** The RFQ led to an order. The first prototype is the small RX
+  variant (2 × 4 square subarrays), for a smaller initial scope and package;
+  the large staggered variant follows. Supplier design feedback is expected in
+  one to two weeks, first delivery about six weeks later.
+- **2026-10-01:** Kept the large variant as the computational baseline;
+  ordering the small one first is a project choice. Added explicit
+  model assumptions: the ITU-R reference atmosphere at the use cases' 1000 m
+  altitude floor, the RFQ-target antenna loss, and the measured per-chirp
+  frequency error. The remaining loss terms are stated as zero; the radome
+  stays at zero until one is defined. Moved the model to 76.5 GHz. Held
+  `Pfa=1e-6` per range–Doppler cell over all RX beams instead of per beam;
+  the computation showed about 56 effective tests for the large variant's 64
+  beams and 80 for the small variant's 128, not the eight first assumed.
+  Noise figure and waveform unchanged. Boresight Pd=90% range: large 696 to
+  572 m, small 585 to 479 m. The study scripts now derive ranges from
+  the boresight SINR curve instead of an R^-4 law.
+- **2026-10-01:** Concluded the study. Wrote the [README](README.md) summary
+  and handover list and archived the RFQ as issued. Continued work, starting
+  with the supplier's design data, belongs in a new study.
+- **2026-10-01, review:** Report single-scan Pd only. Pacq depends too much on
+  trajectory, frame rate and acquisition criterion; one illustration is kept.
+  Compare with the June study, which has archived results, rather than the
+  RFQ, which has none, and break the change down step by step. Quote
+  off-boresight ranges at 6°, about the TX 3 dB half-width, rather than the
+  use cases' indicative ±8°. Make the Pd coverage figure the README's
+  headline, archived in `deliverables/2026-10-01_conclusion/`.

@@ -13,7 +13,9 @@ Two provisional layout sketches from 2026-09-08 are represented:
 
 The square layout is shown geometrically as the likely fixed prototype. The
 electrical trade plots focus on the relevant second-prototype choice: identical
-rectangular subarrays with and without the proposed stagger.
+rectangular subarrays with and without the proposed stagger. The 2026-09-10
+meeting chose a height/4 stagger instead (see RX_LAYOUT.md and
+``rx_stagger_amount_experiment.py``); this script keeps the height/8 sketch.
 """
 
 from __future__ import annotations
