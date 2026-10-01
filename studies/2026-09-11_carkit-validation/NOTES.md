@@ -13,7 +13,8 @@ result.
 These notes check our range model (the radarperf toolbox's radar equation
 with datasheet values), and the effect of the LO's phase noise, against
 measurements with CARKIT, Infineon's evaluation radar for the
-CTRX8188F MMIC (76–81 GHz, eight TX, eight RX). Lannik Psi will use the same
+CTRX8188F MMIC (76–81 GHz, eight TX, eight RX), which carries HUBER+SUHNER's
+SENCITY FARAD-IV waveguide antenna. Lannik Psi will use the same
 MMIC on our own PCB with a different antenna. All measurements use our single
 CARKIT unit:
 
@@ -24,19 +25,28 @@ CARKIT unit:
 
 **Range model**
 
-- **The measured SNR is 1.2 dB above the model, close enough that the model
-  needs no correction.** For a 10 dBsm target at 100 m the model predicts
+- **The measured SNR is 1.2 dB above the model with datasheet values and no
+  hardware losses.** For a 10 dBsm target at 100 m that model predicts
   32.7 dB per receiver channel, from the CTRX8188F datasheet's TX power and
-  noise figure, the evaluation antenna's directivity (about 15 dBi) and the
+  noise figure, the FARAD-IV antenna's directivity (about 15 dBi) and the
   processing's window losses. The reflector measurement, scaled to the same
-  conditions, gives 33.9 dB. The difference is within the uncertainty of the
-  reflector's RCS, the geometry and the datasheet values. A first analysis of
-  the same data found +4 dB. Most of that came from assuming 10 dBsm for a
-  reflector that measures 11.3 dBsm (1.3 dB), and from taking the noise at the
-  far end of the range spectrum rather than at the target's range (1.2 dB).
+  conditions, gives 33.9 dB. A first analysis of the same data found +4 dB.
+  Most of that came from assuming 10 dBsm for a reflector that measures
+  11.3 dBsm (1.3 dB), and from taking the noise at the far end of the range
+  spectrum rather than at the target's range (1.2 dB).
+- **The hardware losses left out of that model would widen the gap, not close
+  it.** They were not considered when the study started. By its data sheet,
+  the antenna's realized gain is up to 0.9 dB below its directivity on each
+  pass, and the loss of CARKIT's housing cover in front of the antenna is not
+  known yet. In the other direction, the datasheet's noise figure at the RX
+  gain setting used is 0.3–0.5 dB lower than the model's. With these terms the
+  model gives 31.1–33.1 dB before the cover, 0.7–2.8 dB below the measurement.
+  That is comparable to the spread between ways of averaging the fluctuating
+  reflector (2 dB) and to the datasheet's range of TX power between units
+  (±1.5 dB), so this measurement cannot check terms of this size.
 - **At short range, below 27 m, where ground reflections matter least, the
-  measurement is on the model:** 32.8 ± 0.6 dB. Further out, ground multipath
-  spreads the points.
+  measurement is on the model without hardware losses:** 32.8 ± 0.6 dB.
+  Further out, ground multipath spreads the points.
 - **Apparent ranges are correct to about 0.2 %.** For moving vehicles, the
   change in apparent range matches the distance their Doppler speed gives,
   which depends only on the carrier frequency and the CPI timing.
@@ -87,9 +97,12 @@ long range.
 
 **Conclusions**
 
-- The range model matches CARKIT to within 1.2–2.4 dB, the measurement being
-  the better, depending on the noise-floor question above; no correction
-  follows.
+- The measurement gives no sign that the range model is optimistic for
+  CARKIT. It is 1.2–2.4 dB above the model without hardware losses, depending
+  on the noise-floor question above, and 0.7–4.0 dB above it with the losses
+  sourced so far, before the cover. The losses themselves have to come from
+  their sources (data sheets, a measurement of the cover); this measurement
+  is not precise enough to calibrate them.
 - The toolbox's phase-noise model, built on the datasheet's CW table, describes
   the per-chirp error with well-timed chirps; no separate empirical term is
   needed.
@@ -101,8 +114,9 @@ long range.
   held only for Infineon's chirp timing.
 
 Still open: which timing setting matters (captures with different timings, our
-firmware, the office window), and whether the low-IF noise floor is gain shape
-or noise (a stationary reflector at several ranges with two chirp slopes).
+firmware, the office window), whether the low-IF noise floor is gain shape
+or noise (a stationary reflector at several ranges with two chirp slopes), and
+the loss of CARKIT's housing cover.
 
 ## Measurements
 
@@ -338,15 +352,14 @@ not supplied, so it is not analysed here.
 
 | Quantity | Value |
 |---|---|
-| Model TX / NF | CTRX8188F datasheet: 14.5 dBm, NF 10.2 dB (low-noise mode at 10 MHz; 10.5 dB at 1 MHz; ultra-low-noise mode 0.5 dB lower) |
+| Model TX / NF | CTRX8188F datasheet headline: 14.5 dBm, NF 10.2 dB (low-noise mode at 10 MHz IF; 10.5 dB at 1 MHz). The walk's RX gain setting has a lower NF ([Loss terms](#loss-terms)) |
 | Model antenna | FARAD-IV digitized boresight: 15.05 / 14.98 dBi TX / RX; the datasheet describes these as directivity |
 | Model target | Nonfluctuating 10 dBsm at boresight; no straddle or CFAR loss |
 | Processing | The walk's Blackman windows (2.37 dB ENBW loss each); fourfold padding leaves at most 0.07 dB scalloping |
 
 The model is [walk_model.py](walk_model.py). Viktor's hand calculation gives
-32.63 dB, the same as the model. The model has no terms for chip-to-antenna
-transitions, antenna ohmic loss, radome or temperature derating; these would
-make it more pessimistic. A review of such missing terms is pending separately.
+32.63 dB, the same as the model. This reference model has no hardware losses;
+[Loss terms](#loss-terms) adds them.
 
 ### Method
 
@@ -389,10 +402,79 @@ Per-CPI standard deviation is 2.2 dB. Per-RX dB means range from 30.8 to 34.2 dB
 | Reflector RCS 10 → 11.27 dBsm | −1.27 | 34.10 dB |
 | All 39 inbound CPIs | −0.23 | **33.86 dB** |
 | Model | | 32.67 dB |
+| Model with the CARKIT loss terms, before the cover | | 31.10–33.13 dB |
 
 The report's selection keeps CPIs within 6 dB of the local R⁻⁴-corrected
 maximum within ±5 m, over 15–51 m; all selected CPIs are inbound. The exact
 33 CPIs could not be reproduced without Viktor's code.
+
+### Loss terms
+
+The model above has no hardware losses: the datasheet's TX power and noise
+figure act directly on the antenna's directivity. That was the toolbox's
+implicit choice when this study started. The toolbox now names each term
+between them (`SystemLosses`; catalogue and sources in
+[docs/losses.md](../../docs/losses.md)). For CARKIT in the walk
+([walk_model.py](walk_model.py),
+[summary.json](generated/walk/model/summary.json)):
+
+| Term | The walk | Effect on the model |
+|---|---|---:|
+| Noise figure | RX gain code 0, +3 dB (CARKIT user manual; CTRX8188F user manual Table 120). At that gain the datasheet gives 9.9 dB at 1 MHz IF and 9.7 dB at 10 MHz, typical; the walk's 15–51 m are at 1.0–3.3 MHz. The model uses the headline 10.2 dB, specified at 0 dB gain | +0.3 to +0.5 dB |
+| TX power | TX1 at 0 dB backoff, the maximum setting, for which the datasheet's 14.5 dBm typical holds, as modelled (Table 22) | 0 |
+| Feed | CARKIT's PCB carries the package's waveguide ports through to the antenna (quick start guide v17, 2.2): the arrangement for which the datasheet defines its RF reference plane, at the far side of a 1.2 mm reference PCB (datasheet Section 5, Figure 5). Whether CARKIT's PCB matches that reference design is not documented | 0 |
+| Antenna | 15 dBi stated as directivity. Radiation efficiency ≥ 90 % (≤ 0.46 dB) and reflection coefficient ≤ −10 dB (mismatch ≤ 0.46 dB) put realized gain 0–0.92 dB below it on each pass (FARAD-IV data sheet) | 0 to −1.83 dB |
+| Housing cover | CARKIT's closed housing covers the antenna (quick start guide, 1.3). Its loss is not documented, and the FARAD-IV figures are without a radome | not known |
+| Straddle | Fourfold padding on both axes: 0.02 dB per axis, the toolbox's mean over target position (`straddle_loss_db`) | −0.05 dB |
+| Atmosphere | ITU-R P.676-13 standard atmosphere at 76.37 GHz, 0.35 dB/km (`Atmosphere.itu_p676`), two-way at 15–51 m | −0.01 to −0.04 dB |
+| Per-chirp frequency error | 19.0 kHz rms ([The per-chirp frequency error](#the-per-chirp-frequency-error)), at 15–51 m (`coherence_loss_db`) | −0.00 to −0.01 dB |
+| Multipath | Not modelled ([Range structure and geometry](#range-structure-and-geometry)) | |
+
+The measurement is scaled to 100 m by R⁻⁴ alone, so the range-dependent terms
+apply at the walk's own ranges, where they are negligible. With the other terms
+the model is 31.10–33.13 dB before the cover. The headline measurement is then
+0.74–2.77 dB above it, and 1.96–3.99 dB with the noise from the far quarter.
+Any loss in the cover adds to both.
+
+Notes on the terms:
+
+- **The antenna's figures are for a bare antenna.** The FARAD-IV data sheet
+  (1377.99.0744, PIM-P62799, 2026-01-20) gives its figures for the antenna on
+  a PCB without a radome. The CARKIT user manual's patterns peak at about
+  15 dB (p. 9), but it does not say whether they are directivity or gain, or
+  whether the cover was on.
+- **The noise figure follows the RX gain.** The datasheet specifies its "ultra
+  low noise operation mode" rows (noise figure and conversion gain) at RX gain
+  step +3 dB and its "low noise" rows at 0 dB, with conversion gains 3 dB apart
+  (Table 30). The user manual has no other noise-mode setting than the RX gain
+  select. We therefore read the modes as gain steps
+  ([docs/losses.md](../../docs/losses.md) gives the evidence); Infineon has not
+  confirmed this yet. The datasheet gives no minimum noise figure. Its figures are
+  specified with all TX off, and with a source reflection of −15 dB or better
+  at the reference plane, while the antenna is specified only to −10 dB. Noise
+  from the TX that scales with its power would have changed the receiver
+  background with 10 dB less TX power, and it did not
+  ([The receiver background](#the-receiver-background)). What the antenna's
+  reflection costs is not specified.
+- **Units differ.** The datasheet's minimum and maximum TX power, 13.0 and
+  16.0 dBm (Table 22), are ±1.5 dB around the typical value. Over a ramp in
+  76–77 GHz it may vary by up to 1.5 dB, and over temperature by up to 1 dB
+  with closed-loop power control (Table 24). The maximum noise figure at the
+  walk's gain is 3.0 dB above typical (Table 30). These limits hold over
+  junction temperatures from −40 to 135 °C; the datasheet does not state the
+  conditions of its typical values. They say how far one unit may be from the
+  typical part, not where ours is, so they are not in the model.
+
+The terms widen the gap: only the noise figure acts in the measurement's
+favour, while the antenna, the cover and anything not modelled lower the
+model. The walk cannot resolve terms of this size. The averaging convention
+alone moves the measured value over 32.53–34.49 dB, the noise reference by
+1.2 dB, and the reflector's RCS comes from a near-field comparison at 2.5 m.
+A unit with TX power near the datasheet's maximum would also explain up to
+1.5 dB. So the terms are taken from their sources, not fitted to the walk. A
+reflector on a fixed mount, calibrated against the chamber reflector, would
+narrow the measured side, and the same session could measure the cover (see
+the open questions).
 
 ### Range structure and geometry
 
@@ -974,8 +1056,9 @@ error, which the walk and outdoor captures show at 300 kHz.
 For a weak target the own pedestal is negligible, so the sensitivity reference
 is unaffected. With our firmware's timing, δf ≈ 3.5 kHz gives a per-chirp
 phase of 0.15 rad rms at 1 km (τ = 6.7 µs) if the delay law holds that far.
-Here it holds to 270 m. That is about 0.1 dB of coherent loss, and in fact
-less, since for phase noise the delay-squared law is the small-fτ limit of
+Here it holds to 270 m. That is about 0.1 dB of coherent loss (the toolbox's
+`SystemLosses.chirp_frequency_error_rms_hz` term, which uses this law), and in
+fact less, since for phase noise the delay-squared law is the small-fτ limit of
 4 sin²(πfτ); at 1 km it is reduced by 0.6, 1.7 and 3.9 dB at 30, 50 and
 75 kHz. A longer payload lowers it further: the long waveform's 0.5 kHz gives
 0.02 rad at 1 km. With Infineon's timing (14–30 kHz) it would be 0.6–1.3 rad
@@ -1039,14 +1122,17 @@ The sky captures are planned for 2026-10-01.
    60 ns); its TX-count table has a 100 µs chirp period at 25 MS/s.
 6. Does 10 dB backoff give 10 dB less TX power? Matched returns fell by
    7–15 dB, median 13 dB, though the scene may have changed between captures.
+   The datasheet allows ±2 dB for a reduction of 6–12 dB at constant junction
+   temperature (Table 24), so 8–12 dB.
 7. How was the 8TX calibration done (reflector at 2.2 m)? Coherent 8TX gave
    −6 to +12.7 dB over TX1 at matched returns, against up to +18 dB at the
    beam's peak. The returns' angles are unknown, so this is only a question.
 
 **Still open from the walk:** the radar height and how the reflector was
-carried (especially outbound); low-noise or ultra-low-noise RX mode. High-pass
-code 0 is 300 kHz, if RadarGUI's codes are the user manual's `RX_HP_FC`
-values.
+carried (especially outbound); whether the housing cover was on, and its loss
+(asked on Slack); whether the datasheet's ultra-low-noise rows are the +3 dB
+gain setting, as read in [Loss terms](#loss-terms). High-pass code 0 is
+300 kHz, if RadarGUI's codes are the user manual's `RX_HP_FC` values.
 
 **Measurements, in rough order of priority:**
 
@@ -1080,7 +1166,11 @@ values.
    largest uncertainty in the absolute comparison with the model. The
    procedure is to be planned in detail before the session; the main points
    are a fixed radar mount, the same marked spot for each reflector, coherent
-   subtraction of each empty mount, and repeated placements.
+   subtraction of each empty mount, and repeated placements. If no figure for
+   the housing cover's loss turns up, the same setup measures it: one
+   reflector with and without the cover, which gives the two-way loss
+   directly. Opening the housing voids its waterproofing (quick start guide,
+   2).
 5. **Repeat selected walk points at another height** to separate multipath.
 
 The window captures have answered the test at the building proposed earlier:
@@ -1143,7 +1233,7 @@ window_convert_infineon   % writes converted_adc/ beside the recording
 | [walk_dynamics.py](walk_dynamics.py) | CPI length, Doppler structure, RX nulls, pedestal ratios |
 | [walk_pedestal.py](walk_pedestal.py) | Pedestal power/range fit and equivalent frequency error |
 | [walk_long_range.py](walk_long_range.py) | Delay law to about 200 m: passing vehicles against a static reference |
-| [walk_model.py](walk_model.py) | Model and comparison |
+| [walk_model.py](walk_model.py) | Model, CARKIT loss terms and comparison |
 | [outdoor_common.py](outdoor_common.py) | Outdoor capture loading and checks, Blackman–Harris/Hann spectra, cases |
 | [outdoor_scene.py](outdoor_scene.py) | Capture validation, reflector and scene returns, levels, RX coherence, window check |
 | [outdoor_phase.py](outdoor_phase.py) | Per-return phase and amplitude spectra, common δf, cross-return correlation, drift |
