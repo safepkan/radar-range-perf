@@ -25,9 +25,10 @@ Scenario
 The initial range is far enough that single-scan Pd is solidly zero at the start
 of the run. The plot is zoomed to the product's detection range.
 
-Since 2026-10-01 the plotted product is the small RX variant (2 x 4 square
-subarrays), the first prototype ordered. The large rectangular variant is kept
-as a comparison in the printed range checkpoints.
+The plotted product is the large RX variant, modelled without its column
+stagger: the computational baseline for range performance. The small RX
+variant (2 x 4 square subarrays), ordered first as a project choice, is the
+main comparison; the printed checkpoints and field-of-view ranges cover both.
 
 Changes from the 2026-06-22 config-3 baseline
 ----------------------------------------------
@@ -55,10 +56,9 @@ Changes from the 2026-06-22 config-3 baseline
 * 2026-10-01: the toolbox now computes window straddle (Hann, no padding,
   0.47 dB per axis instead of 0.6 dB), +0.26 dB SNR. The study adds the ITU-R
   reference atmosphere at 1000 m, an antenna loss on each side, the per-chirp
-  frequency error and the per-cell false-alarm accounting, moves to 76.5 GHz,
-  and makes the small RX variant the plotted product. ``main()`` prints the
-  resulting checkpoints step by step; ``NOTES.md`` and ``README.md`` record
-  them.
+  frequency error and the per-cell false-alarm accounting, and moves to
+  76.5 GHz. ``main()`` prints the resulting checkpoints step by step for both
+  RX variants; ``NOTES.md`` and ``README.md`` record them.
 
 Modelling notes
 ---------------
@@ -481,11 +481,11 @@ class BoresightSinr:
 
 
 # The two prototype RX variants as unstaggered layouts
-# (deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md, section 2). The small
-# variant's 2 x 4 square subarrays are the first prototype ordered and the
-# plotted product. The large variant's rectangles are modelled without their
-# H/4 column stagger, which leaves boresight gain and beamwidth unchanged; they
-# remain the comparison.
+# (deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md, section 2). The large
+# variant's rectangles are the computational baseline for range performance;
+# they are modelled without their H/4 column stagger, which leaves boresight
+# gain and beamwidth unchanged. The small variant's 2 x 4 square subarrays,
+# ordered first as a project choice, are the main comparison.
 RX_SUPPLIED_LAYOUT = RxAntennaLayout(
     subarray_width_m=RX_SOURCE_SUBARRAY_WIDTH_M,
     subarray_height_m=RX_SOURCE_SUBARRAY_HEIGHT_M,
@@ -514,7 +514,16 @@ RX_EXPERIMENTAL_STAGGERED_LAYOUT = RxAntennaLayout(
         -RX_SOURCE_SUBARRAY_HEIGHT_M / 16.0,
     ),
 )
-RX_LAYOUT = RX_SQUARE_LAYOUT
+RX_LAYOUT = RX_SUPPLIED_LAYOUT
+
+
+def variant_name(layout: RxAntennaLayout) -> str:
+    """Product name for one of the two prototype RX variants."""
+    if layout == RX_SUPPLIED_LAYOUT:
+        return "Lannik Psi, large RX"
+    if layout == RX_SQUARE_LAYOUT:
+        return "Lannik Psi, small RX"
+    return "Lannik Psi"
 
 
 def load_element_list(path: Path) -> npt.NDArray[np.complex128]:
@@ -845,7 +854,7 @@ def losses_note(losses: SystemLosses, environment: Environment) -> str:
 def lannik_psi(
     rx_layout: RxAntennaLayout = RX_LAYOUT,
     *,
-    name: str = "Lannik Psi, small RX",
+    name: str | None = None,
     losses: SystemLosses = LOSSES,
     environment: Environment = ENVIRONMENT,
     noise_figure_db: float | None = None,
@@ -900,7 +909,7 @@ def lannik_psi(
         losses=losses,
     )
     return Product(
-        name=name,
+        name=variant_name(rx_layout) if name is None else name,
         radar=radar,
         waveform=waveform,
         environment=environment,
@@ -2070,7 +2079,7 @@ def checkpoint_products() -> tuple[tuple[str, Product], ...]:
 
     First the step from the assumptions in force at the RFQ to the current
     ones, for both RX variants; then single-term sensitivities on the small-RX
-    baseline. Each sensitivity changes one term and keeps the rest.
+    baseline (large RX). Each sensitivity changes one term and keeps the rest.
     """
     large = "Lannik Psi, large RX"
     # Rain attenuation only (ITU-R P.838-3); the toolbox's rain clutter model is
@@ -2119,18 +2128,19 @@ def checkpoint_products() -> tuple[tuple[str, Product], ...]:
             ),
         ),
         (
-            "+ Pfa per cell over all beams: current assumptions",
+            "+ Pfa per cell over all beams: current assumptions (baseline)",
             lannik_psi(RX_SUPPLIED_LAYOUT, name=large),
         ),
         (
             "Small RX, RFQ-snapshot assumptions",
             lannik_psi(
+                RX_SQUARE_LAYOUT,
                 losses=RFQ_SNAPSHOT_LOSSES,
                 environment=RFQ_SNAPSHOT_ENVIRONMENT,
                 pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM,
             ),
         ),
-        ("Small RX, current assumptions (baseline)", lannik_psi()),
+        ("Small RX, current assumptions", lannik_psi(RX_SQUARE_LAYOUT)),
         (
             "TX power -1 dB",
             lannik_psi(losses=replace(LOSSES, tx_power_derating_db=1.0)),
@@ -2203,6 +2213,39 @@ def print_field_of_view_ranges(product: Product) -> None:
         )
 
 
+def continuum_effective_tests(
+    horizontal_count: int, vertical_count: int, pfa_per_cell: float = PFA_PER_CELL
+) -> float:
+    """Effective tests per cell for a continuous scan of one array-factor period.
+
+    The Euler-characteristic heuristic for the maximum of a smooth random field
+    gives, for the beam power ``|w(u, v)^H n|^2`` over one periodic u/v cell
+    (a torus, so no boundary terms),
+
+        P(max > T) = N_h N_v sqrt(lambda_h lambda_v) (2 T - 1) / (2 pi) exp(-T),
+
+    where ``lambda = (pi^2 / 3)(1 - 1/N^2)`` is the curvature of an
+    ``N``-element axis's beam correlation per orthogonal-beam spacing. The
+    effective number of tests is the factor in front of ``exp(-T)``, solved
+    together with ``T = ln(tests / pfa_per_cell)``.
+    """
+
+    def curvature(count: int) -> float:
+        return (np.pi**2 / 3.0) * (1.0 - 1.0 / count**2)
+
+    scale = (
+        horizontal_count
+        * vertical_count
+        * np.sqrt(curvature(horizontal_count) * curvature(vertical_count))
+        / (2.0 * np.pi)
+    )
+    tests = float(horizontal_count * vertical_count)
+    for _ in range(50):
+        threshold = np.log(tests / pfa_per_cell)
+        tests = float(scale * (2.0 * threshold - 1.0))
+    return tests
+
+
 def print_beam_pfa_trade(rx_layout: RxAntennaLayout = RX_LAYOUT) -> None:
     """Print multiple-testing cost and straddle loss against RX beam density.
 
@@ -2210,8 +2253,9 @@ def print_beam_pfa_trade(rx_layout: RxAntennaLayout = RX_LAYOUT) -> None:
     per-beam Pfa, relative to testing one beam at the per-cell Pfa.
     """
     print(
-        f"\nRX beam density vs false alarms (Pfa {PFA_PER_CELL:.0e} per "
-        "range-Doppler cell; SNR cost at Pd=90%, Swerling 1)"
+        f"\nRX beam density vs false alarms, {variant_name(rx_layout)} "
+        f"(Pfa {PFA_PER_CELL:.0e} per range-Doppler cell; SNR cost at Pd=90%, "
+        "Swerling 1)"
     )
     print(
         "| Beam spacing | Beams | Effective tests | Per-beam Pfa | SNR cost | "
@@ -2232,6 +2276,11 @@ def print_beam_pfa_trade(rx_layout: RxAntennaLayout = RX_LAYOUT) -> None:
             f"{PFA_PER_CELL / beam_pfa:.0f} | {beam_pfa:.1e} | {cost_db:.2f} dB | "
             f"{-worst_db:.2f} / {-mean_db:.2f} dB | {cost_db - mean_db:.2f} dB |"
         )
+    print(
+        "Continuous-scan limit (Euler-characteristic formula): "
+        f"{continuum_effective_tests(rx_layout.horizontal_count, rx_layout.vertical_count):.0f}"
+        " effective tests"
+    )
 
 
 def main() -> None:
@@ -2245,8 +2294,11 @@ def main() -> None:
     acquisition = evaluate(product)
     print_diagnostics(product, acquisition)
     print_range_checkpoints()
-    print_field_of_view_ranges(product)
-    print_beam_pfa_trade()
+    small = lannik_psi(RX_SQUARE_LAYOUT)
+    for variant in (product, small):
+        print_field_of_view_ranges(variant)
+    for layout in (RX_SUPPLIED_LAYOUT, RX_SQUARE_LAYOUT):
+        print_beam_pfa_trade(layout)
     path = generated_dir / "pd_pacq_vs_range.png"
     plot_product(product, acquisition, path)
     print(f"\n  saved {path}")

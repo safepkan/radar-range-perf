@@ -50,19 +50,25 @@ the first prototype about six weeks after that.
 
 ### Range performance
 
-Small variant, 1 m² Swerling-1 target closing at 15 m/s, 20 Hz frames.
-Single-scan Pd is per frame. Pacq is the probability of a 2-of-3 confirmed
-acquisition by that range. False alarms are held at 1e-6 per range–Doppler
-cell over all 128 RX beams, which is 1.2e-8 per beam.
+The computational baseline for range performance is the large variant,
+modelled without its column stagger. Ordering the small variant first was a
+project choice, so both are given. Scenario: a 1 m² Swerling-1 target
+closing at 15 m/s, 20 Hz frames. Single-scan Pd is per frame. Pacq is the
+probability of a 2-of-3 confirmed acquisition by that range. False alarms are
+held at 1e-6 per range–Doppler cell over all RX beams: 1.8e-8 per beam for
+the large variant's 64 beams, 1.2e-8 for the small variant's 128.
 
-| Direction (azimuth, elevation) | Single-scan Pd 50% / 90% | Pacq 50% / 90% |
-|---|---:|---:|
-| Boresight | 767 / 479 m | 1088 / 1015 m |
-| 8° horizontally | 532 / 331 m | 742 / 689 m |
-| 8° vertically | 526 / 327 m | 734 / 682 m |
-| (8°, 8°) | 370 / 230 m | 508 / 469 m |
+| Direction (azimuth, elevation) | Large RX: Pd 50/90% | Large RX: Pacq 50/90% | Small RX: Pd 50/90% | Small RX: Pacq 50/90% |
+|---|---:|---:|---:|---:|
+| Boresight | 913 / 572 m | 1302 / 1219 m | 767 / 479 m | 1088 / 1015 m |
+| 8° horizontally | 623 / 388 m | 878 / 817 m | 532 / 331 m | 742 / 689 m |
+| 8° vertically | 444 / 276 m | 616 / 570 m | 526 / 327 m | 734 / 682 m |
+| (8°, 8°) | 313 / 194 m | 425 / 392 m | 370 / 230 m | 508 / 469 m |
 
-The large variant reaches 913 / 572 m and 1302 / 1219 m at boresight.
+The large variant's taller subarrays narrow its vertical coverage. At 8°
+elevation it falls below the small variant, and that direction lies outside
+its ±6.0° vertical principal region, so a detection there also needs its
+ambiguity resolved.
 
 These numbers assume:
 - typical CTRX8188F TX power (14.5 dBm per port) and noise figure (10.2 dB);
@@ -75,31 +81,32 @@ These numbers assume:
   evaluation board (same MMIC) with our firmware's ramp timing;
 - no radome, rain or clutter.
 
-Together with the per-cell false-alarm accounting, these terms cost 18–22% of
+Together with the per-cell false-alarm accounting, these terms cost 18–23% of
 the range quoted at the RFQ. Those earlier figures assumed free space, no
 system losses and 1e-6 per beam.
 
-Largest sensitivities, as change in single-scan Pd = 90% range (Pacq 90% in
-brackets):
+Largest sensitivities for the large variant, as change in single-scan
+Pd = 90% range (Pacq 90% in brackets):
 
 | Change | Pd 90% | (Pacq 90%) |
 |---|---:|---:|
 | Noise figure at the datasheet maximum, 13.2 dB | −16% | (−16%) |
 | Radome, 0.8 dB one way | −9% | (−9%) |
-| Light rain, 1 mm/h | −6% | (−12%) |
-| TX power 1 dB lower (temperature) | −5% | (−6%) |
-| Per-chirp frequency error of 21 kHz (tight ramp timing) | −4% | (−15%) |
+| Light rain, 1 mm/h | −7% | (−14%) |
+| TX power 1 dB lower (temperature) | −6% | (−6%) |
+| Per-chirp frequency error of 21 kHz (tight ramp timing) | −5% | (−19%) |
 
 ### Relation to the customer use case
 
 The first use case, UC-01, asks for detection of a 0 dBsm Swerling-1 target
 at 500–800 m inside ±8° horizontally and vertically. It states no Pd,
-false-alarm rate or latency. At boresight, single-scan Pd reaches 50% at
-767 m and confirmed acquisition 90% at about 1 km. At the ±8° edges these fall
-to about 530 m and 690 m. The use case also puts the radar behind a radome,
-which these numbers leave out, and allows relative speeds up to 50 m/s
-against the 15 m/s used here. Whether the concept meets UC-01 depends on the
-Pd and latency that the requirement turns out to set.
+false-alarm rate or latency. At boresight, single-scan Pd reaches 50% at 913 m
+(large) or 767 m (small), and confirmed acquisition 90% at 1.2 km or 1.0 km.
+At the ±8° edges single-scan Pd 50% falls to 440–620 m (large) or about 530 m
+(small), and Pacq 90% to 570–820 m or about 690 m. The use case also puts the
+radar behind a radome, which these numbers leave out, and allows relative
+speeds up to 50 m/s against the 15 m/s used here. Whether the concept meets
+UC-01 depends on the Pd and latency that the requirement turns out to set.
 
 ### What is not established
 

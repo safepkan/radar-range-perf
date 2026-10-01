@@ -203,23 +203,26 @@ stated choice. The values are in `LOSSES` and `ENVIRONMENT` in
 | RX angle straddle | in the antenna model | The best-of-beams RX envelope already contains it, so `beamforming_loss_db` stays 0 |
 | Channel phase errors | 0 dB | CTRX8188F TX phase setting accuracy ≤ 4° and RX channel-to-channel drift ≤ 3.5° (Tables 24, 30); 4° rms would cost 0.02 dB |
 
-With these terms the system loss at the small variant's Pd=90% range (479 m)
-is 2.0 dB and the two-way atmospheric loss 0.2 dB; `lannik_psi.py` prints the
-itemised link budget.
+With these terms the system loss at the baseline's Pd=90% range (572 m, large
+variant) is 2.05 dB and the two-way atmospheric loss 0.25 dB; `lannik_psi.py`
+prints the itemised link budget.
 
-**Sensitivities** on the small-RX baseline, each changing one term:
+**Sensitivities** on the large-RX baseline, each changing one term:
 
 | Change | Pd range | Pacq range | Pd=90% range |
 |---|---:|---:|---:|
-| Baseline | 767 / 479 m | 1088 / 1015 m | |
-| TX power 1 dB lower (temperature, Table 24) | 725 / 453 m | 1026 / 958 m | −5.5% |
-| NF 9.7 dB (RX gain +3 dB, our reading) | 789 / 493 m | 1120 / 1046 m | +2.8% |
-| NF 13.2 dB (datasheet maximum) | 648 / 404 m | 913 / 850 m | −15.6% |
-| Radome 0.8 dB one way | 701 / 438 m | 991 / 924 m | −8.6% |
-| Sea-level standard atmosphere (0.35 dB/km) | 759 / 476 m | 1069 / 1000 m | −0.6% |
-| Light rain, 1 mm/h (P.838-3 attenuation added) | 702 / 452 m | 953 / 895 m | −5.6% |
-| Per-chirp frequency error 21 kHz | 700 / 460 m | 913 / 863 m | −3.9% |
-| Pfa `1e-6` per beam test (multiple testing ignored) | 823 / 513 m | 1186 / 1105 m | +7.0% |
+| Baseline | 913 / 572 m | 1302 / 1219 m | |
+| TX power 1 dB lower (temperature, Table 24) | 863 / 540 m | 1229 / 1150 m | −5.5% |
+| NF 9.7 dB (RX gain +3 dB, our reading) | 938 / 588 m | 1340 / 1255 m | +2.9% |
+| NF 13.2 dB (datasheet maximum) | 772 / 482 m | 1095 / 1022 m | −15.6% |
+| Radome 0.8 dB one way | 835 / 522 m | 1187 / 1110 m | −8.7% |
+| Sea-level standard atmosphere (0.35 dB/km) | 901 / 566 m | 1276 / 1195 m | −0.9% |
+| Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | 1118 / 1052 m | −6.6% |
+| Per-chirp frequency error 21 kHz | 809 / 541 m | 1040 / 988 m | −5.4% |
+| Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | 1411 / 1318 m | +6.4% |
+
+The small variant's sensitivities are similar. Rain and the chirp error cost it
+1–1.5 percentage points less, because its ranges are shorter.
 
 The radome value is the upper end of the one published radome example in
 `docs/losses.md` (1.2–1.6 dB two way); it is an example, not a typical value.
@@ -235,33 +238,60 @@ range.
 
 **Model assumption, 2026-10-01:** The false-alarm probability is `1e-6` per
 range–Doppler cell for the best-of-beams detector as a whole, not per beam.
-In each cell the detector compares the largest of the 128 beam powers with
-one threshold. The beams are formed from only eight channels, but at
-thresholds this high, partially correlated beams exceed the threshold almost
-independently. Each beam must therefore be tested at about `1e-6/80`, not
-`1e-6/8`, which costs 1.2 dB of SNR at Pd=90% (7% range). `per_beam_pfa()` in
-`lannik_psi.py` computes this for each product's own beam set. It writes the
-noise vector as a Gamma-distributed power times a uniformly distributed
-direction, so the rare exceedances themselves need not be simulated.
+In each cell the detector compares the largest beam power with one threshold.
+The beams are formed from only eight channels, but at a threshold this high,
+partially correlated beams exceed it almost independently. The large
+variant's 64 beams act as about 56 independent tests and the small variant's
+128 as about 80, not 8. Each beam must be tested at `1.8e-8` or `1.2e-8`,
+which costs 1.1–1.2 dB of SNR at Pd=90%, about 6–7% of range.
+`per_beam_pfa()` in `lannik_psi.py` computes this for each product's own beam
+set. It writes the noise vector as a Gamma-distributed power times a
+uniformly distributed direction, so the rare exceedances themselves need not
+be simulated.
+
+**Why correlated beams count as separate tests:** "Eight independent beams"
+describes how the noise *energy* is shared. It is the right count for
+averages, for the coherent gain and for low thresholds. A false alarm at
+`Pfa=1e-6` is a rare *extreme*. For two beams whose complex outputs have
+correlation coefficient `|r| < 1`, both exceeding a threshold `T` (in units
+of the noise power) has probability of order `exp(-2T/(1 + |r|))`, against
+`exp(-T)` for one. The ratio, `exp(-T (1 - |r|)/(1 + |r|))` up to a slowly
+varying factor, vanishes as `T` grows: Gaussian extremes are asymptotically
+independent. Two beams therefore act as one test only if `1 - |r|` is small
+compared with `2/T`. At `T` ≈ 14–18 that means a power correlation `|r|^2`
+well above 0.9, that is, beams within a small fraction of a beamwidth.
+Neighbouring beams on a half-beamwidth grid are not that close, so most of
+them count fully.
+
+For a continuous scan the count saturates. The Euler-characteristic formula
+for the maximum of a smooth random field, applied to one periodic u/v cell,
+gives about `N_h N_v sqrt(λ_h λ_v) (2T - 1)/(2π)` tests, with
+`λ = (π²/3)(1 - 1/N²)` per axis of `N` channels. For eight channels in two
+dimensions this is 128 tests (`continuum_effective_tests()`). It grows
+roughly as `T` per channel for a two-dimensional scan and as `sqrt(T)` per
+channel for a one-dimensional one. The same applies to anything that tests
+the maximum over finely sampled, correlated hypotheses, such as zero-padded
+range or Doppler FFTs.
 
 The effective number of tests grows with beam density, but the
 multiple-testing cost and the straddle loss trade almost exactly. For the
-small variant (`lannik_psi.py` prints this table):
+large variant (`lannik_psi.py` prints this table for both variants):
 
 | Beam spacing | Beams | Effective tests | Per-beam Pfa | SNR cost | Straddle worst / mean | Cost + mean straddle |
 |---:|---:|---:|---:|---:|---:|---:|
-| 6.0° | 32 | 32 | 3.2e-8 | 0.98 dB | 1.23 / 0.50 dB | 1.47 dB |
-| 4.5° | 72 | 59 | 1.7e-8 | 1.13 dB | 0.54 / 0.22 dB | 1.35 dB |
-| 3.0° (model) | 128 | 80 | 1.2e-8 | 1.20 dB | 0.30 / 0.12 dB | 1.33 dB |
-| 2.0° | 288 | 102 | 9.8e-9 | 1.26 dB | 0.13 / 0.05 dB | 1.32 dB |
-| 1.5° | 512 | 112 | 8.9e-9 | 1.28 dB | 0.08 / 0.03 dB | 1.32 dB |
+| 6.0° | 16 | 16 | 6.2e-8 | 0.80 dB | 3.02 / 1.04 dB | 1.84 dB |
+| 4.5° | 36 | 35 | 2.9e-8 | 1.00 dB | 1.26 / 0.45 dB | 1.45 dB |
+| 3.0° (model) | 64 | 56 | 1.8e-8 | 1.12 dB | 0.69 / 0.25 dB | 1.37 dB |
+| 2.0° | 144 | 85 | 1.2e-8 | 1.22 dB | 0.30 / 0.11 dB | 1.33 dB |
+| 1.5° | 256 | 101 | 9.9e-9 | 1.26 dB | 0.17 / 0.06 dB | 1.32 dB |
 
-A sparser grid therefore saves processing at almost no cost on average,
-although its worst-case straddle grows. The large variant's 64 beams act as
-about 56 tests. `1e-6` per cell is a placeholder: the false-alarm rate the
-tracker and platform can accept is still to be set. With 512 range bins (the
-real-sampled 1024-sample chirp) and 512 Doppler bins, `1e-6` per cell gives
-about 0.26 false alarms per frame, or 5 per second at 20 Hz.
+The small variant, with twice as many beams per spacing, has 80 tests and
+1.33 dB at 3°, and 32 tests and 1.47 dB at 6°. Beyond about half-beamwidth
+spacing, a sparser grid saves processing at little average cost, though its
+worst-case straddle grows. `1e-6` per cell is a placeholder: the false-alarm
+rate the tracker and platform can accept is still to be set. With 512 range
+bins (the real-sampled 1024-sample chirp) and 512 Doppler bins, `1e-6` per
+cell gives about 0.26 false alarms per frame, or 5 per second at 20 Hz.
 
 ## Current antenna model
 
@@ -327,7 +357,7 @@ giving 23.4 dBi at 76.5 GHz after adding the radiator gain. The principal-plane
 The two prototype variants as modelled (the large variant without its H/4
 column stagger, which changes neither gain nor beamwidth):
 
-| | Small variant (plotted, first prototype) | Large variant (comparison) |
+| | Small variant (first prototype) | Large variant (baseline) |
 |---|---|---|
 | Subarray | 9.41 × 9.41 mm (2.40λ square) | 9.41 × 18.81 mm (2.40 × 4.80λ) |
 | Channel layout | 2 × 4, 18.81 × 37.62 mm | 4 × 2, 37.62 × 37.62 mm |
@@ -340,9 +370,10 @@ column stagger, which changes neither gain nor beamwidth):
 | Effective false-alarm tests per cell | 80 | 56 |
 | Worst / mean beam-straddle loss | 0.30 / 0.12 dB | 0.70 dB worst |
 
-Values are at 76.5 GHz. The plotted product was the large rectangle from
-2026-09-04 until 2026-10-01, and the text below on periods and the beam grid
-was written for it at 77 GHz. At 76.5 GHz its periods are 0.4167 and 0.2083
+Values are at 76.5 GHz. The large rectangle, without its stagger, has been the
+plotted product and computational baseline since 2026-09-04; ordering the
+small variant first was a project choice. The text below on periods and the
+beam grid was written for the large variant at 77 GHz. At 76.5 GHz its periods are 0.4167 and 0.2083
 and its principal edges ±12.0° and ±6.0°. The small variant's square periods
 put both principal edges at ±12.0°, outside the TX 3 dB beam; its beam grid
 follows the same construction.
@@ -408,19 +439,27 @@ runs at 76.5 GHz.
 | + atmosphere at 1000 m, 0.22 dB/km | 1096 / 684 m | 1607 / 1501 m |
 | + antenna loss, 1.01 dB each way | 978 / 610 m | 1428 / 1332 m |
 | + per-chirp frequency error, 3.5 kHz | 974 / 608 m | 1411 / 1318 m |
-| + Pfa per cell over all beams: large RX, current | 913 / 572 m | 1302 / 1219 m |
+| **+ Pfa per cell over all beams: large RX, current (baseline)** | **913 / 572 m** | **1302 / 1219 m** |
 | Small RX, RFQ-snapshot assumptions | 948 / 585 m | 1401 / 1303 m |
-| **Small RX, current assumptions (baseline)** | **767 / 479 m** | **1088 / 1015 m** |
+| Small RX, current assumptions | 767 / 479 m | 1088 / 1015 m |
 
-The update costs the small variant 18–22% of range. The antenna loss is the
+The update costs 18–23% of range for either variant. The antenna loss is the
 largest term, followed by the false-alarm accounting; the atmosphere matters
 mainly at the longer Pacq ranges. The 76.5 GHz centre frequency alone costs
 0.3–0.4%.
 
-At the edges of the customer use case's ±8° field of view, the small variant
-reaches Pd 532 / 331 m and Pacq 742 / 689 m horizontally, and 526 / 327 m and
-734 / 682 m vertically; at (8°, 8°), 370 / 230 m and 508 / 469 m. These come
-from the same acquisition sweep along each direction.
+At the edges of the customer use case's ±8° field of view (acquisition sweeps
+along each direction; `lannik_psi.py` prints them):
+
+| Direction (az, el) | Large RX: Pd | Large RX: Pacq | Small RX: Pd | Small RX: Pacq |
+|---|---:|---:|---:|---:|
+| (8°, 0°) | 623 / 388 m | 878 / 817 m | 532 / 331 m | 742 / 689 m |
+| (0°, 8°) | 444 / 276 m | 616 / 570 m | 526 / 327 m | 734 / 682 m |
+| (8°, 8°) | 313 / 194 m | 425 / 392 m | 370 / 230 m | 508 / 469 m |
+
+The large variant's taller subarrays narrow its vertical coverage, so it falls
+below the small variant at 8° elevation, which is also outside its ±6.0°
+vertical principal region.
 
 **History,** free space and no system losses:
 
@@ -589,13 +628,14 @@ plus the direction-only two-way gain difference; since 2026-10-01 the coverage
 maps and every SNR-to-range conversion in the study scripts use that curve
 (`BoresightSinr` in `lannik_psi.py`).
 
-**Small variant, 2026-10-01:** Horizontal and vertical coverage are now
+**Small variant, 2026-10-01** (`lannik_psi(RX_SQUARE_LAYOUT)`; the plotted
+coverage maps show the large baseline): horizontal and vertical coverage are
 practically identical, because both the TX aperture and the small RX
 subarrays are square. At the ±12.0° principal edges the two-way gain is
 14.9 dB below boresight, and a 1 m² target reaches Pd=90% at 205 m and Pd=50%
 at 330 m (computed from the boresight curve and the best-beam two-way gain).
 Detections outside the principal region beyond those ranges need targets
-well above 1 m². The bullets below were written for the large rectangle.
+well above 1 m². The bullets below describe the large rectangle.
 
 **Results:**
 
@@ -881,7 +921,7 @@ prototype-decision items are done, and the rest are folded into the README.
   strongest gain-admissible alias competitor for every in-beam true
   direction, coherent and MIMO, for the same three layouts.
 
-Since 2026-10-01 the main-script figures above show the small RX variant.
+The main-script figures show the large RX baseline.
 
 ## Decision log
 
@@ -988,15 +1028,17 @@ Since 2026-10-01 the main-script figures above show the small RX variant.
   variant (2 × 4 square subarrays), for a smaller initial scope and package;
   the large staggered variant follows. Supplier design feedback is expected in
   one to two weeks, first delivery about six weeks later.
-- **2026-10-01:** Made the small variant the plotted product. Added explicit
+- **2026-10-01:** Kept the large variant as the computational baseline;
+  ordering the small one first is a project choice. Added explicit
   model assumptions: the ITU-R reference atmosphere at the use cases' 1000 m
   altitude floor, the RFQ-target antenna loss, and the measured per-chirp
   frequency error. The remaining loss terms are stated as zero; the radome
   stays at zero until one is defined. Moved the model to 76.5 GHz. Held
   `Pfa=1e-6` per range–Doppler cell over all RX beams instead of per beam;
-  the computation showed about 80 effective tests for 128 beams, not the eight
-  first assumed. Noise figure and waveform unchanged. Boresight Pd=90% range
-  of the small variant: 585 to 479 m. The study scripts now derive ranges from
+  the computation showed about 56 effective tests for the large variant's 64
+  beams and 80 for the small variant's 128, not the eight first assumed.
+  Noise figure and waveform unchanged. Boresight Pd=90% range: large 696 to
+  572 m, small 585 to 479 m. The study scripts now derive ranges from
   the boresight SINR curve instead of an R^-4 law.
 - **2026-10-01:** Concluded the study. Wrote the [README](README.md) summary
   and handover list and archived the RFQ as issued. Continued work, starting
