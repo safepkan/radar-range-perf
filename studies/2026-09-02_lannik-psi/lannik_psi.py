@@ -127,6 +127,7 @@ from radarperf import (
     Antenna,
     Atmosphere,
     BeamCombination,
+    ConstantGainAntenna,
     ConstantRcsTarget,
     Environment,
     FmcwWaveform,
@@ -163,11 +164,15 @@ TARGET = ConstantRcsTarget(rcs=1.0, swerling=1, name="1 m^2 Swerling-1")
 CLOSING_SPEED_MPS = 15.0
 FRAME_TIME_S = 1.0 / 20.0  # 20 Hz frame rate
 CONFIRM = (2, 3)  # 2-of-3 sliding confirmation
+# Off-boresight reference angle for reported ranges: about the TX 3 dB
+# half-width (6.3 deg) and the large variant's vertical principal edge
+# (6.0 deg). The customer use cases' +/-8 deg field of view is indicative; the
+# design deliberately trades beamwidth for gain.
+OFF_AXIS_REFERENCE_DEG = 6.0
 # Customer use case UC-01 (l2-sp, requirements/05-external_customer_requirements/
-# FMV/track_2/"Use-cases Interceptor Radar.sdoc"): detect a 0 dBsm Swerling-1
-# target at 500-800 m within a +/-8 degree field of view, horizontally and
-# vertically. It sets no Pd, Pfa or confirmation rule.
-USE_CASE_FIELD_OF_VIEW_DEG = 8.0
+# FMV/track_2/"Use-cases Interceptor Radar.sdoc") allows relative speeds up to
+# 50 m/s; it sets no Pd, Pfa or confirmation rule.
+USE_CASE_MAX_CLOSING_SPEED_MPS = 50.0
 # False-alarm probability per range-Doppler cell, over all RX beams together.
 # Each beam is tested at the lower per-beam value from per_beam_pfa().
 PFA_PER_CELL = 1.0e-6
@@ -225,11 +230,14 @@ LOSSES = SystemLosses(
 # horizontal path. Sea level would give 0.35 dB/km.
 OPERATING_ALTITUDE_M = 1000.0
 ENVIRONMENT = Atmosphere.itu_reference(OPERATING_ALTITUDE_M, CENTER_FREQUENCY_HZ)
-# The assumptions in force when the RFQ was issued, for checkpoint comparisons:
-# no system losses, free space, and Pfa 1e-6 per beam test.
-RFQ_SNAPSHOT_LOSSES = SystemLosses()
-RFQ_SNAPSHOT_ENVIRONMENT: Environment = FreeSpace()
-RFQ_SNAPSHOT_PFA_PER_BEAM = 1.0e-6
+# The assumptions used from the June comparison until 2026-10-01, for the range
+# breakdown: no system losses, free space, and Pfa 1e-6 per beam test.
+EARLIER_LOSSES = SystemLosses()
+EARLIER_ENVIRONMENT: Environment = FreeSpace()
+EARLIER_PFA_PER_BEAM = 1.0e-6
+# Config 3 of the 2026-06-22 comparison, as published in its deliverable
+# config3_pd_pacq_vs_range.png: single-scan Pd = 50% / 90% ranges [m].
+JUNE_PUBLISHED_PD_RANGES_M = (994.0, 614.0)
 # Monte Carlo settings for per_beam_pfa(): directions on the unit sphere, not
 # noise samples, so the rare exceedances themselves are never simulated.
 BEAM_PFA_SAMPLES = 400_000
@@ -544,7 +552,17 @@ def load_element_list(path: Path) -> npt.NDArray[np.complex128]:
     return np.asarray(element_list, dtype=np.complex128)
 
 
-def load_tx_antenna(path: Path = TX_DATA_PATH) -> RectangularArrayAntenna:
+def radiator_gain_dbi(center_frequency_hz: float = CENTER_FREQUENCY_HZ) -> float:
+    """Radiator directivity at a frequency, for the fixed physical radiator area."""
+    return float(
+        RADIATOR_GAIN_AT_SOURCE_DBI
+        + 20.0 * np.log10(center_frequency_hz / SOURCE_FREQUENCY_HZ)
+    )
+
+
+def load_tx_antenna(
+    path: Path = TX_DATA_PATH, center_frequency_hz: float = CENTER_FREQUENCY_HZ
+) -> RectangularArrayAntenna:
     """Load the proposed TX coordinate/excitation list into a rectangular grid."""
     element_list = load_element_list(path)
 
@@ -556,13 +574,15 @@ def load_tx_antenna(path: Path = TX_DATA_PATH) -> RectangularArrayAntenna:
         horizontal_positions_m,
         vertical_positions_m,
         excitations,
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
-        element_gain_dbi=RADIATOR_GAIN_DBI,
+        center_frequency_hz=center_frequency_hz,
+        element_gain_dbi=radiator_gain_dbi(center_frequency_hz),
         fft_size=APERTURE_FFT_SIZE,
     )
 
 
-def build_rx_antenna(layout: RxAntennaLayout) -> UniformArrayAntenna:
+def build_rx_antenna(
+    layout: RxAntennaLayout, center_frequency_hz: float = CENTER_FREQUENCY_HZ
+) -> UniformArrayAntenna:
     """Build the analytical uniform subarray and boresight channel URA."""
     if layout.channel_count != 8:
         raise ValueError("Lannik Psi RX layout must contain eight channels")
@@ -574,7 +594,7 @@ def build_rx_antenna(layout: RxAntennaLayout) -> UniformArrayAntenna:
     subarray = UniformRectangularApertureAntenna(
         layout.subarray_width_m,
         layout.subarray_height_m,
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=center_frequency_hz,
         aperture_efficiency=RX_APERTURE_EFFICIENCY,
     )
     return UniformArrayAntenna(
@@ -583,7 +603,7 @@ def build_rx_antenna(layout: RxAntennaLayout) -> UniformArrayAntenna:
         vertical_count=layout.vertical_count,
         horizontal_spacing_m=layout.channel_horizontal_spacing_m,
         vertical_spacing_m=layout.channel_vertical_spacing_m,
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=center_frequency_hz,
     )
 
 
@@ -860,23 +880,25 @@ def lannik_psi(
     noise_figure_db: float | None = None,
     pfa_per_cell: float = PFA_PER_CELL,
     pfa_per_beam: float | None = None,
+    center_frequency_hz: float = CENTER_FREQUENCY_HZ,
 ) -> Product:
     """Build Lannik Psi with the proposed full-aperture TX model.
 
     The detector's per-beam Pfa is derived from ``pfa_per_cell`` for this RX
     beam set (:func:`per_beam_pfa`) unless ``pfa_per_beam`` sets it directly.
     ``noise_figure_db`` overrides the CTRX8188F preset's 10.2 dB. The overrides
-    exist for sensitivity checks and the RFQ-snapshot comparison.
+    exist for sensitivity checks and the range breakdown, as does
+    ``center_frequency_hz``.
     """
     waveform = FmcwWaveform.from_slope(
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=center_frequency_hz,
         chirp_slope_hz_per_s=2.0e12,  # assumed; sets unambiguous range only
         sample_rate_hz=50.0e6,
         n_samples=1024,
         n_chirps=512,
     )
-    tx_antenna = load_tx_antenna()
-    rx_boresight_array = build_rx_antenna(rx_layout)
+    tx_antenna = load_tx_antenna(center_frequency_hz=center_frequency_hz)
+    rx_boresight_array = build_rx_antenna(rx_layout, center_frequency_hz)
     rx_antenna = form_rx_beams(rx_boresight_array)
     if pfa_per_beam is None:
         beam_pfa = per_beam_pfa(rx_antenna, pfa_per_cell)
@@ -924,12 +946,15 @@ def lannik_psi(
 
 
 def evaluate(
-    product: Product, azimuth_deg: float = 0.0, elevation_deg: float = 0.0
+    product: Product,
+    azimuth_deg: float = 0.0,
+    elevation_deg: float = 0.0,
+    closing_speed_mps: float = CLOSING_SPEED_MPS,
 ) -> AcquisitionSweep:
     """Run the closing-target acquisition sweep along one look direction."""
     approach = RadialApproach(
         initial_range_m=INITIAL_RANGE_M,
-        closing_speed_mps=CLOSING_SPEED_MPS,
+        closing_speed_mps=closing_speed_mps,
         azimuth_deg=azimuth_deg,
         elevation_deg=elevation_deg,
     )
@@ -2074,14 +2099,123 @@ def plot_pd_coverage_cut(
     print(f"  saved {path}")
 
 
-def checkpoint_products() -> tuple[tuple[str, Product], ...]:
-    """Products for the range-checkpoint table.
+def placeholder_product(
+    name: str, *, proposed_tx: bool, center_frequency_hz: float
+) -> Product:
+    """Config 3 of the June comparison, optionally with the proposed TX aperture.
 
-    First the step from the assumptions in force at the RFQ to the current
-    ones, for both RX variants; then single-term sensitivities on the small-RX
-    baseline (large RX). Each sensitivity changes one term and keeps the rest.
+    The June model used 17 dBi constant-gain placeholders for every TX and RX
+    channel, coherent TX (+20 log10(8) on boresight) and coherent RX. With
+    ``proposed_tx`` the TX placeholder is replaced by the full-aperture model,
+    whose array gain is already in the pattern.
     """
-    large = "Lannik Psi, large RX"
+    waveform = FmcwWaveform.from_slope(
+        center_frequency_hz=center_frequency_hz,
+        chirp_slope_hz_per_s=2.0e12,
+        sample_rate_hz=50.0e6,
+        n_samples=1024,
+        n_chirps=512,
+    )
+    placeholder = ConstantGainAntenna(17.0)
+    tx: Antenna = (
+        load_tx_antenna(center_frequency_hz=center_frequency_hz)
+        if proposed_tx
+        else placeholder
+    )
+    radar = Radar(
+        frontend=frontend.ctrx8188f(),
+        waveform=waveform,
+        processing=StandardProcessing(
+            transmit_coherent=True,
+            tx_array_gain_in_antenna=proposed_tx,
+            rx_combination=BeamCombination.COHERENT,
+        ),
+        antenna=AntennaPair(tx=tx, rx=placeholder, name=name),
+        default_pfa=EARLIER_PFA_PER_BEAM,
+        losses=EARLIER_LOSSES,
+    )
+    return Product(
+        name=name,
+        radar=radar,
+        waveform=waveform,
+        environment=EARLIER_ENVIRONMENT,
+        front_end_note="CTRX8188F 8Tx/8Rx + 17 dBi placeholders",
+        waveform_note="1024 x 512 @ 50 MHz",
+        processing_note="coherent TX and RX",
+        losses_note=losses_note(EARLIER_LOSSES, EARLIER_ENVIRONMENT),
+        pfa_note=f"Pfa {EARLIER_PFA_PER_BEAM:.0e} per test",
+    )
+
+
+def breakdown_products() -> tuple[tuple[str, Product], ...]:
+    """Steps from config 3 of the June comparison to the current baseline.
+
+    Each step adds one change to the previous one; the last rows are the
+    current large-RX baseline and the small variant under the same assumptions.
+    """
+    source = SOURCE_FREQUENCY_HZ
+    return (
+        (
+            "June config 3, current toolbox",
+            placeholder_product(
+                "June config 3", proposed_tx=False, center_frequency_hz=source
+            ),
+        ),
+        (
+            "+ proposed TX aperture",
+            placeholder_product(
+                "Proposed TX", proposed_tx=True, center_frequency_hz=source
+            ),
+        ),
+        (
+            "+ large RX subarrays, 64 beams",
+            lannik_psi(
+                RX_SUPPLIED_LAYOUT,
+                losses=EARLIER_LOSSES,
+                environment=EARLIER_ENVIRONMENT,
+                pfa_per_beam=EARLIER_PFA_PER_BEAM,
+                center_frequency_hz=source,
+            ),
+        ),
+        (
+            "+ 76.5 GHz",
+            lannik_psi(
+                RX_SUPPLIED_LAYOUT,
+                losses=EARLIER_LOSSES,
+                environment=EARLIER_ENVIRONMENT,
+                pfa_per_beam=EARLIER_PFA_PER_BEAM,
+            ),
+        ),
+        (
+            "+ atmosphere at 1000 m",
+            lannik_psi(
+                RX_SUPPLIED_LAYOUT,
+                losses=EARLIER_LOSSES,
+                pfa_per_beam=EARLIER_PFA_PER_BEAM,
+            ),
+        ),
+        (
+            "+ antenna loss",
+            lannik_psi(
+                RX_SUPPLIED_LAYOUT,
+                losses=replace(LOSSES, chirp_frequency_error_rms_hz=0.0),
+                pfa_per_beam=EARLIER_PFA_PER_BEAM,
+            ),
+        ),
+        (
+            "+ per-chirp frequency error",
+            lannik_psi(RX_SUPPLIED_LAYOUT, pfa_per_beam=EARLIER_PFA_PER_BEAM),
+        ),
+        (
+            "+ Pfa per cell over all beams: large RX (baseline)",
+            lannik_psi(RX_SUPPLIED_LAYOUT),
+        ),
+        ("Small RX, same assumptions", lannik_psi(RX_SQUARE_LAYOUT)),
+    )
+
+
+def sensitivity_products() -> tuple[tuple[str, Product], ...]:
+    """Single-term changes to the large-RX baseline: losses and adverse effects."""
     # Rain attenuation only (ITU-R P.838-3); the toolbox's rain clutter model is
     # not validated at 77 GHz.
     light_rain = Atmosphere(
@@ -2091,56 +2225,7 @@ def checkpoint_products() -> tuple[tuple[str, Product], ...]:
         )
     )
     return (
-        (
-            "Large RX, RFQ-snapshot assumptions",
-            lannik_psi(
-                RX_SUPPLIED_LAYOUT,
-                name=large,
-                losses=RFQ_SNAPSHOT_LOSSES,
-                environment=RFQ_SNAPSHOT_ENVIRONMENT,
-                pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM,
-            ),
-        ),
-        (
-            "+ atmosphere at 1000 m",
-            lannik_psi(
-                RX_SUPPLIED_LAYOUT,
-                name=large,
-                losses=RFQ_SNAPSHOT_LOSSES,
-                pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM,
-            ),
-        ),
-        (
-            "+ antenna loss",
-            lannik_psi(
-                RX_SUPPLIED_LAYOUT,
-                name=large,
-                losses=replace(LOSSES, chirp_frequency_error_rms_hz=0.0),
-                pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM,
-            ),
-        ),
-        (
-            "+ chirp frequency error",
-            lannik_psi(
-                RX_SUPPLIED_LAYOUT,
-                name=large,
-                pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM,
-            ),
-        ),
-        (
-            "+ Pfa per cell over all beams: current assumptions (baseline)",
-            lannik_psi(RX_SUPPLIED_LAYOUT, name=large),
-        ),
-        (
-            "Small RX, RFQ-snapshot assumptions",
-            lannik_psi(
-                RX_SQUARE_LAYOUT,
-                losses=RFQ_SNAPSHOT_LOSSES,
-                environment=RFQ_SNAPSHOT_ENVIRONMENT,
-                pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM,
-            ),
-        ),
-        ("Small RX, current assumptions", lannik_psi(RX_SQUARE_LAYOUT)),
+        ("Baseline", lannik_psi()),
         (
             "TX power -1 dB",
             lannik_psi(losses=replace(LOSSES, tx_power_derating_db=1.0)),
@@ -2159,58 +2244,168 @@ def checkpoint_products() -> tuple[tuple[str, Product], ...]:
         ),
         (
             "Pfa 1e-6 per beam (multiple tests ignored)",
-            lannik_psi(pfa_per_beam=RFQ_SNAPSHOT_PFA_PER_BEAM),
+            lannik_psi(pfa_per_beam=EARLIER_PFA_PER_BEAM),
         ),
     )
 
 
-def print_range_checkpoints() -> None:
-    """Print boresight Pd/Pacq ranges for the checkpoint products as a table."""
-    print("\nRange checkpoints (Pd=50%/90% single scan; Pacq=50%/90% 2-of-3)")
-    print("| Case | Pd range | Pacq range | Pd=90% vs baseline |")
-    print("|---|---:|---:|---:|")
-    rows: list[tuple[str, dict[float, float], dict[float, float]]] = []
-    baseline_pd90 = float("nan")
-    for label, product in checkpoint_products():
-        acq = evaluate(product)
-        assert acq.confirmation_pd is not None
-        pd_ranges = ranges_at_levels(acq.range_m, acq.pd)
-        pacq_ranges = ranges_at_levels(acq.range_m, acq.confirmation_pd)
-        rows.append((label, pd_ranges, pacq_ranges))
-        if label.endswith("(baseline)"):
-            baseline_pd90 = pd_ranges[0.9]
-    for label, pd_ranges, pacq_ranges in rows:
-        change = 100.0 * (pd_ranges[0.9] / baseline_pd90 - 1.0)
-        print(
-            f"| {label} | {pd_ranges[0.5]:.0f} / {pd_ranges[0.9]:.0f} m | "
-            f"{pacq_ranges[0.5]:.0f} / {pacq_ranges[0.9]:.0f} m | {change:+.1f}% |"
-        )
+def pd_ranges(
+    product: Product, azimuth_deg: float = 0.0, elevation_deg: float = 0.0
+) -> dict[float, float]:
+    """Single-scan Pd ranges at the reported levels along one look direction."""
+    acq = evaluate(product, azimuth_deg, elevation_deg)
+    return ranges_at_levels(acq.range_m, acq.pd)
 
 
-def print_field_of_view_ranges(product: Product) -> None:
-    """Print Pd/Pacq ranges at the edges of the use-case field of view."""
-    edge = USE_CASE_FIELD_OF_VIEW_DEG
-    print(
-        f"\nRanges across the use-case field of view (+/-{edge:.0f} deg), "
-        f"{product.name}"
-    )
-    print("| Direction (az, el) | Pd range | Pacq range |")
+def print_range_breakdown() -> None:
+    """Print boresight Pd ranges step by step from the June comparison."""
+    print("\nRange breakdown, boresight single-scan Pd = 50% / 90%")
+    print("| Step | Pd range | Pd=90% change |")
     print("|---|---:|---:|")
-    for azimuth_deg, elevation_deg in (
-        (0.0, 0.0),
-        (edge, 0.0),
-        (0.0, edge),
-        (edge, edge),
-    ):
-        acq = evaluate(product, azimuth_deg, elevation_deg)
-        assert acq.confirmation_pd is not None
-        pd_ranges = ranges_at_levels(acq.range_m, acq.pd)
-        pacq_ranges = ranges_at_levels(acq.range_m, acq.confirmation_pd)
+    published = JUNE_PUBLISHED_PD_RANGES_M
+    print(
+        f"| June config 3, as published | {published[0]:.0f} / {published[1]:.0f} m | |"
+    )
+    previous = published[1]
+    for label, product in breakdown_products():
+        ranges = pd_ranges(product)
+        change = 100.0 * (ranges[0.9] / previous - 1.0)
+        print(f"| {label} | {ranges[0.5]:.0f} / {ranges[0.9]:.0f} m | {change:+.1f}% |")
+        previous = ranges[0.9]
+
+
+def print_sensitivities() -> None:
+    """Print the boresight Pd ranges of single-term changes to the baseline."""
+    print("\nSensitivities, large-RX baseline, boresight single-scan Pd = 50% / 90%")
+    print("| Change | Pd range | Pd=90% vs baseline |")
+    print("|---|---:|---:|")
+    baseline = float("nan")
+    for label, product in sensitivity_products():
+        ranges = pd_ranges(product)
+        if label == "Baseline":
+            baseline = ranges[0.9]
+        change = 100.0 * (ranges[0.9] / baseline - 1.0)
+        print(f"| {label} | {ranges[0.5]:.0f} / {ranges[0.9]:.0f} m | {change:+.1f}% |")
+
+
+def print_off_axis_ranges(products: tuple[Product, ...]) -> None:
+    """Print single-scan Pd ranges at boresight and at the reference angle."""
+    angle = OFF_AXIS_REFERENCE_DEG
+    print(f"\nSingle-scan Pd = 50% / 90% ranges at boresight and {angle:.0f} deg")
+    print("| Direction (az, el) | " + " | ".join(p.name for p in products) + " |")
+    print("|---|" + "---:|" * len(products))
+    for azimuth_deg, elevation_deg in ((0.0, 0.0), (angle, 0.0), (0.0, angle)):
+        cells = []
+        for product in products:
+            ranges = pd_ranges(product, azimuth_deg, elevation_deg)
+            cells.append(f"{ranges[0.5]:.0f} / {ranges[0.9]:.0f} m")
         print(
             f"| ({azimuth_deg:.0f}°, {elevation_deg:.0f}°) | "
-            f"{pd_ranges[0.5]:.0f} / {pd_ranges[0.9]:.0f} m | "
-            f"{pacq_ranges[0.5]:.0f} / {pacq_ranges[0.9]:.0f} m |"
+            + " | ".join(cells)
+            + " |"
         )
+
+
+def print_acquisition_illustration(product: Product) -> None:
+    """Illustrate how a confirmation rule extends acquisition beyond single-scan Pd.
+
+    The 2-of-3 rule, frame rate and closing speeds are illustrative; the actual
+    acquisition criteria are not defined. What matters is mainly the number of
+    detection attempts per metre of approach, frame rate / closing speed.
+    """
+    single = pd_ranges(product)
+    print(
+        f"\nAcquisition illustration, {product.name}, boresight: single-scan Pd = "
+        f"50% / 90% at {single[0.5]:.0f} / {single[0.9]:.0f} m"
+    )
+    for speed in (CLOSING_SPEED_MPS, USE_CASE_MAX_CLOSING_SPEED_MPS):
+        acq = evaluate(product, closing_speed_mps=speed)
+        assert acq.confirmation_pd is not None
+        pacq = ranges_at_levels(acq.range_m, acq.confirmation_pd)
+        attempts = 1.0 / (FRAME_TIME_S * speed)
+        print(
+            f"  closing {speed:.0f} m/s ({attempts:.2f} frames per metre): 2-of-3 "
+            f"Pacq = 50% / 90% at {pacq[0.5]:.0f} / {pacq[0.9]:.0f} m"
+        )
+
+
+def plot_coverage_summary(
+    products: tuple[Product, ...], labels: tuple[str, ...], path: Path
+) -> None:
+    """Cartesian single-scan Pd coverage, horizontal and vertical, per variant."""
+    cuts = [cut for cut in COVERAGE_CUTS if cut.name in ("horizontal", "vertical")]
+    fig, axes = plt.subplots(
+        len(products),
+        len(cuts),
+        figsize=(12.0, 4.2 * len(products)),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    mesh = None
+    for row, (product, label) in enumerate(zip(products, labels, strict=True)):
+        rx_antenna = product.radar.antenna.rx
+        if not isinstance(rx_antenna, MultiBeamUniformArrayAntenna):
+            raise TypeError("Lannik Psi RX must be a MultiBeamUniformArrayAntenna")
+        for column, cut in enumerate(cuts):
+            ax = axes[row, column]
+            _, cartesian_map, _ = compute_pd_coverage_maps(product, rx_antenna, cut)
+            mesh = ax.pcolormesh(
+                cartesian_map.coord1,
+                cartesian_map.coord2,
+                cartesian_map.pd.T,
+                shading="auto",
+                vmin=0.0,
+                vmax=1.0,
+                cmap="viridis",
+            )
+            ax.contour(
+                cartesian_map.coord1,
+                cartesian_map.coord2,
+                cartesian_map.pd.T,
+                levels=PD_MAP_LEVELS,
+                colors=("white", "black"),
+                linestyles=("--", "-"),
+                linewidths=1.1,
+            )
+            edge_deg = _coverage_principal_angle_deg(cut, rx_antenna)
+            offset = cartesian_map.coord1 * np.tan(np.radians(edge_deg))
+            for sign in (1.0, -1.0):
+                ax.plot(
+                    cartesian_map.coord1,
+                    sign * offset,
+                    color="C3",
+                    linestyle="--",
+                    linewidth=1.0,
+                    label="RX principal-region edge" if sign > 0 else None,
+                )
+            ax.set_ylim(-PD_MAP_TRANSVERSE_LIMIT_M, PD_MAP_TRANSVERSE_LIMIT_M)
+            ax.set_title(f"{label}: {cut.title.lower()}", fontsize=11)
+            ax.grid(True, alpha=0.2)
+            if row == len(products) - 1:
+                ax.set_xlabel("downrange [m]")
+            if column == 0:
+                ax.set_ylabel("offset [m] (left or up +)")
+    axes[0, -1].legend(loc="upper right", fontsize=8)
+    assert mesh is not None
+    fig.colorbar(mesh, ax=axes, label="single-scan Pd", shrink=0.8)
+    fig.suptitle(
+        "Lannik Psi single-scan Pd coverage: 50% dashed, 90% solid "
+        "(axis scales differ)",
+        fontsize=13,
+    )
+    fig.text(
+        0.45,
+        0.01,
+        "1 m² Swerling 1 | Pfa 1e-6 per range–Doppler cell over all RX beams | "
+        f"{products[0].losses_note}",
+        ha="center",
+        fontsize=8,
+        color="0.3",
+    )
+    fig.savefig(path, dpi=130, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  saved {path}")
 
 
 def continuum_effective_tests(
@@ -2293,12 +2488,18 @@ def main() -> None:
 
     acquisition = evaluate(product)
     print_diagnostics(product, acquisition)
-    print_range_checkpoints()
     small = lannik_psi(RX_SQUARE_LAYOUT)
-    for variant in (product, small):
-        print_field_of_view_ranges(variant)
+    print_range_breakdown()
+    print_off_axis_ranges((product, small))
+    print_sensitivities()
+    print_acquisition_illustration(product)
     for layout in (RX_SUPPLIED_LAYOUT, RX_SQUARE_LAYOUT):
         print_beam_pfa_trade(layout)
+    plot_coverage_summary(
+        (product, small),
+        ("Large RX (baseline)", "Small RX (first prototype)"),
+        generated_dir / "coverage_summary.png",
+    )
     path = generated_dir / "pd_pacq_vs_range.png"
     plot_product(product, acquisition, path)
     print(f"\n  saved {path}")

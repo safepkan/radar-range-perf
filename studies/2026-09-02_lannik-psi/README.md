@@ -52,23 +52,28 @@ the first prototype about six weeks after that.
 
 The computational baseline for range performance is the large variant,
 modelled without its column stagger. Ordering the small variant first was a
-project choice, so both are given. Scenario: a 1 m² Swerling-1 target
-closing at 15 m/s, 20 Hz frames. Single-scan Pd is per frame. Pacq is the
-probability of a 2-of-3 confirmed acquisition by that range. False alarms are
-held at 1e-6 per range–Doppler cell over all RX beams: 1.8e-8 per beam for
-the large variant's 64 beams, 1.2e-8 for the small variant's 128.
+project choice, so both are shown. The headline result is single-scan Pd
+coverage: the probability of detecting a 1 m² Swerling-1 target in one
+frame, as a function of position.
 
-| Direction (azimuth, elevation) | Large RX: Pd 50/90% | Large RX: Pacq 50/90% | Small RX: Pd 50/90% | Small RX: Pacq 50/90% |
-|---|---:|---:|---:|---:|
-| Boresight | 913 / 572 m | 1302 / 1219 m | 767 / 479 m | 1088 / 1015 m |
-| 8° horizontally | 623 / 388 m | 878 / 817 m | 532 / 331 m | 742 / 689 m |
-| 8° vertically | 444 / 276 m | 616 / 570 m | 526 / 327 m | 734 / 682 m |
-| (8°, 8°) | 313 / 194 m | 425 / 392 m | 370 / 230 m | 508 / 469 m |
+![Single-scan Pd coverage of both RX variants, horizontal and vertical planes](deliverables/2026-10-01_conclusion/coverage_summary.png)
 
-The large variant's taller subarrays narrow its vertical coverage. At 8°
-elevation it falls below the small variant, and that direction lies outside
-its ±6.0° vertical principal region, so a detection there also needs its
-ambiguity resolved.
+Detailed polar and Cartesian maps of the large variant, including the
+diagonal plane, are in [deliverables/2026-10-01_conclusion/](deliverables/2026-10-01_conclusion/).
+False alarms are held at 1e-6 per range–Doppler cell over all RX beams:
+1.8e-8 per beam for the large variant's 64 beams, 1.2e-8 for the small
+variant's 128. Red dashed lines mark the RX principal-region edges.
+
+| Direction (azimuth, elevation) | Large RX: Pd 50% / 90% | Small RX: Pd 50% / 90% |
+|---|---:|---:|
+| Boresight | 913 / 572 m | 767 / 479 m |
+| 6° horizontally | 744 / 465 m | 625 / 390 m |
+| 6° vertically | 628 / 392 m | 625 / 390 m |
+
+Six degrees is about the TX 3 dB half-width (6.3°) and the large variant's
+vertical principal edge (6.0°). The narrow beam is deliberate: the design
+trades beamwidth for gain. The large variant's taller subarrays narrow its
+vertical coverage to that of the small variant at 6°.
 
 These numbers assume:
 - typical CTRX8188F TX power (14.5 dBm per port) and noise figure (10.2 dB);
@@ -81,32 +86,75 @@ These numbers assume:
   evaluation board (same MMIC) with our firmware's ramp timing;
 - no radome, rain or clutter.
 
-Together with the per-cell false-alarm accounting, these terms cost 18–23% of
-the range quoted at the RFQ. Those earlier figures assumed free space, no
-system losses and 1e-6 per beam.
+### Compared with the June study
 
-Largest sensitivities for the large variant, as change in single-scan
-Pd = 90% range (Pacq 90% in brackets):
+Config 3 of the [2026-06-22 configuration comparison](../2026-06-22_config-comparison/)
+was the starting point. It was a boresight-only estimate: CTRX8188F with
+17 dBi placeholder antennas, coherent TX and RX, free space, no system losses.
+Boresight single-scan Pd ranges, step by step to the current large-RX
+baseline:
 
-| Change | Pd 90% | (Pacq 90%) |
+| Step | Pd 50% / 90% | Change in Pd 90% range |
 |---|---:|---:|
-| Noise figure at the datasheet maximum, 13.2 dB | −16% | (−16%) |
-| Radome, 0.8 dB one way | −9% | (−9%) |
-| Light rain, 1 mm/h | −7% | (−14%) |
-| TX power 1 dB lower (temperature) | −6% | (−6%) |
-| Per-chirp frequency error of 21 kHz (tight ramp timing) | −5% | (−19%) |
+| June config 3, as published | 994 / 614 m | |
+| Same model, current toolbox (computed window straddle) | 1009 / 623 m | +1.5% |
+| Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% |
+| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% |
+| 76.5 GHz instead of 77 GHz | 1127 / 696 m | −0.3% |
+| Atmosphere at 1000 m | 1096 / 684 m | −1.7% |
+| Antenna loss, 1.0 dB each side | 978 / 610 m | −10.9% |
+| Per-chirp frequency error, 3.5 kHz | 974 / 608 m | −0.2% |
+| Pfa per range–Doppler cell over all beams: **large-RX baseline** | **913 / 572 m** | −6.0% |
+| Small RX instead, same assumptions | 767 / 479 m | −16.1% |
+
+The proposed TX aperture has 23.5 dBi directivity. The placeholder's ideal
+array of eight 17 dBi elements has 26 dBi, so the TX aperture costs 2.5 dB:
+its defocus phase widens the beam. The large RX subarrays, 21.5 dBi against
+the 17 dBi placeholder per channel, more than make up for that. The new loss and false-alarm terms then
+cost about 18%, leaving the baseline 7% short of the June estimate at
+Pd 90%.
+
+### Sensitivity to additional losses and adverse conditions
+
+The baseline leaves out terms that are unknown or design-dependent. Each row
+changes one term, as change in the large variant's boresight single-scan
+Pd 90% range:
+
+| Change | Pd 90% range |
+|---|---:|
+| Noise figure at the datasheet maximum, 13.2 dB instead of 10.2 dB | −15.6% |
+| Radome, 0.8 dB one way (one published example) | −8.7% |
+| Light rain, 1 mm/h (attenuation only) | −6.6% |
+| TX power 1 dB lower (temperature) | −5.5% |
+| Per-chirp frequency error of 21 kHz (tight ramp timing) | −5.4% |
+| Sea-level instead of 1000 m atmosphere | −0.9% |
+| Noise figure 9.7 dB (our reading of the +3 dB RX gain setting) | +2.9% |
+
+Losses combine in dB. A 0.8 dB radome and 1 dB of TX derating together
+would cost 2.6 dB, about 14% of range. Rain and the chirp error grow with range and cost more
+at longer ranges.
 
 ### Relation to the customer use case
 
-The first use case, UC-01, asks for detection of a 0 dBsm Swerling-1 target
-at 500–800 m inside ±8° horizontally and vertically. It states no Pd,
-false-alarm rate or latency. At boresight, single-scan Pd reaches 50% at 913 m
-(large) or 767 m (small), and confirmed acquisition 90% at 1.2 km or 1.0 km.
-At the ±8° edges single-scan Pd 50% falls to 440–620 m (large) or about 530 m
-(small), and Pacq 90% to 570–820 m or about 690 m. The use case also puts the
-radar behind a radome, which these numbers leave out, and allows relative
-speeds up to 50 m/s against the 15 m/s used here. Whether the concept meets
-UC-01 depends on the Pd and latency that the requirement turns out to set.
+The customer use cases are a point of reference, not fixed requirements;
+they are indicative and subject to revision. The first, UC-01, asks for
+detection of a 0 dBsm Swerling-1 target at 500–800 m inside ±8°, with no Pd,
+false-alarm rate or acquisition criterion stated. Single-scan Pd reaches
+50% at 913 m on boresight for the large variant and at 630–740 m at 6°. The
+design deliberately accepts a narrower beam than ±8° for higher gain.
+
+A track is normally confirmed over several frames, so acquisition happens
+further out than single-scan Pd suggests, and its probability rises more
+steeply with decreasing range. How much further depends on the confirmation
+rule, the frame rate and the approach. For a closing target the relative
+speed matters mainly through the number of detection attempts per metre of
+approach: frame rate divided by closing speed. As an illustration only, with
+a 2-of-3 rule at 20 Hz, a confirmed acquisition is reached with 90%
+probability at about 1220 m closing at 15 m/s and about 1120 m at 50 m/s,
+the use case's highest relative speed. These figures are not reported as
+results, because the actual acquisition criteria are not defined. The use
+case also puts the radar behind a radome, which the baseline leaves out (see
+the sensitivities).
 
 ### What is not established
 
@@ -168,7 +216,7 @@ waveform is an assumption, not a design. There is no tracker model.
 | [NOTES.md](NOTES.md) | Range model, antenna models, loss and environment assumptions, false alarms over the RX beams, coverage, decision log |
 | [RX_LAYOUT.md](RX_LAYOUT.md) | RX layout trade and the 2026-09-10 prototype decision |
 | [MIMO.md](MIMO.md) | Interlaced split-aperture MIMO for ambiguity resolution |
-| [deliverables/](deliverables/README.md) | What was published outside the repository: Slack figures, the decision presentation, the RFQ as issued |
+| [deliverables/](deliverables/README.md) | What was published outside the repository (Slack figures, the decision presentation, the RFQ as issued) and the concluding coverage figures |
 | [inputs/](inputs/) | Supplied antenna data, presentations and layout sketches |
 
 Sections of the notes are dated. Ranges quoted before 2026-10-01 omit the
@@ -179,7 +227,7 @@ loss, atmosphere and false-alarm terms above; [MIMO.md](MIMO.md) and
 
 | Script | Purpose |
 |---|---|
-| [lannik_psi.py](lannik_psi.py) | Range model and baseline product; Pd/Pacq, patterns, coverage maps, checkpoint and sensitivity tables, beam-density trade |
+| [lannik_psi.py](lannik_psi.py) | Range model and baseline product: patterns, Pd coverage maps and the summary figure, range breakdown from the June study, off-axis and sensitivity tables, acquisition illustration, beam-density trade |
 | [quadrant_mimo.py](quadrant_mimo.py) | Ideal four-quadrant and half-aperture MIMO: alias correlation, detection and resolution ranges, RX height trade |
 | [rx_layout_experiment.py](rx_layout_experiment.py) | RX layout geometries and channel-array factors |
 | [rx_resolution_experiment.py](rx_resolution_experiment.py) | Monte Carlo resolution events: one coherent frame plus MIMO illumination |

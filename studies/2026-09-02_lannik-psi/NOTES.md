@@ -209,17 +209,17 @@ prints the itemised link budget.
 
 **Sensitivities** on the large-RX baseline, each changing one term:
 
-| Change | Pd range | Pacq range | Pd=90% range |
-|---|---:|---:|---:|
-| Baseline | 913 / 572 m | 1302 / 1219 m | |
-| TX power 1 dB lower (temperature, Table 24) | 863 / 540 m | 1229 / 1150 m | −5.5% |
-| NF 9.7 dB (RX gain +3 dB, our reading) | 938 / 588 m | 1340 / 1255 m | +2.9% |
-| NF 13.2 dB (datasheet maximum) | 772 / 482 m | 1095 / 1022 m | −15.6% |
-| Radome 0.8 dB one way | 835 / 522 m | 1187 / 1110 m | −8.7% |
-| Sea-level standard atmosphere (0.35 dB/km) | 901 / 566 m | 1276 / 1195 m | −0.9% |
-| Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | 1118 / 1052 m | −6.6% |
-| Per-chirp frequency error 21 kHz | 809 / 541 m | 1040 / 988 m | −5.4% |
-| Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | 1411 / 1318 m | +6.4% |
+| Change | Pd range | Pd=90% range |
+|---|---:|---:|
+| Baseline | 913 / 572 m | |
+| TX power 1 dB lower (temperature, Table 24) | 863 / 540 m | −5.5% |
+| NF 9.7 dB (RX gain +3 dB, our reading) | 938 / 588 m | +2.9% |
+| NF 13.2 dB (datasheet maximum) | 772 / 482 m | −15.6% |
+| Radome 0.8 dB one way | 835 / 522 m | −8.7% |
+| Sea-level standard atmosphere (0.35 dB/km) | 901 / 566 m | −0.9% |
+| Light rain, 1 mm/h (P.838-3 attenuation added) | 823 / 534 m | −6.6% |
+| Per-chirp frequency error 21 kHz | 809 / 541 m | −5.4% |
+| Pfa `1e-6` per beam test (multiple testing ignored) | 974 / 608 m | +6.4% |
 
 The small variant's sensitivities are similar. Rain and the chirp error cost it
 1–1.5 percentage points less, because its ranges are shorter.
@@ -231,7 +231,7 @@ baseline keeps 0 dB. The light-rain case adds only ITU-R P.838-3 rain
 attenuation (1.1 dB/km one way at 1 mm/h); the toolbox's rain clutter is not
 validated at 77 GHz, and fog and cloud are not modelled. The 21 kHz error was
 measured on CARKIT with 60 ns flyback and wait and 4.2 µs pre-payload. Rain and
-the chirp error cost relatively more at Pacq ranges, because they grow with
+the chirp error cost relatively more at longer ranges, because they grow with
 range.
 
 ### False alarms over the RX beams
@@ -423,55 +423,52 @@ also accounting for the changed subarray geometry.
 
 ## Range checkpoints
 
-All entries are boresight results for the inherited scenario. Values are
-Pd=50%/90% and Pacq=50%/90% respectively.
+Boresight single-scan Pd = 50% / 90% ranges for the inherited scenario.
+Since 2026-10-01 the study reports single-scan Pd only. Acquisition
+probability with a confirmation rule (Pacq) depends strongly on the assumed
+trajectory, frame rate and acquisition criterion. In the June comparison it
+mainly showed that acquisition ranges come out well beyond single-scan Pd
+ranges, with a sharper transition from 0 to 100%; `lannik_psi.py` keeps an
+illustration of that (see the [README](README.md)).
 
-**Result, current assumptions (2026-10-01):** `lannik_psi.py` prints this table.
-The first rows step from the assumptions in force at the RFQ (77 GHz, free
-space, no system losses, `Pfa=1e-6` per beam) to the current ones. The RFQ-snapshot
-rows differ slightly from the September values below because the toolbox now
-computes the window straddle (0.47 instead of 0.6 dB per axis) and the model
-runs at 76.5 GHz.
+**Result, 2026-10-01:** step by step from config 3 of the June comparison to
+the current large-RX baseline; `lannik_psi.py` prints this table. Each row
+adds one change to the row above.
 
-| Case | Pd range | Pacq range |
+| Step | Pd range | Change in Pd 90% range |
 |---|---:|---:|
-| Large RX, RFQ-snapshot assumptions | 1127 / 696 m | 1682 / 1568 m |
-| + atmosphere at 1000 m, 0.22 dB/km | 1096 / 684 m | 1607 / 1501 m |
-| + antenna loss, 1.01 dB each way | 978 / 610 m | 1428 / 1332 m |
-| + per-chirp frequency error, 3.5 kHz | 974 / 608 m | 1411 / 1318 m |
-| **+ Pfa per cell over all beams: large RX, current (baseline)** | **913 / 572 m** | **1302 / 1219 m** |
-| Small RX, RFQ-snapshot assumptions | 948 / 585 m | 1401 / 1303 m |
-| Small RX, current assumptions | 767 / 479 m | 1088 / 1015 m |
+| June config 3, as published (17 dBi placeholders, coherent TX and RX, free space) | 994 / 614 m | |
+| Same model, current toolbox (window straddle computed: 0.47 instead of 0.6 dB per axis) | 1009 / 623 m | +1.5% |
+| Proposed TX aperture instead of the TX placeholder | 872 / 538 m | −13.6% |
+| Large RX subarrays and 64 RX beams instead of the RX placeholder | 1131 / 698 m | +29.7% |
+| 76.5 GHz instead of 77 GHz | 1127 / 696 m | −0.3% |
+| Atmosphere at 1000 m, 0.22 dB/km | 1096 / 684 m | −1.7% |
+| Antenna loss, 1.01 dB each side | 978 / 610 m | −10.9% |
+| Per-chirp frequency error, 3.5 kHz | 974 / 608 m | −0.2% |
+| **Pfa per cell over all beams: large-RX baseline** | **913 / 572 m** | −6.0% |
+| Small RX instead, same assumptions | 767 / 479 m | −16.1% |
 
-The update costs 18–23% of range for either variant. The antenna loss is the
-largest term, followed by the false-alarm accounting; the atmosphere matters
-mainly at the longer Pacq ranges. The 76.5 GHz centre frequency alone costs
-0.3–0.4%.
+The steps through "large RX subarrays" correspond to the September
+checkpoints quoted elsewhere in these notes, which used 0.6 dB straddle per
+axis: 1114 / 688 m for the September baseline, 859 / 531 m with the TX
+aperture alone. The square
+first-cut candidate, now the small variant, was 937 / 578 m in September. The
+loss and false-alarm terms added on 2026-10-01 cost 18% of the large
+variant's Pd 90% range; the baseline ends 7% below the June estimate.
 
-At the edges of the customer use case's ±8° field of view (acquisition sweeps
-along each direction; `lannik_psi.py` prints them):
+At boresight and at 6° off boresight (`lannik_psi.py` prints this table):
 
-| Direction (az, el) | Large RX: Pd | Large RX: Pacq | Small RX: Pd | Small RX: Pacq |
-|---|---:|---:|---:|---:|
-| (8°, 0°) | 623 / 388 m | 878 / 817 m | 532 / 331 m | 742 / 689 m |
-| (0°, 8°) | 444 / 276 m | 616 / 570 m | 526 / 327 m | 734 / 682 m |
-| (8°, 8°) | 313 / 194 m | 425 / 392 m | 370 / 230 m | 508 / 469 m |
-
-The large variant's taller subarrays narrow its vertical coverage, so it falls
-below the small variant at 8° elevation, which is also outside its ±6.0°
-vertical principal region.
-
-**History,** free space and no system losses:
-
-| Model stage | Pd range | Pacq range |
+| Direction (az, el) | Large RX | Small RX |
 |---|---:|---:|
-| June config-3 placeholder model | 994 / 614 m | 1474 / 1372 m |
-| Proposed TX aperture, old RX placeholder | 859 / 531 m | 1264 / 1174 m |
-| Proposed TX and supplied-size RX aperture (September baseline) | 1114 / 688 m | 1662 / 1549 m |
-| Square RX subarray first-cut candidate | 937 / 578 m | 1384 / 1288 m |
+| (0°, 0°) | 913 / 572 m | 767 / 479 m |
+| (6°, 0°) | 744 / 465 m | 625 / 390 m |
+| (0°, 6°) | 628 / 392 m | 625 / 390 m |
 
-Adding multiple RX look directions does not change the boresight checkpoints;
-it changes off-boresight coverage.
+Six degrees is about the TX 3 dB half-width (6.3°) and the large variant's
+vertical principal edge (6.0°). The customer use cases' ±8° field of view is
+indicative, and the design deliberately trades beamwidth for gain. The large
+variant's taller subarrays narrow its vertical coverage to that of the small
+variant at 6° elevation.
 
 ## Main results and current conclusions
 
@@ -866,9 +863,9 @@ Before optimizing the antenna or schedule, clarify at least:
   mainlobe boundary. The main coherent-TX script does not resolve these aliases.
 - The separate MIMO experiment remains idealized and binary. Its assumptions
   and limitations are maintained in [`MIMO.md`](MIMO.md).
-- Pacq is evaluated only for radial approaches at 15 m/s, at boresight and
-  at the ±8° use-case field-of-view edges.
-- Static directional coverage currently shows Pd only; Pacq requires an
+- Pacq is no longer reported. The acquisition illustration covers radial
+  approaches at 15 and 50 m/s on boresight with a 2-of-3 rule.
+- Static directional coverage shows Pd only; Pacq requires an
   explicit trajectory and revisit schedule.
 - No TX-mode timing, waveform switching, scheduler, or tracker model.
 - Far-out sidelobe and grating-lobe coverage should not be interpreted as a
@@ -882,7 +879,11 @@ prototype-decision items are done, and the rest are folded into the README.
 
 ## Key generated figures
 
-- `pd_pacq_vs_range.png` — inherited boresight Pd/Pacq baseline.
+- `coverage_summary.png` — Cartesian single-scan Pd coverage of both RX
+  variants in the horizontal and vertical planes; the README's headline
+  figure, archived with the large-RX polar/Cartesian maps in
+  `deliverables/2026-10-01_conclusion/`.
+- `pd_pacq_vs_range.png` — boresight Pd, with the illustrative 2-of-3 Pacq.
 - `antenna_geometry_excitations.png` — modeled TX radiator amplitudes and
   relative phases beside the RX subarray geometry and channel phase centers.
 - `tx_sum_beam_uv.png`, `tx_sum_beam_cuts.png` — proposed TX aperture.
@@ -1043,3 +1044,10 @@ The main-script figures show the large RX baseline.
 - **2026-10-01:** Concluded the study. Wrote the [README](README.md) summary
   and handover list and archived the RFQ as issued. Continued work, starting
   with the supplier's design data, belongs in a new study.
+- **2026-10-01, review:** Report single-scan Pd only. Pacq depends too much on
+  trajectory, frame rate and acquisition criterion; one illustration is kept.
+  Compare with the June study, which has archived results, rather than the
+  RFQ, which has none, and break the change down step by step. Quote
+  off-boresight ranges at 6°, about the TX 3 dB half-width, rather than the
+  use cases' indicative ±8°. Make the Pd coverage figure the README's
+  headline, archived in `deliverables/2026-10-01_conclusion/`.
