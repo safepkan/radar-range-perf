@@ -42,12 +42,15 @@ from window_common import (
     CASES,
     FAR_DOPPLER_HZ,
     GENERATED_DIR,
+    INFINEON_CASES,
     PADDING,
     Capture,
+    case_arguments,
     chirp_gains,
     data_arguments,
     load_capture,
     per_chirp_noise,
+    resolve_cases,
     range_spectrum,
     range_window,
     slow_time_spectrum,
@@ -206,7 +209,7 @@ def thermal_floor(case: str, arrays: dict[str, dict[str, FloatArray]]) -> FloatA
                 values["independent_floor"], FLOOR_SMOOTHING_BINS, mode="nearest"
             )
         )
-    reference = arrays["infineon-mode0"]
+    reference = arrays.get("infineon-mode0", values)
     beyond = reference["range_m"] > INFINEON_THERMAL_RANGE_M
     level = float(np.median(reference["independent_floor"][beyond]))
     return np.full(values["range_m"].shape, level)
@@ -296,15 +299,19 @@ def compare_levels(
 
 
 def plot(output: Path, arrays: dict[str, dict[str, FloatArray]]) -> None:
-    families = ("short", "medium", "long", "infineon")
+    present = {case.split("-")[0] for case in arrays}
+    families = [f for f in ("short", "medium", "long", "infineon") if f in present]
+    families += sorted(present - set(families))
     titles = {
         "short": "2026-09-30 short: 240 MHz, 23.5 MHz/µs",
         "medium": "2026-09-30 medium: 120 MHz, 11.7 MHz/µs",
         "long": "2026-09-30 long: 122 MHz, 2.98 MHz/µs",
         "infineon": "2026-08-27 Infineon firmware, 8TX DDMA (per-chirp power)",
     }
-    figure, axes = plt.subplots(4, 1, figsize=(13, 15), layout="constrained")
-    for axis, family in zip(axes, families):
+    figure, axes = plt.subplots(
+        len(families), 1, figsize=(13, 3.75 * len(families)), layout="constrained"
+    )
+    for axis, family in zip(np.atleast_1d(axes), families):
         for case, values in arrays.items():
             if case.split("-")[0] != family:
                 continue
@@ -324,7 +331,7 @@ def plot(output: Path, arrays: dict[str, dict[str, FloatArray]]) -> None:
         axis.set(
             xlabel="Apparent range [m]",
             ylabel="dB ADC-count²",
-            title=f"{titles[family]}; static profile (solid), independent "
+            title=f"{titles.get(family, family)}; static profile (solid), independent "
             "remote-Doppler floor per cell (dotted)",
         )
         axis.grid(alpha=0.3)
@@ -333,7 +340,7 @@ def plot(output: Path, arrays: dict[str, dict[str, FloatArray]]) -> None:
     plt.close(figure)
 
     figure, axis = plt.subplots(figsize=(9, 5), layout="constrained")
-    for case in BACKGROUND_CASES:
+    for case in (case for case in BACKGROUND_CASES if case in arrays):
         values = arrays[case]
         capture_beat = values["beat_hz"]
         reference = (capture_beat >= BACKGROUND_REFERENCE_HZ[0]) & (
@@ -369,6 +376,7 @@ def plot(output: Path, arrays: dict[str, dict[str, FloatArray]]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     data_arguments(parser)
+    case_arguments(parser, ALL_CASES)
     parser.add_argument("--output", type=Path, default=GENERATED_DIR / "scene")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -376,13 +384,13 @@ def main() -> None:
     summaries: dict[str, Any] = {}
     arrays: dict[str, dict[str, FloatArray]] = {}
     captures = {}
-    for case in ALL_CASES:
+    for case in resolve_cases(args.cases, args.data, ALL_CASES):
         captures[case] = load_capture(case, args.data, args.infineon_data, verify=True)
         summaries[case], arrays[case] = analyze(captures[case])
     for case, capture in captures.items():
         arrays[case]["noise_floor"] = thermal_floor(case, arrays)
         add_peaks(capture, summaries[case], arrays[case])
-        if case in CASES:
+        if case not in INFINEON_CASES:
             summaries[case]["drift"] = drift(capture, arrays[case])
         np.savez_compressed(
             args.output / f"{case}.npz", allow_pickle=False, **arrays[case]
@@ -396,6 +404,7 @@ def main() -> None:
             "levels": {
                 case: compare_levels(arrays, case, reference)
                 for case, reference in LEVEL_PAIRS
+                if case in arrays and reference in arrays
             },
             "cases": summaries,
         },

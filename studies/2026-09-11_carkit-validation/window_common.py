@@ -26,6 +26,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -107,6 +108,9 @@ class Capture:
     binary_paths: tuple[Path, ...]
     sha256: tuple[str, ...]
     timestamps: tuple[str, ...]
+    # CPI start times relative to the first CPI, from the board: CPI index
+    # times the configured interval (ours), or the frame time stamp (Infineon's).
+    cpi_times_s: tuple[float, ...]
     shape: tuple[int, int, int]
     sample_rate_hz: float
     chirp_period_s: float
@@ -140,6 +144,11 @@ class Capture:
     @property
     def n_samples(self) -> int:
         return self.shape[1]
+
+    @property
+    def center_frequency_hz(self) -> float:
+        """Centre of the sampled sweep."""
+        return self.start_frequency_hz + self.sampled_bandwidth_hz / 2
 
     @property
     def family(self) -> str:
@@ -237,7 +246,8 @@ def _load_own(case: str, data: Path | None) -> Capture:
     if missing:
         notes.append(f"CPIs {missing} of {first['requested_cpis']} missing")
     tx_channels = tuple(int(tx) for tx in actual["tx_channels"])
-    named_tx = int(case.split("-")[1].rstrip("TX"))
+    named = re.search(r"(\d+)TX", case)
+    named_tx = int(named.group(1)) if named else len(tx_channels)
     if named_tx != len(tx_channels):
         notes.append(
             f"named {named_tx}TX, configured TX {list(tx_channels)}; firmware "
@@ -250,6 +260,12 @@ def _load_own(case: str, data: Path | None) -> Capture:
         binary_paths=tuple(paths),
         sha256=tuple(str(entry["sha256"]) for entry in metadata),
         timestamps=tuple(str(entry["timestamp"]) for entry in metadata),
+        cpi_times_s=tuple(
+            (int(entry["cpi"]) - cpis[0])
+            * _number(first["waveform"], "cpi_start_interval_us")
+            * 1e-6
+            for entry in metadata
+        ),
         shape=shape,
         sample_rate_hz=_number(settings, "sample_rate_msps") * 1e6,
         chirp_period_s=_number(first["waveform"], "chirp_period_us") * 1e-6,
@@ -315,6 +331,10 @@ def _load_infineon(case: str, data: Path | None) -> Capture:
         binary_paths=tuple(paths),
         sha256=tuple(str(entry["sha256"]) for entry in metadata),
         timestamps=tuple(f"{entry['time_stamp_ms']} ms" for entry in metadata),
+        cpi_times_s=tuple(
+            (float(entry["time_stamp_ms"]) - float(first["time_stamp_ms"])) * 1e-3
+            for entry in metadata
+        ),
         shape=shape,
         sample_rate_hz=shape[1] / payload_s,
         chirp_period_s=_number(waveform, "timePri_sec"),
@@ -354,13 +374,47 @@ def load_capture(
     """Load and validate one case; ``verify`` also checks SHA-256."""
     if case in INFINEON_CASES:
         capture = _load_infineon(case, infineon_data)
-    elif case in CASES:
+    elif case in CASES or (resolve_data_dir(data) / case).is_dir():
         capture = _load_own(case, data)
     else:
         raise ValueError(f"unknown case {case}")
     if verify:
         capture.verify()
     return capture
+
+
+def discover_cases(data: Path | None = None) -> tuple[str, ...]:
+    """Case directories of a recording in our firmware's format, by first CPI time."""
+    root = resolve_data_dir(data)
+    found = []
+    for folder in root.iterdir():
+        sidecars = sorted(folder.glob("*.json")) if folder.is_dir() else []
+        if sidecars:
+            first = json.loads(sidecars[0].read_text())
+            if "sample_format" in first and "actual_waveform" in first:
+                found.append((str(first["timestamp"]), folder.name))
+    return tuple(name for _, name in sorted(found))
+
+
+def case_arguments(parser: argparse.ArgumentParser, default: tuple[str, ...]) -> None:
+    """Add --cases: a comma-separated list, or 'auto' to discover them in --data."""
+    parser.add_argument(
+        "--cases",
+        default=None,
+        help="comma-separated cases, or 'auto' for every case directory in --data "
+        f"(default: {', '.join(default)})",
+    )
+
+
+def resolve_cases(
+    cases: str | None, data: Path | None, default: tuple[str, ...]
+) -> tuple[str, ...]:
+    """The cases named by --cases, or the default."""
+    if cases is None:
+        return default
+    if cases == "auto":
+        return discover_cases(data)
+    return tuple(case.strip() for case in cases.split(",") if case.strip())
 
 
 def chirp_gains(

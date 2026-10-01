@@ -37,6 +37,9 @@ CARKIT unit:
 - **At short range, below 27 m, where ground reflections matter least, the
   measurement is on the model:** 32.8 ± 0.6 dB. Further out, ground multipath
   spreads the points.
+- **Apparent ranges are correct to about 0.2 %.** For moving vehicles, the
+  change in apparent range matches the distance their Doppler speed gives,
+  which depends only on the carrier frequency and the CPI timing.
 - **The receiver's noise floor is about 1.2 dB higher at 1 MHz IF than at
   20 MHz, and this decides between +1.2 and +2.4 dB.** It belongs to the
   receiver: it is independent between the RX channels, unchanged with 10 dB
@@ -276,7 +279,26 @@ The long waveform (unambiguous to 1.26 km) sees static returns to about
 500 m; beyond that only isolated weak peaks. The strongest distant returns are
 at 169 and 273 m (20 and 19 dB per chirp with TX1), with others at 231 and
 265 m. The 2026-08-27 recording has similar features at 174–175 and
-270–280 m. Which one is the large building needs a map.
+270–280 m. Which one is the large building needs a map. The difference is
+not a range-scale error. Our range scale is right to 0.2 % (below), and
+Infineon's apparent ranges agree with the delay implied by its carrier step
+to within 1 % (0.05 % at the strongest returns). So the two recordings saw
+different scatterers, as their different pointing allows.
+
+**Range scale** ([window_range_scale.py](window_range_scale.py),
+[range_scale.png](generated/window/range_scale/range_scale.png)). Range comes
+from the beat frequency, so an error in slope or sample rate scales it. A
+vehicle's Doppler speed depends only on the carrier frequency, and the board
+starts the CPIs every 100 ms. Moving targets are tracked by range over the CPIs
+of the 2026-09-30 captures, their Doppler is unwrapped against the range rate,
+and the apparent range is fitted against the Doppler-integrated distance; the
+slope of that fit is the range scale. The 16 tracks with at least five CPIs,
+beyond 60 m and within 15 cm rms give a median of 1.002, and the 13 of them
+within 0.1 of it a weighted mean of 1.002 (p5–p95 0.997–1.010). Nearer
+vehicles are excluded, since they turn and their strongest scatterer moves
+along the body. Our host code's slope, frequency, timing and decimation
+encodings follow the user manual's equations exactly, so a correct scale is
+what the code predicts.
 
 The strongest returns drift in phase by the same number of Hz within each
 51 ms CPI: 1.4–3.3 Hz rms, or 2.7–6.4 mm/s: the hand-held radar moving. Two
@@ -423,13 +445,36 @@ the same processing gave 3.06 / 6.01 / 9.09 dB against the ideal 3.01 / 6.02 /
 
 ### Reflector
 
-The walking reflector measured 1.27 dB stronger than the nominal 10 dBsm lab
-reflector; neither is absolutely calibrated. A 10 dBsm triangular trihedral at
-76 GHz has about 7.8 cm inner edge from the vertex (about 11 cm opening). Its
-on-axis near-field loss, |sinc(A_eff/λR)|², is 0.2–0.3 dB at the lab's
-2.2–2.5 m and negligible on the walk, so the lab comparison is not affected
-by near field. See `pa_260916_antenna_centers.md` in l2-sp for the
-finite-aperture treatment.
+| | Chamber reflector | Walking reflector |
+|---|---|---|
+| Type | Microwave Factory [MTR76P10-T5DW-100](https://www.mwf.co.jp/en/products/rf_accessories/mtr.html), triangular trihedral | Home-made: reflecting plates glued onto a trihedral of 1 cm absorber; we have two |
+| Size | 77.8 mm inner edge if ideal (not measured) | 100 mm inner edge, from the vertex along a seam (measured 2026-10-01) |
+| RCS | 10 dBsm at 76.5 GHz, as specified | 14.3 dBsm if ideal (at 76.4 GHz); measured against the chamber reflector, 11.3 dBsm at 2.5 m, about 11.5 dBsm in the far field |
+
+A triangular trihedral with inner edge a has ideal RCS σ = 4πa⁴/(3λ²).
+
+The lab comparison put the chamber reflector at 2.22 m and the walking one at
+2.51 m, aligned their angle responses and compared P × R⁴: the walking
+reflector came out 1.27 dB stronger. The first-order on-axis near-field loss,
+|sinc(A/λR)|² with A = a²/√3 (see `pa_260916_antenna_centers.md` in l2-sp), is
+0.24 dB for the chamber reflector and 0.51 dB for the larger walking one at
+their distances. These notes earlier said the loss cancels between the two;
+that holds only for reflectors of the same size. So the far-field difference
+is about 0.27 dB larger, and the walking reflector is about 11.5 dBsm.
+
+That is 2.8 dB below an ideal 100 mm trihedral, plausible for plates glued
+onto absorber. A trihedral tolerates being pointed a few degrees off, but its
+returned beam is only about 2° wide for a 100 mm aperture at a 3.9 mm
+wavelength. Plate-angle errors of a few tenths of a degree steer that beam
+partly away from the radar. The walking reflector's metal stand, which the report noted, may have
+added to the comparison, which would make the reflector itself weaker still.
+On the walk itself (15–51 m) the near-field loss is below 0.05 dB.
+
+The scripts keep 11.27 dBsm (`walk_common.py`). With 11.5 dBsm, the walk's
++1.2 dB over the model becomes +0.9 dB (+2.2 dB with the far-quarter
+reference). That is within the stated uncertainty, and the correction is not
+applied yet. A side-by-side comparison at 10 m or more would settle both this
+and how much the two home-made reflectors differ (see the open questions).
 
 ## The receiver background
 
@@ -999,9 +1044,9 @@ The sky captures are planned for 2026-10-01.
    beam's peak. The returns' angles are unknown, so this is only a question.
 
 **Still open from the walk:** the radar height and how the reflector was
-carried (especially outbound); low-noise or ultra-low-noise RX mode; the
-reflector's dimensions. (High-pass code 0 is 300 kHz, if RadarGUI's codes
-are the user manual's `RX_HP_FC` values.)
+carried (especially outbound); low-noise or ultra-low-noise RX mode. High-pass
+code 0 is 300 kHz, if RadarGUI's codes are the user manual's `RX_HP_FC`
+values.
 
 **Measurements, in rough order of priority:**
 
@@ -1016,7 +1061,12 @@ are the user manual's `RX_HP_FC` values.)
      at 512 samples, or about 4 µs at 256. A 60 ns flyback or wait, or a
      different pre-payload, needs the constants in `waveform.go` changed.
 
-   Either way, this decides what the Psi waveform must respect.
+   Shortening the PRI alone keeps the flyback at 2 µs and the wait at 3 µs or
+   more, both beyond the datasheet's 1 µs, so δf should stay at about
+   3.5 kHz. That would be consistent with the timing explanation but no test of
+   it. The decisive settings are a flyback and wait below about 1 µs, which
+   Viktor was asked for. Either way, this decides what the Psi waveform must
+   respect.
 2. **A reflector on a fixed mount at one range, captured with two or three
    chirp slopes,** to tell IF gain shape from receiver noise (+1.2 or +2.4 dB
    for the walk). It replaces the TX-off capture proposed earlier, which cannot
@@ -1024,7 +1074,14 @@ are the user manual's `RX_HP_FC` values.)
 3. **Bench measurement of the CW phase noise** at the TX port (spectrum
    analyser and harmonic mixer), only if item 1 leaves an excess unexplained.
    With our firmware the per-chirp error is already at the datasheet level.
-4. **Repeat selected walk points at another height** to separate multipath.
+4. **A one-time calibration of the home-made reflectors against the chamber
+   reflector,** outside the office entrance at about 10 m, where the near-field
+   loss is 0.03 dB for a 100 mm reflector. The walking reflector's RCS is the
+   largest uncertainty in the absolute comparison with the model. The
+   procedure is to be planned in detail before the session; the main points
+   are a fixed radar mount, the same marked spot for each reflector, coherent
+   subtraction of each empty mount, and repeated placements.
+5. **Repeat selected walk points at another height** to separate multipath.
 
 The window captures have answered the test at the building proposed earlier:
 the delay law holds to 270 m, where the CW model's own saturation is 0.5 dB,
@@ -1038,11 +1095,6 @@ and capture order logged next to the raw data.
 
 - Why Infineon's δf spectrum rises towards PRF/2. Item 1 should explain it if
   it is settling.
-- The range scale of our firmware. The far features appear at 169 and 273 m
-  in our captures and at 174–175 and 270–280 m in Infineon's. Infineon's
-  apparent ranges agree with the delay implied by its carrier step within 1 %;
-  ours have been checked only at 2.2 m (the calibration's 2.207 m). Different
-  pointing may well explain it.
 - The common component of 2.2 dB in the no-scene capture's remote-Doppler
   background, probably the skirt of the strong return within 10 m.
 
@@ -1060,6 +1112,17 @@ per-frame CSV) and figures under `generated/<dataset>/<step>/`. The JSON/CSV
 files and the figures linked from these notes are tracked, so they are
 available without the raw data; the `.npz` arrays passed between steps and the
 other figures are only generated locally.
+
+The window steps also run on any new recording in our firmware's format,
+with the case directories discovered (`--cases auto`) or listed, and the outputs
+in their own folder:
+
+```sh
+venv/bin/python studies/2026-09-11_carkit-validation/window_scene.py --data DIR \
+    --cases auto --output OUT/scene
+venv/bin/python studies/2026-09-11_carkit-validation/window_phase.py --data DIR \
+    --cases auto --scene OUT/scene --output OUT/phase
+```
 
 The 2026-08-27 recording is converted once, outside `make`, in MATLAB with
 l2-sp's code on the path:
@@ -1086,7 +1149,8 @@ window_convert_infineon   % writes converted_adc/ beside the recording
 | [outdoor_phase.py](outdoor_phase.py) | Per-return phase and amplitude spectra, common δf, cross-return correlation, drift |
 | [outdoor_model.py](outdoor_model.py) | CW datasheet predictions of the per-chirp δf and the remote-Doppler range cut |
 | [window_convert_infineon.m](window_convert_infineon.m) | One-time MATLAB conversion of the 2026-08-27 recording (l2-sp CARKIT decoder) |
-| [window_common.py](window_common.py) | Window capture loading and checks for both recordings, TX/DDMA configuration, static peaks |
+| [window_common.py](window_common.py) | Window capture loading and checks for both recordings, TX/DDMA configuration, case discovery, static peaks |
 | [window_scene.py](window_scene.py) | Checksums, ADC levels, static profiles, channel-independent background, matched levels, drift |
 | [window_phase.py](window_phase.py) | Per-chirp δf from clean static returns, delay law, common phase, CW prediction, slow-time spectra |
+| [window_range_scale.py](window_range_scale.py) | Range scale from moving vehicles: apparent range change against Doppler-integrated distance |
 | [test_carkit_common.py](test_carkit_common.py) | Synthetic checks of the normalizations and estimators |

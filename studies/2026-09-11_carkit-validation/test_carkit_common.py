@@ -16,6 +16,7 @@ from carkit_common import (
     enbw_bins,
     linear_rate,
     tone_model_errors,
+    track_range_scale,
     weighted_cross_power,
 )
 from outdoor_common import (
@@ -247,3 +248,23 @@ def test_away_from_lines() -> None:
     keep = away_from_lines(1024, 16, 4)
     assert keep.sum() == 1024 - 16 * 9
     assert not keep[0] and not keep[64] and keep[5] and not keep[4]
+
+
+def test_track_range_scale_through_doppler_aliasing() -> None:
+    """A decelerating vehicle at about -23 m/s, aliased at a 10 kHz PRF."""
+    rng = np.random.default_rng(7)
+    prf, wavelength, scale = 10e3, 299_792_458.0 / 77e9, 0.97
+    times = np.asarray(np.arange(10) * 0.1, dtype=np.float64)
+    velocity = -23.0 + 1.5 * times
+    distance = -23.0 * times + 0.75 * times**2
+    ranges = np.asarray(
+        240.0 + scale * distance + rng.normal(0, 0.05, times.size), dtype=np.float64
+    )
+    doppler = np.asarray(
+        (2 * velocity / wavelength + prf / 2) % prf - prf / 2, dtype=np.float64
+    )
+    fitted, error, rms = track_range_scale(times, ranges, doppler, prf, wavelength, +1)
+    assert abs(fitted - scale) < 3 * error < 0.02
+    assert rms < 0.1
+    wrong, _, _ = track_range_scale(times, ranges, -doppler, prf, wavelength, +1)
+    assert abs(wrong - scale) > 0.1

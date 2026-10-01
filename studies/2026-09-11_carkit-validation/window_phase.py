@@ -70,12 +70,14 @@ from window_common import (
     ALL_CASES,
     GENERATED_DIR,
     Capture,
+    case_arguments,
     chirp_gains,
     data_arguments,
     doppler_window,
     load_capture,
     per_chirp_noise,
     range_window,
+    resolve_cases,
     static_peaks,
 )
 
@@ -553,6 +555,13 @@ def per_return_df(result: dict[str, Any]) -> list[tuple[float, float]]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     data_arguments(parser)
+    case_arguments(parser, ALL_CASES)
+    parser.add_argument(
+        "--scene",
+        type=Path,
+        default=GENERATED_DIR / "scene",
+        help="window_scene.py output for these cases",
+    )
     parser.add_argument("--output", type=Path, default=GENERATED_DIR / "phase")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -561,11 +570,11 @@ def main() -> None:
     captures: dict[str, Capture] = {}
     results: dict[str, dict[str, Any]] = {}
     cases: dict[str, Any] = {}
-    for case in ALL_CASES:
+    for case in resolve_cases(args.cases, args.data, ALL_CASES):
         if case == "long-8TX-0dB":
             continue
         capture = load_capture(case, args.data, args.infineon_data)
-        scene = dict(np.load(GENERATED_DIR / "scene" / f"{case}.npz"))
+        scene = dict(np.load(args.scene / f"{case}.npz"))
         result = analyze(capture, scene)
         captures[case] = capture
         results[case] = result
@@ -620,25 +629,31 @@ def main() -> None:
                 **bootstrap([results[case] for case in group], group, rng),
             }
 
-    # Slow-time spectra, pooled per family. Infineon mode 0 has no clean pair.
+    # Slow-time spectra, pooled per family for the default cases (Infineon
+    # mode 0 has no clean pair), per case otherwise.
     spectrum_sets = {
         "medium": ["medium-1TX-0dB", "medium-8TX-0dB", "medium-8TX-0dB-2"],
         "short": ["short-8TX-0dB", "short-8TX-0dB-2"],
         "infineon-mode1": ["infineon-mode1"],
     }
+    if args.cases is not None:
+        spectrum_sets = {case: [case] for case in results if cases[case]["pairs"] >= 3}
     spectra: dict[str, list[dict[str, Any]]] = {}
     for label, group in spectrum_sets.items():
         edges = spectrum_edges(captures[group[0]])
         per_band: list[list[dict[str, Any]]] = [[] for _ in edges[:-1]]
         for case in group:
-            scene = dict(np.load(GENERATED_DIR / "scene" / f"{case}.npz"))
+            scene = dict(np.load(args.scene / f"{case}.npz"))
             for k, sub in enumerate(
                 sub_band_results(captures[case], scene, results[case], edges)
             ):
                 per_band[k].append(sub)
         spectra[label] = band_spectrum(per_band, edges)
     for label, rows in spectra.items():
-        families.setdefault(label, {})["slow_time_psd"] = rows
+        if args.cases is None:
+            families.setdefault(label, {})["slow_time_psd"] = rows
+        else:
+            cases[label]["slow_time_psd"] = rows
 
     predictions = {
         label: cases[group[0]]["cw_prediction_rms_hz"]
@@ -654,7 +669,10 @@ def main() -> None:
         predictions,
         {label: captures[group[0]] for label, group in spectrum_sets.items()},
         per_return,
-        {label: families[label] for label in spectrum_sets},
+        {
+            label: families[label] if args.cases is None else cases[label]
+            for label in spectrum_sets
+        },
     )
     write_summary(
         args.output,

@@ -195,6 +195,43 @@ def weighted_cross_power(
     return np.asarray(cross / enbw_bins(window) / (weights.T @ weights / len(weights)))
 
 
+def track_range_scale(
+    times_s: FloatArray,
+    ranges_m: FloatArray,
+    doppler_hz: FloatArray,
+    prf_hz: float,
+    wavelength_m: float,
+    sign: int,
+) -> tuple[float, float, float]:
+    """Range scale of one moving target tracked over CPIs.
+
+    ``ranges_m`` are the apparent (beat-derived) ranges and ``doppler_hz`` the
+    aliased Doppler frequencies at ``times_s``. Each Doppler is unwrapped to the
+    alias nearest the apparent range rate, turned into a radial velocity
+    sign * f * wavelength / 2, and integrated (trapezoid) into a distance D(t),
+    which depends on the carrier frequency and the CPI timing only. The apparent
+    range is fitted as a + scale * D; a correct range scale gives 1. Returns
+    the scale, its standard error and the rms residual in metres.
+    """
+    range_rate = np.polyfit(times_s, ranges_m, 1)[0]
+    folds = np.arange(-8, 9)
+    candidates = (
+        sign * (doppler_hz[:, None] + folds[None, :] * prf_hz) * wavelength_m / 2
+    )
+    pick = np.argmin(np.abs(candidates - range_rate), axis=1)
+    velocity = candidates[np.arange(len(times_s)), pick]
+    distance = np.concatenate(
+        ([0.0], np.cumsum(0.5 * (velocity[1:] + velocity[:-1]) * np.diff(times_s)))
+    )
+    design = np.column_stack((np.ones_like(distance), distance))
+    coefficients = np.linalg.lstsq(design, ranges_m, rcond=None)[0]
+    residual = ranges_m - design @ coefficients
+    dof = max(len(ranges_m) - 2, 1)
+    spread = np.sum((distance - distance.mean()) ** 2)
+    error = float(np.sqrt(np.sum(residual**2) / dof / spread)) if spread > 0 else np.inf
+    return float(coefficients[1]), error, float(np.sqrt(np.mean(residual**2)))
+
+
 def per_chirp_frequency_psd(
     phase_noise: SingleReturnPhaseNoise,
     doppler_hz: FloatArray,
