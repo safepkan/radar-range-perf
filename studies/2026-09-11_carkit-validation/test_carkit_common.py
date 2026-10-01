@@ -5,7 +5,9 @@ from __future__ import annotations
 import numpy as np
 
 from carkit_common import (
+    ComplexArray,
     FloatArray,
+    away_from_lines,
     chirp_fluctuations,
     chirp_gains,
     cross_channel_cross,
@@ -13,6 +15,8 @@ from carkit_common import (
     detrend,
     enbw_bins,
     linear_rate,
+    tone_model_errors,
+    weighted_cross_power,
 )
 from outdoor_common import (
     FAR_DOPPLER_HZ,
@@ -153,3 +157,93 @@ def test_detrend_and_linear_rate() -> None:
     assert np.allclose(detrend(values)[:, 1], 0)
     step = 2 / (N_CHIRPS - 1)
     assert np.allclose(linear_rate(values[:, 1:], step), 4)
+
+
+def line_gains(
+    rng: np.random.Generator,
+    lines: FloatArray,
+    phase: FloatArray,
+    noise_std: float,
+) -> ComplexArray:
+    """Per-chirp gains [chirp, return, RX]: each return a sum of slow-time lines.
+
+    ``lines`` is [return, line] in cycles per chirp; every line of a return gets
+    its own random amplitude and phase per RX, as transmitters seen at one angle
+    through different paths would. ``phase`` [chirp, return] multiplies all
+    lines of a return alike.
+    """
+    chirps = np.arange(N_CHIRPS)
+    n_returns, n_lines = lines.shape
+    amplitudes = rng.normal(size=(n_returns, n_lines, N_RX)) + 1j * rng.normal(
+        size=(n_returns, n_lines, N_RX)
+    )
+    tones = np.exp(2j * np.pi * chirps[:, None, None] * lines[None, :, :])
+    clean = (
+        np.einsum("cil,ilr->cir", tones, amplitudes) * np.exp(1j * phase)[:, :, None]
+    )
+    noise = rng.normal(0, noise_std, clean.shape) + 1j * rng.normal(
+        0, noise_std, clean.shape
+    )
+    return np.asarray(clean + noise / np.sqrt(2))
+
+
+def test_tone_model_errors_match_chirp_fluctuations_for_one_line() -> None:
+    rng = np.random.default_rng(5)
+    phase = rng.normal(0, 0.01, size=(N_CHIRPS, 1))
+    gains = line_gains(rng, np.zeros((1, 1)), phase, noise_std=0.01)
+    errors, weights, _ = tone_model_errors(gains, np.zeros((1, 1)))
+    fluctuation, _ = chirp_fluctuations(gains, np.zeros(1), CHIRP_PERIOD_S)
+    power = np.abs(gains.mean(axis=0)) ** 2
+    expected = np.sum(fluctuation * power, axis=-1) / power.sum(axis=-1)
+    assert np.allclose(weights, 1, atol=0.01)
+    assert np.corrcoef(errors[:, 0].imag, expected[:, 0])[0, 1] > 0.999
+    assert np.corrcoef(errors[:, 0].imag, detrend(phase)[:, 0])[0, 1] > 0.9
+
+
+def ddma_cross(shared: bool) -> tuple[float, float]:
+    """Cross-return delta_f power over its variance, and one return's own.
+
+    Two returns under 8-slot-of-16 DDMA with a range skew, as the Infineon
+    firmware's; additive noise 20 dB below each line.
+    """
+    rng = np.random.default_rng(6)
+    slots = np.array([2, 5, 8, 11, 12, 13, 14, 15]) / 16
+    delays = np.array([300e-9, 1.1e-6])
+    lines = (slots[None, :] + np.array([0.09, 0.33])[:, None]) % 1
+    df_std, frames = 20e3, 6
+    window = doppler_window(N_CHIRPS)
+    doppler = np.fft.fftfreq(N_CHIRPS, CHIRP_PERIOD_S)
+    outside_low = np.abs(doppler) >= 500
+    band = outside_low & away_from_lines(N_CHIRPS, 16, 4)
+    kept = band.sum() / outside_low.sum()
+    cross = own = 0.0
+    for _ in range(frames):
+        df = rng.normal(0, df_std, size=(N_CHIRPS, 2))
+        if shared:
+            df[:, 1] = df[:, 0]
+        gains = line_gains(rng, lines, 2 * np.pi * delays * df, noise_std=0.1)
+        errors, weights, _ = tone_model_errors(gains, lines)
+        power = weighted_cross_power(
+            errors.imag / (2 * np.pi * delays), weights, band, window
+        ) / (kept * outside_low.mean())
+        cross += power[0, 1] / frames
+        own += power[1, 1] / frames
+    return cross / df_std**2, own / df_std**2
+
+
+def test_ddma_cross_return_power_of_a_shared_frequency_error() -> None:
+    cross, own = ddma_cross(shared=True)
+    assert abs(cross - 1) < 0.1
+    assert abs(own - 1) < 0.1
+
+
+def test_ddma_cross_return_power_of_independent_errors() -> None:
+    cross, own = ddma_cross(shared=False)
+    assert abs(cross) < 0.1
+    assert abs(own - 1) < 0.1
+
+
+def test_away_from_lines() -> None:
+    keep = away_from_lines(1024, 16, 4)
+    assert keep.sum() == 1024 - 16 * 9
+    assert not keep[0] and not keep[64] and keep[5] and not keep[4]

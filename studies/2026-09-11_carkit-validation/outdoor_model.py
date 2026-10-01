@@ -29,10 +29,12 @@ import matplotlib
 import numpy as np
 
 from carkit_common import (
+    CW_OFFSET_BAND_HZ,
     FloatArray,
     db,
     display_groups,
     enbw_bins,
+    per_chirp_frequency_psd,
     write_summary,
 )
 from outdoor_common import (
@@ -55,9 +57,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 RF_BAND: Literal["77-81"] = "77-81"
 LEVELS: tuple[Literal["typical", "maximum"], ...] = ("typical", "maximum")
-OFFSET_BAND_HZ = (1.0, 20e6)
-# Resolution of |H(f)|² relative to the sample rate (2^20-point FFT).
-RESPONSE_FFT_SIZE = 2**20
+OFFSET_BAND_HZ = CW_OFFSET_BAND_HZ
 
 
 def model(
@@ -69,32 +69,6 @@ def model(
             rf_band=RF_BAND, level=level, extrapolation="constant"
         ),
     )
-
-
-def per_chirp_frequency_psd(
-    phase_noise: SingleReturnPhaseNoise,
-    doppler_hz: FloatArray,
-    chirp_period_s: float,
-    sample_rate_hz: float,
-    n_samples: int,
-) -> FloatArray:
-    """Two-sided PSD [Hz²/Hz] of the per-chirp equivalent frequency error."""
-    weights = range_window(n_samples)
-    response = np.abs(np.fft.rfft(weights, RESPONSE_FFT_SIZE) / weights.sum()) ** 2
-    response_hz = np.fft.rfftfreq(RESPONSE_FFT_SIZE, 1 / sample_rate_hz)
-    prf = 1 / chirp_period_s
-    folds = np.arange(
-        -int(OFFSET_BAND_HZ[1] / prf) - 1, int(OFFSET_BAND_HZ[1] / prf) + 2
-    )
-    offsets = doppler_hz[:, None] + folds[None, :] * prf
-    inside = (np.abs(offsets) >= OFFSET_BAND_HZ[0]) & (
-        np.abs(offsets) <= OFFSET_BAND_HZ[1]
-    )
-    density = np.zeros(offsets.shape)
-    density[inside] = phase_noise.residual_psd_per_hz(offsets[inside]) * np.interp(
-        np.abs(offsets[inside]), response_hz, response
-    )
-    return np.asarray(density.sum(axis=1) / (2 * np.pi * phase_noise.delay_s) ** 2)
 
 
 def far_doppler_prediction(
@@ -163,7 +137,8 @@ def main() -> None:
                 doppler,
                 period,
                 case_scene["sample_rate_hz"],
-                ns,
+                range_window(ns),
+                OFFSET_BAND_HZ,
             )
             predictions[level] = psd
             rms = float(np.sqrt(np.sum(psd[band]) * bin_hz))

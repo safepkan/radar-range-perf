@@ -1,0 +1,1409 @@
+{
+  "far_doppler_hz": 1000.0,
+  "background_reference_mhz": [
+    18.0,
+    24.0
+  ],
+  "levels": {
+    "medium-1TX-10dB": {
+      "reference": "medium-1TX-0dB",
+      "matched": 6,
+      "median_change_db": -13.04349798485675,
+      "min_change_db": -14.929067974829143,
+      "max_change_db": -7.055487632161442,
+      "per_return": [
+        {
+          "range_m": 27.431989620915036,
+          "change_db": -14.1478498825967
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": -14.147103291027273
+        },
+        {
+          "range_m": 105.02533169150327,
+          "change_db": -14.929067974829143
+        },
+        {
+          "range_m": 110.0414669364706,
+          "change_db": -11.939892678686228
+        },
+        {
+          "range_m": 164.27842927267974,
+          "change_db": -9.791451181595482
+        },
+        {
+          "range_m": 169.29456451764705,
+          "change_db": -7.055487632161442
+        }
+      ]
+    },
+    "short-1TX-10dB": {
+      "reference": "short-1TX-0dB",
+      "matched": 2,
+      "median_change_db": -11.438650731862884,
+      "min_change_db": -12.181385607897042,
+      "max_change_db": -10.695915855828726,
+      "per_return": [
+        {
+          "range_m": 27.610154180682922,
+          "change_db": -12.181385607897042
+        },
+        {
+          "range_m": 105.21496607271546,
+          "change_db": -10.695915855828726
+        }
+      ]
+    },
+    "medium-8TX-0dB": {
+      "reference": "medium-1TX-0dB",
+      "matched": 6,
+      "median_change_db": 4.813248307911645,
+      "min_change_db": -6.0021736660074625,
+      "max_change_db": 12.688863041503657,
+      "per_return": [
+        {
+          "range_m": 27.431989620915036,
+          "change_db": 12.688863041503657
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 1.6458882851772731
+        },
+        {
+          "range_m": 105.02533169150327,
+          "change_db": 4.056723540579711
+        },
+        {
+          "range_m": 110.0414669364706,
+          "change_db": -6.0021736660074625
+        },
+        {
+          "range_m": 164.27842927267974,
+          "change_db": 5.56977307524358
+        },
+        {
+          "range_m": 169.29456451764705,
+          "change_db": 7.036013594682535
+        }
+      ]
+    },
+    "short-8TX-0dB": {
+      "reference": "short-1TX-0dB",
+      "matched": 2,
+      "median_change_db": 9.311750404989365,
+      "min_change_db": 6.641795480482518,
+      "max_change_db": 11.98170532949621,
+      "per_return": [
+        {
+          "range_m": 27.610154180682922,
+          "change_db": 11.98170532949621
+        },
+        {
+          "range_m": 105.21496607271546,
+          "change_db": 6.641795480482518
+        }
+      ]
+    },
+    "medium-8TX-0dB-highway": {
+      "reference": "medium-8TX-0dB",
+      "matched": 10,
+      "median_change_db": -3.0147424433271923,
+      "min_change_db": -24.668731185562795,
+      "max_change_db": 15.164428688355404,
+      "per_return": [
+        {
+          "range_m": 27.588743847320263,
+          "change_db": -24.668731185562795
+        },
+        {
+          "range_m": 34.01566712993464,
+          "change_db": -8.65988506577721
+        },
+        {
+          "range_m": 53.29643697777778,
+          "change_db": 0.06828434729186306
+        },
+        {
+          "range_m": 93.89578161673202,
+          "change_db": 5.014220280946256
+        },
+        {
+          "range_m": 105.1820859179085,
+          "change_db": -11.33594235726511
+        },
+        {
+          "range_m": 129.79249946352942,
+          "change_db": -1.1713776561037044
+        },
+        {
+          "range_m": 168.82430183843138,
+          "change_db": 15.164428688355404
+        },
+        {
+          "range_m": 181.9916568564706,
+          "change_db": -1.461284697954225
+        },
+        {
+          "range_m": 230.89897549490195,
+          "change_db": -14.012775749743172
+        },
+        {
+          "range_m": 267.1092017945098,
+          "change_db": -4.5682001887001595
+        }
+      ]
+    },
+    "medium-8TX-0dB-2": {
+      "reference": "medium-8TX-0dB",
+      "matched": 10,
+      "median_change_db": -0.10066297713083294,
+      "min_change_db": -12.691222560087674,
+      "max_change_db": 12.841703794510975,
+      "per_return": [
+        {
+          "range_m": 27.588743847320263,
+          "change_db": 0.7159417822981027
+        },
+        {
+          "range_m": 34.01566712993464,
+          "change_db": 6.324291228773006
+        },
+        {
+          "range_m": 53.29643697777778,
+          "change_db": -0.9172677365597686
+        },
+        {
+          "range_m": 93.89578161673202,
+          "change_db": 12.841703794510975
+        },
+        {
+          "range_m": 105.1820859179085,
+          "change_db": 6.368374459295634
+        },
+        {
+          "range_m": 129.79249946352942,
+          "change_db": -10.005443831468924
+        },
+        {
+          "range_m": 168.82430183843138,
+          "change_db": -12.691222560087674
+        },
+        {
+          "range_m": 181.9916568564706,
+          "change_db": -11.999915681566456
+        },
+        {
+          "range_m": 230.89897549490195,
+          "change_db": 6.946627519727805
+        },
+        {
+          "range_m": 267.1092017945098,
+          "change_db": -12.212596072505951
+        }
+      ]
+    },
+    "short-8TX-0dB-2": {
+      "reference": "short-8TX-0dB",
+      "matched": 6,
+      "median_change_db": 6.370914279831764,
+      "min_change_db": -2.768312965554159,
+      "max_change_db": 19.820402353631785,
+      "per_return": [
+        {
+          "range_m": 27.298175037398376,
+          "change_db": 11.145744290861614
+        },
+        {
+          "range_m": 53.42642828747967,
+          "change_db": 1.5960842688019135
+        },
+        {
+          "range_m": 93.82772734282926,
+          "change_db": 18.13115496937779
+        },
+        {
+          "range_m": 100.457284137626,
+          "change_db": -0.3092515108862237
+        },
+        {
+          "range_m": 105.13697128689431,
+          "change_db": 19.820402353631785
+        },
+        {
+          "range_m": 129.31535489144716,
+          "change_db": -2.768312965554159
+        }
+      ]
+    }
+  },
+  "cases": {
+    "long-8TX-0dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-220-gde2d009b",
+      "first_timestamp": "2026-09-30T11:40:12.439314Z",
+      "cpis": 6,
+      "shape_chirp_sample_rx": [
+        256,
+        2048,
+        8
+      ],
+      "chirp_period_us": 89.99999999999999,
+      "slope_mhz_per_us": 2.9754638671875,
+      "sampled_bandwidth_mhz": 121.875,
+      "start_frequency_ghz": 76.9390640258789,
+      "pre_payload_us": 4.0,
+      "payload_us": 40.96,
+      "flyback_us": 2.0,
+      "wait_us": 42.99999999999999,
+      "max_unambiguous_range_m": 1259.4358030441026,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [
+        "CPIs [3, 4, 5, 6] of 10 missing",
+        "named 8TX, configured TX [1]; firmware archive/remove-lannik-embedded-220-gde2d009b"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -198.0,
+        "max_counts": 82.0,
+        "mean_rx_rms_counts": 31.218433899073954,
+        "offset_range_counts": [
+          -94.3765697479248,
+          -48.44270356496175
+        ]
+      },
+      "independent_background_db_counts2": -33.510038935173306,
+      "total_over_independent_1_10_mhz_db": 2.202117176191244,
+      "background_shape_db": {
+        "0.7": 1.2827332450209852,
+        "1": 1.3055057118935878,
+        "2": 0.9381601844758478,
+        "3.3": 0.7791999479984071,
+        "6.6": 0.4545043826289614,
+        "13": 0.1655734474752606
+      },
+      "noise_floor_db_counts2": -33.33808138053503,
+      "strongest_static_returns": [],
+      "drift": {
+        "returns_m": [],
+        "common_rms_hz": null
+      }
+    },
+    "medium-1TX-0dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T12:53:37.802711Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -168.0,
+        "max_counts": 42.0,
+        "mean_rx_rms_counts": 19.37397775640009,
+        "offset_range_counts": [
+          -84.20779418945314,
+          -51.36040153503418
+        ]
+      },
+      "independent_background_db_counts2": -30.83949405241499,
+      "total_over_independent_1_10_mhz_db": 0.047328973108042405,
+      "background_shape_db": {
+        "0.7": 1.1378374404293652,
+        "1": 1.2567715461143791,
+        "2": 1.0073867950708184,
+        "3.3": 0.7642825805959994,
+        "6.6": 0.5283305509871212,
+        "13": 0.21499375575960045
+      },
+      "noise_floor_db_counts2": -30.61706888432684,
+      "strongest_static_returns": [
+        {
+          "range_m": 105.02533169150327,
+          "snr_per_chirp_db": 20.455548586874308
+        },
+        {
+          "range_m": 27.431989620915036,
+          "snr_per_chirp_db": 19.51053374986378
+        },
+        {
+          "range_m": 93.7390273903268,
+          "snr_per_chirp_db": 13.84634535435973
+        },
+        {
+          "range_m": 169.29456451764705,
+          "snr_per_chirp_db": 12.851821003956847
+        },
+        {
+          "range_m": 110.0414669364706,
+          "snr_per_chirp_db": 12.13863844949357
+        },
+        {
+          "range_m": 164.27842927267974,
+          "snr_per_chirp_db": 10.598797291490051
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          105.02533169150327
+        ],
+        "common_rms_hz": 2.645271631596764,
+        "common_max_abs_hz": 4.985348238575968,
+        "spread_among_returns_median_hz": 0.0
+      }
+    },
+    "medium-1TX-10dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T12:55:00.433949Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 10.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -135.0,
+        "max_counts": -3.0,
+        "mean_rx_rms_counts": 9.504416256332402,
+        "offset_range_counts": [
+          -84.30377655029297,
+          -50.34068565368652
+        ]
+      },
+      "independent_background_db_counts2": -30.875727698921615,
+      "total_over_independent_1_10_mhz_db": 0.020631019048726884,
+      "background_shape_db": {
+        "0.7": 1.1136626235575235,
+        "1": 1.239940358195149,
+        "2": 1.0160037298813194,
+        "3.3": 0.7578969574210781,
+        "6.6": 0.43964142311802235,
+        "13": 0.14903602371342117
+      },
+      "noise_floor_db_counts2": -30.73228445664547,
+      "strongest_static_returns": [],
+      "drift": {
+        "returns_m": [],
+        "common_rms_hz": null
+      }
+    },
+    "medium-8TX-0dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T12:56:38.957916Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": true,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -271.0,
+        "max_counts": 137.0,
+        "mean_rx_rms_counts": 46.79241670677427,
+        "offset_range_counts": [
+          -84.64109420776367,
+          -52.65889053344726
+        ]
+      },
+      "independent_background_db_counts2": -30.61914765303188,
+      "total_over_independent_1_10_mhz_db": 0.509936891549648,
+      "background_shape_db": {
+        "0.7": 1.18561360057015,
+        "1": 1.2622043513880001,
+        "2": 0.9715140181541173,
+        "3.3": 3.305776183249513,
+        "6.6": 0.7905241616597074,
+        "13": 0.33014004521520235
+      },
+      "noise_floor_db_counts2": -30.264853849237543,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.588743847320263,
+          "snr_per_chirp_db": 31.831712286446155
+        },
+        {
+          "range_m": 105.1820859179085,
+          "snr_per_chirp_db": 23.45624482438835
+        },
+        {
+          "range_m": 129.79249946352942,
+          "snr_per_chirp_db": 20.905294375405955
+        },
+        {
+          "range_m": 168.82430183843138,
+          "snr_per_chirp_db": 19.575647153188772
+        },
+        {
+          "range_m": 267.1092017945098,
+          "snr_per_chirp_db": 17.455634935709742
+        },
+        {
+          "range_m": 34.01566712993464,
+          "snr_per_chirp_db": 15.885160349070144
+        },
+        {
+          "range_m": 230.89897549490195,
+          "snr_per_chirp_db": 15.055652903816561
+        },
+        {
+          "range_m": 93.89578161673202,
+          "snr_per_chirp_db": 14.677448181446454
+        },
+        {
+          "range_m": 181.9916568564706,
+          "snr_per_chirp_db": 14.158387931474765
+        },
+        {
+          "range_m": 53.29643697777778,
+          "snr_per_chirp_db": 11.446068890631597
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.588743847320263,
+          105.1820859179085,
+          129.79249946352942
+        ],
+        "common_rms_hz": 2.485954945654327,
+        "common_max_abs_hz": 4.232280357973994,
+        "spread_among_returns_median_hz": 0.6941277167717159
+      }
+    },
+    "short-1TX-0dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T12:57:30.998628Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 23.46038818359375,
+      "sampled_bandwidth_mhz": 240.234375,
+      "start_frequency_ghz": 76.8798843383789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 159.73332136169105,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -159.0,
+        "max_counts": 36.0,
+        "mean_rx_rms_counts": 16.136487202734784,
+        "offset_range_counts": [
+          -85.34171524047852,
+          -42.1204792022705
+        ]
+      },
+      "independent_background_db_counts2": -30.770575711937532,
+      "total_over_independent_1_10_mhz_db": 0.026597597774411952,
+      "background_shape_db": {
+        "0.7": 1.1298083792500435,
+        "1": 1.1813781618720967,
+        "2": 0.9451511303646001,
+        "3.3": 0.7058993603545716,
+        "6.6": 0.4530132968251266,
+        "13": 0.13696823022974058
+      },
+      "noise_floor_db_counts2": -30.564931830761978,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.610154180682922,
+          "snr_per_chirp_db": 16.35910992016744
+        },
+        {
+          "range_m": 105.21496607271546,
+          "snr_per_chirp_db": 15.250935390108097
+        }
+      ],
+      "drift": {
+        "returns_m": [],
+        "common_rms_hz": null
+      }
+    },
+    "short-1TX-10dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T12:58:29.379569Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 23.46038818359375,
+      "sampled_bandwidth_mhz": 240.234375,
+      "start_frequency_ghz": 76.8798843383789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 159.73332136169105,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 10.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -137.0,
+        "max_counts": 4.0,
+        "mean_rx_rms_counts": 9.286129970406337,
+        "offset_range_counts": [
+          -84.80523414611817,
+          -51.63303298950195
+        ]
+      },
+      "independent_background_db_counts2": -30.9022201153919,
+      "total_over_independent_1_10_mhz_db": 0.017078660655803546,
+      "background_shape_db": {
+        "0.7": 1.175150489319737,
+        "1": 1.2515993361829771,
+        "2": 0.9468625964700124,
+        "3.3": 0.7305591928238044,
+        "6.6": 0.4005454023002173,
+        "13": 0.14587364430794736
+      },
+      "noise_floor_db_counts2": -30.756319369015138,
+      "strongest_static_returns": [],
+      "drift": {
+        "returns_m": [],
+        "common_rms_hz": null
+      }
+    },
+    "short-8TX-0dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T12:59:27.269198Z",
+      "cpis": 9,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 23.46038818359375,
+      "sampled_bandwidth_mhz": 240.234375,
+      "start_frequency_ghz": 76.8798843383789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 159.73332136169105,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": true,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [
+        "CPIs [0] of 10 missing"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -229.0,
+        "max_counts": 106.0,
+        "mean_rx_rms_counts": 33.871466723946334,
+        "offset_range_counts": [
+          -88.1705517239041,
+          -46.35176298353407
+        ]
+      },
+      "independent_background_db_counts2": -30.463917046418096,
+      "total_over_independent_1_10_mhz_db": 0.38186354703830716,
+      "background_shape_db": {
+        "0.7": 0.9979499677977941,
+        "1": 1.0685699940161442,
+        "2": 0.8137301375163375,
+        "3.3": 0.5889377601871466,
+        "6.6": 1.22918352621096,
+        "13": 0.09757878013290622
+      },
+      "noise_floor_db_counts2": -30.315343884573586,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.298175037398376,
+          "snr_per_chirp_db": 23.94494442110879
+        },
+        {
+          "range_m": 105.13697128689431,
+          "snr_per_chirp_db": 21.10717998057631
+        },
+        {
+          "range_m": 129.31535489144716,
+          "snr_per_chirp_db": 17.78495697686541
+        },
+        {
+          "range_m": 100.457284137626,
+          "snr_per_chirp_db": 16.6396300423477
+        },
+        {
+          "range_m": 93.82772734282926,
+          "snr_per_chirp_db": 15.25079008378462
+        },
+        {
+          "range_m": 53.42642828747967,
+          "snr_per_chirp_db": 14.456861161827408
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.298175037398376,
+          105.13697128689431
+        ],
+        "common_rms_hz": 2.178080405037766,
+        "common_max_abs_hz": 3.4079969569035966,
+        "spread_among_returns_median_hz": 0.2661518107377546
+      }
+    },
+    "long-1TX-0dB": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T13:03:03.534592Z",
+      "cpis": 6,
+      "shape_chirp_sample_rx": [
+        256,
+        2048,
+        8
+      ],
+      "chirp_period_us": 89.99999999999999,
+      "slope_mhz_per_us": 2.9754638671875,
+      "sampled_bandwidth_mhz": 121.875,
+      "start_frequency_ghz": 76.9390640258789,
+      "pre_payload_us": 4.0,
+      "payload_us": 40.96,
+      "flyback_us": 2.0,
+      "wait_us": 42.99999999999999,
+      "max_unambiguous_range_m": 1259.4358030441026,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [
+        "CPIs [3, 4, 5, 6] of 10 missing"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -348.0,
+        "max_counts": 200.0,
+        "mean_rx_rms_counts": 18.646959390344954,
+        "offset_range_counts": [
+          -84.09400749206544,
+          -49.83436139424642
+        ]
+      },
+      "independent_background_db_counts2": -33.517212301185,
+      "total_over_independent_1_10_mhz_db": 0.03744934571454195,
+      "background_shape_db": {
+        "0.7": 1.1432639697724198,
+        "1": 1.199787649421289,
+        "2": 1.0146353109560948,
+        "3.3": 0.9818406094788372,
+        "6.6": 0.3841857708753622,
+        "13": 0.14628087288664915
+      },
+      "noise_floor_db_counts2": -33.369823382510695,
+      "strongest_static_returns": [
+        {
+          "range_m": 13.682835262564103,
+          "snr_per_chirp_db": 31.944751552492008
+        },
+        {
+          "range_m": 168.95995453435899,
+          "snr_per_chirp_db": 19.851511298321064
+        },
+        {
+          "range_m": 272.73426691897436,
+          "snr_per_chirp_db": 19.31910204895295
+        },
+        {
+          "range_m": 265.20102053846153,
+          "snr_per_chirp_db": 11.5183052456076
+        },
+        {
+          "range_m": 174.03336536205128,
+          "snr_per_chirp_db": 10.287512817510276
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          13.682835262564103
+        ],
+        "common_rms_hz": 3.2709505097136797,
+        "common_max_abs_hz": 5.467756769540072,
+        "spread_among_returns_median_hz": 0.0
+      }
+    },
+    "medium-8TX-0dB-highway": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T13:04:50.377661Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": true,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -1049.0,
+        "max_counts": 897.0,
+        "mean_rx_rms_counts": 294.7604094754236,
+        "offset_range_counts": [
+          -91.18354606628418,
+          -46.531730270385744
+        ]
+      },
+      "independent_background_db_counts2": -27.79780925488975,
+      "total_over_independent_1_10_mhz_db": 3.4803190035077183,
+      "background_shape_db": {
+        "0.7": 1.4425068695736272,
+        "1": 1.0070918984114172,
+        "2": 0.22308619703571253,
+        "3.3": 2.341273872498384,
+        "6.6": 2.8988370689507548,
+        "13": 0.7673184424600237
+      },
+      "noise_floor_db_counts2": -27.29372469938692,
+      "strongest_static_returns": [
+        {
+          "range_m": 168.82430183843138,
+          "snr_per_chirp_db": 30.85270671051814
+        },
+        {
+          "range_m": 13.794371923660131,
+          "snr_per_chirp_db": 26.253583819395324
+        },
+        {
+          "range_m": 217.41811202405228,
+          "snr_per_chirp_db": 16.979628398094203
+        },
+        {
+          "range_m": 95.62007810718954,
+          "snr_per_chirp_db": 16.767292528439185
+        },
+        {
+          "range_m": 209.42364647738563,
+          "snr_per_chirp_db": 16.645175205685213
+        },
+        {
+          "range_m": 129.1654825579085,
+          "snr_per_chirp_db": 15.783337585321602
+        },
+        {
+          "range_m": 275.8874384732026,
+          "snr_per_chirp_db": 15.482620686591204
+        },
+        {
+          "range_m": 264.60113417202615,
+          "snr_per_chirp_db": 15.277848795854215
+        },
+        {
+          "range_m": 174.15394553620914,
+          "snr_per_chirp_db": 14.229940424648554
+        },
+        {
+          "range_m": 36.83724320522876,
+          "snr_per_chirp_db": 11.80027873706713
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          13.794371923660131,
+          168.82430183843138
+        ],
+        "common_rms_hz": 1.4236734467681573,
+        "common_max_abs_hz": 2.7703924923202266,
+        "spread_among_returns_median_hz": 0.19500054712671397
+      }
+    },
+    "medium-8TX-0dB-2": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T13:06:16.547733Z",
+      "cpis": 9,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": true,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [
+        "CPIs [0] of 10 missing"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -434.0,
+        "max_counts": 273.0,
+        "mean_rx_rms_counts": 80.68208334291249,
+        "offset_range_counts": [
+          -85.1357053120931,
+          -51.52653884887695
+        ]
+      },
+      "independent_background_db_counts2": -30.570918719223627,
+      "total_over_independent_1_10_mhz_db": 0.7452335169312239,
+      "background_shape_db": {
+        "0.7": 1.177320978908348,
+        "1": 1.277560841010331,
+        "2": 2.31531167156551,
+        "3.3": 6.008204758418792,
+        "6.6": 1.1916976457621367,
+        "13": 0.35294474666219955
+      },
+      "noise_floor_db_counts2": -30.217290299354616,
+      "strongest_static_returns": [
+        {
+          "range_m": 102.67401829542483,
+          "snr_per_chirp_db": 33.38361237135831
+        },
+        {
+          "range_m": 27.118481168104573,
+          "snr_per_chirp_db": 29.64555627703508
+        },
+        {
+          "range_m": 94.99306120156864,
+          "snr_per_chirp_db": 25.669582148704553
+        },
+        {
+          "range_m": 110.0414669364706,
+          "snr_per_chirp_db": 22.514849658168732
+        },
+        {
+          "range_m": 230.58546704209152,
+          "snr_per_chirp_db": 21.707201003869546
+        },
+        {
+          "range_m": 34.01566712993464,
+          "snr_per_chirp_db": 18.314514708643287
+        },
+        {
+          "range_m": 70.06913920313725,
+          "snr_per_chirp_db": 17.881851551658205
+        },
+        {
+          "range_m": 78.84737588183006,
+          "snr_per_chirp_db": 16.529785107307852
+        },
+        {
+          "range_m": 200.0183928930719,
+          "snr_per_chirp_db": 15.752404459829636
+        },
+        {
+          "range_m": 210.52092606222223,
+          "snr_per_chirp_db": 14.292835807549585
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.118481168104573,
+          94.99306120156864,
+          102.67401829542483,
+          110.0414669364706,
+          230.58546704209152
+        ],
+        "common_rms_hz": 1.3665477776068127,
+        "common_max_abs_hz": 1.7311333940894282,
+        "spread_among_returns_median_hz": 0.9773919475505097
+      }
+    },
+    "short-8TX-0dB-2": {
+      "recording": "2026-09-30",
+      "firmware": "archive/remove-lannik-embedded-276-g66e0e0dc-dirty",
+      "first_timestamp": "2026-09-30T13:07:44.915767Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 23.46038818359375,
+      "sampled_bandwidth_mhz": 240.234375,
+      "start_frequency_ghz": 76.8798843383789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 159.73332136169105,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": true,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -855.0,
+        "max_counts": 685.0,
+        "mean_rx_rms_counts": 157.65402156459356,
+        "offset_range_counts": [
+          -92.57407531738282,
+          -46.7548854827881
+        ]
+      },
+      "independent_background_db_counts2": -30.05150765518128,
+      "total_over_independent_1_10_mhz_db": 0.7055931709063259,
+      "background_shape_db": {
+        "0.7": 0.8060741585192268,
+        "1": 0.9461803198759,
+        "2": 0.8791493662047323,
+        "3.3": 0.7761914639572254,
+        "6.6": 2.1258090193070522,
+        "13": 2.3692094976871303
+      },
+      "noise_floor_db_counts2": -29.164219661788415,
+      "strongest_static_returns": [
+        {
+          "range_m": 104.35702342868292,
+          "snr_per_chirp_db": 39.1566687556144
+        },
+        {
+          "range_m": 27.610154180682922,
+          "snr_per_chirp_db": 38.152051958760694
+        },
+        {
+          "range_m": 93.59374298536585,
+          "snr_per_chirp_db": 30.914233913766267
+        },
+        {
+          "range_m": 33.92773183219512,
+          "snr_per_chirp_db": 27.11807192490461
+        },
+        {
+          "range_m": 24.334373176195122,
+          "snr_per_chirp_db": 26.712910946265296
+        },
+        {
+          "range_m": 97.7274666338862,
+          "snr_per_chirp_db": 26.641668827932783
+        },
+        {
+          "range_m": 30.729945613528454,
+          "snr_per_chirp_db": 26.218381934747782
+        },
+        {
+          "range_m": 124.0897042414309,
+          "snr_per_chirp_db": 21.701513784712322
+        },
+        {
+          "range_m": 111.37655415258536,
+          "snr_per_chirp_db": 20.845761489097296
+        },
+        {
+          "range_m": 37.281507622504066,
+          "snr_per_chirp_db": 20.58292555227124
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.610154180682922,
+          30.729945613528454,
+          33.92773183219512,
+          93.59374298536585,
+          97.7274666338862,
+          104.35702342868292
+        ],
+        "common_rms_hz": 1.6998369810155554,
+        "common_max_abs_hz": 2.7908305853995885,
+        "spread_among_returns_median_hz": 0.18900189007103846
+      }
+    },
+    "infineon-mode0": {
+      "recording": "2026-08-27",
+      "firmware": "Infineon CARKIT firmware and RadarGUI",
+      "first_timestamp": "16066 ms",
+      "cpis": 42,
+      "shape_chirp_sample_rx": [
+        1024,
+        512,
+        8
+      ],
+      "chirp_period_us": 14.6200009,
+      "slope_mhz_per_us": 8.35418671875,
+      "sampled_bandwidth_mhz": 85.546872,
+      "start_frequency_ghz": 76.2000671,
+      "pre_payload_us": 4.199999999999999,
+      "payload_us": 10.24,
+      "flyback_us": 0.06,
+      "wait_us": 0.06,
+      "max_unambiguous_range_m": 448.5661921572071,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        2,
+        5,
+        8,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "ddma_length": 16,
+      "frequency_step_hz": 302124.062,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "high-pass code 4, gain code 1",
+      "notes": [
+        "converted with l2-sp 26638ae4",
+        "1 dummy ramp(s) per frame"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -400.0,
+        "max_counts": 297.0,
+        "mean_rx_rms_counts": 30.65721820653644,
+        "offset_range_counts": [
+          -84.86038167136057,
+          -49.62566162291026
+        ]
+      },
+      "independent_background_db_counts2": -29.10189472574183,
+      "total_over_independent_1_10_mhz_db": 0.9788327528618019,
+      "background_shape_db": {
+        "0.7": -16.552956345378803,
+        "1": -14.411327743622437,
+        "2": -3.393928720939819,
+        "3.3": 1.5660245185978354,
+        "6.6": 3.0174621140250864,
+        "13": 1.7683576032107666
+      },
+      "noise_floor_db_counts2": -29.155645493251615,
+      "strongest_static_returns": [
+        {
+          "range_m": 174.12603650633773,
+          "snr_per_chirp_db": 20.758241245059462
+        },
+        {
+          "range_m": 279.69679071521165,
+          "snr_per_chirp_db": 12.893462631848639
+        },
+        {
+          "range_m": 218.58840809223275,
+          "snr_per_chirp_db": 11.844139715068566
+        },
+        {
+          "range_m": 134.92029998478495,
+          "snr_per_chirp_db": 11.228933176460814
+        },
+        {
+          "range_m": 270.7167058136269,
+          "snr_per_chirp_db": 11.194842591866545
+        },
+        {
+          "range_m": 69.6504146025351,
+          "snr_per_chirp_db": 10.368894568856595
+        }
+      ]
+    },
+    "infineon-mode1": {
+      "recording": "2026-08-27",
+      "firmware": "Infineon CARKIT firmware and RadarGUI",
+      "first_timestamp": "15824 ms",
+      "cpis": 89,
+      "shape_chirp_sample_rx": [
+        1024,
+        512,
+        8
+      ],
+      "chirp_period_us": 13.960000599999999,
+      "slope_mhz_per_us": 16.7083734375,
+      "sampled_bandwidth_mhz": 171.093744,
+      "start_frequency_ghz": 76.2000835,
+      "pre_payload_us": 3.54,
+      "payload_us": 10.24,
+      "flyback_us": 0.06,
+      "wait_us": 0.06,
+      "max_unambiguous_range_m": 224.28309607860356,
+      "tx_channels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        2,
+        5,
+        8,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "ddma_length": 16,
+      "frequency_step_hz": 302124.062,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "high-pass code 4, gain code 1",
+      "notes": [
+        "converted with l2-sp 26638ae4",
+        "1 dummy ramp(s) per frame"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -455.0,
+        "max_counts": 337.0,
+        "mean_rx_rms_counts": 36.2936962425699,
+        "offset_range_counts": [
+          -84.84031094326063,
+          -49.63347966483471
+        ]
+      },
+      "independent_background_db_counts2": -26.913286012045855,
+      "total_over_independent_1_10_mhz_db": 1.3187381176201995,
+      "background_shape_db": {
+        "0.7": -8.117638012059476,
+        "1": -14.43268061894575,
+        "2": -9.945193349546333,
+        "3.3": -2.8061395773425737,
+        "6.6": 2.3206465367875886,
+        "13": 0.7053498123541679
+      },
+      "noise_floor_db_counts2": -29.155645493251615,
+      "strongest_static_returns": [
+        {
+          "range_m": 174.89262911988763,
+          "snr_per_chirp_db": 21.615300236218
+        },
+        {
+          "range_m": 69.54090137202796,
+          "snr_per_chirp_db": 15.123876017556885
+        },
+        {
+          "range_m": 48.733387575673135,
+          "snr_per_chirp_db": 14.424638640725098
+        },
+        {
+          "range_m": 42.929186358795214,
+          "snr_per_chirp_db": 13.126312189975701
+        },
+        {
+          "range_m": 134.70127352377068,
+          "snr_per_chirp_db": 12.827354400898368
+        },
+        {
+          "range_m": 21.13605348787621,
+          "snr_per_chirp_db": 10.992712939325223
+        },
+        {
+          "range_m": 218.58840809223275,
+          "snr_per_chirp_db": 10.424470395118954
+        },
+        {
+          "range_m": 106.22783359191672,
+          "snr_per_chirp_db": 10.081095005322114
+        }
+      ]
+    }
+  }
+}
