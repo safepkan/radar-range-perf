@@ -44,9 +44,10 @@ class ProcessingBudget:
         looks (e.g. empty DDMA Doppler subbands).  These raise the detection
         threshold without adding signal -- the classic collapsing loss.
     losses_db:
-        Named processing losses, each a positive number of dB of loss
+        Named processing losses, each a non-negative number of dB of loss
         (windowing, straddle, CFAR, beamforming/angle straddle, ...).  Kept
-        itemised so the link budget can show where SNR went.
+        itemised, zeros included, so the link budget can show where SNR went
+        and which terms were set to zero.
     """
 
     coherent_gain_db: float

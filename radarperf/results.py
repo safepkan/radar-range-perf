@@ -16,7 +16,15 @@ from .geometry import Geometry
 
 @dataclass(frozen=True)
 class LinkBudget:
-    """Outcome of evaluating the range equation at one geometry."""
+    """Outcome of evaluating the range equation at one geometry.
+
+    Signal and noise powers are per sample at the front-end's RF reference
+    plane, so ``signal_power_dbm`` already includes the path and system losses.
+    ``system_loss_db`` is the sum of the signal-path items in
+    ``system_losses_db``; that mapping also lists the noise-figure derating,
+    which acts on ``noise_power_dbm`` instead.  Both itemised mappings keep
+    zero-valued terms, so an omitted term shows as an explicit zero.
+    """
 
     geometry: Geometry
     snr_db: float
@@ -28,13 +36,18 @@ class LinkBudget:
     coherent_gain_db: float
     processing_loss_db: float
     path_loss_db: float
+    system_loss_db: float
     n_noncoherent: int
     n_collapsing: int
     rcs_m2: float
     clutter_rcs_m2: float
     breakdown_db: Mapping[str, float] = field(default_factory=dict)
+    processing_losses_db: Mapping[str, float] = field(default_factory=dict)
+    system_losses_db: Mapping[str, float] = field(default_factory=dict)
 
     def __str__(self) -> str:
+        system_items = dict(self.system_losses_db)
+        nf_derating = system_items.pop("noise_figure_derating", 0.0)
         lines = [
             f"Range:            {self.geometry.range_m:10.1f} m"
             f"  (az {self.geometry.azimuth_deg:+.1f} deg,"
@@ -43,7 +56,11 @@ class LinkBudget:
             f"Noise  (per smp): {self.noise_power_dbm:10.1f} dBm",
             f"Coherent gain:    {self.coherent_gain_db:10.1f} dB",
             f"Processing loss:  {self.processing_loss_db:10.1f} dB",
+            *_item_lines(self.processing_losses_db),
             f"Two-way path loss:{self.path_loss_db:10.1f} dB",
+            f"System loss:      {self.system_loss_db:10.1f} dB",
+            *_item_lines(system_items),
+            f"NF derating:      {nf_derating:10.1f} dB",
             f"Non-coh looks:    {self.n_noncoherent:10d}",
         ]
         if self.n_collapsing > 0:
@@ -56,3 +73,23 @@ class LinkBudget:
                 f"SINR:             {self.sinr_db:10.1f} dB",
             ]
         return "\n".join(lines)
+
+
+_ITEM_LABELS = {
+    "cfar": "CFAR",
+    "mimo": "MIMO",
+    "tx_power_derating": "TX power derating",
+    "tx_feed": "TX feed",
+    "tx_antenna": "TX antenna",
+    "radome_two_way": "radome (two-way)",
+    "rx_antenna": "RX antenna",
+    "rx_feed": "RX feed",
+}
+
+
+def _item_lines(items: Mapping[str, float]) -> list[str]:
+    """Indented ``label  value dB`` lines for an itemised loss mapping."""
+    return [
+        f"  {_ITEM_LABELS.get(name, name.replace('_', ' ')):<20}{value:6.2f} dB"
+        for name, value in items.items()
+    ]

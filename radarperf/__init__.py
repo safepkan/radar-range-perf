@@ -30,6 +30,7 @@ from . import (
     antenna,
     detection,
     frontend,
+    itu,
     phase_noise,
     sweeps,
     target,
@@ -59,6 +60,7 @@ from .engine import Radar
 from .environment import Atmosphere, CompositeEnvironment, FreeSpace, Rain
 from .frontend import GenericFrontend, cascade
 from .geometry import Geometry
+from .losses import SystemLosses
 from .processing import (
     BeamCombination,
     CombiningStage,
@@ -71,6 +73,9 @@ from .processing import (
     WINDOW_LOSS_HAMMING_DB,
     WINDOW_LOSS_HANN_DB,
     WINDOW_LOSS_RECTANGULAR_DB,
+    WindowSpec,
+    straddle_loss_db,
+    window_loss_db,
 )
 from .protocols import (
     Antenna,
@@ -105,6 +110,9 @@ __all__ = [
     "WINDOW_LOSS_BLACKMAN_DB",
     "WINDOW_LOSS_BLACKMAN_HARRIS_DB",
     "WINDOW_LOSS_FLAT_TOP_DB",
+    "WindowSpec",
+    "window_loss_db",
+    "straddle_loss_db",
     "GenericFrontend",
     "cascade",
     "AntennaPair",
@@ -127,6 +135,7 @@ __all__ = [
     "CompositeEnvironment",
     "LinkBudget",
     "ProcessingBudget",
+    "SystemLosses",
     "probability_of_detection",
     "required_snr_db",
     "albersheim_required_snr_db",
@@ -142,6 +151,7 @@ __all__ = [
     "units",
     "detection",
     "frontend",
+    "itu",
     "phase_noise",
     "target",
     "trajectory",

@@ -62,16 +62,19 @@ single-sample SNR times a dimensionless integration gain:
 
 ```
 snr_sample = Pt * Gt * Gr * lambda^2 * sigma
-             / ( (4*pi)^3 * R^4 * k * Tsys * Bn * L_path )
+             / ( (4*pi)^3 * R^4 * k * Tsys * Bn * L_path * L_system )
 
 SNR        = snr_sample * coherent_gain / processing_losses
 ```
 
-The noise power per complex baseband sample is `k * Tsys * Bn`, with system
-temperature `Tsys = Tant + (F - 1) * T0` (`Tant` the antenna/scene noise
-temperature, default `T0 = 290 K`; `F` the receiver noise factor) and noise
-bandwidth `Bn` (the waveform's effective noise bandwidth, defaulting to the ADC
-sample rate `fs`). With the defaults `Tant = T0` and `Bn = fs` this reduces to
+Signal and noise are referred to the front-end's RF reference plane, where the
+datasheet TX power and noise figure apply. The noise power per complex baseband
+sample is `k * Tsys * Bn`, with system temperature
+`Tsys = Tant / L_rx + T0 * (1 - 1/L_rx) + (F - 1) * T0` (`Tant` the
+antenna/scene noise temperature, default `T0 = 290 K`; `L_rx` the passive
+receive-side loss; `F` the receiver noise factor) and noise bandwidth `Bn` (the
+waveform's effective noise bandwidth, defaulting to the ADC sample rate `fs`).
+With the defaults `Tant = T0`, `L_rx = 1` and `Bn = fs` this reduces to
 `k * T0 * F * fs`. Set `Radar(antenna_noise_temperature_k=...)` and
 `FmcwWaveform(noise_bandwidth_hz=...)` to refine either. The coherent integration gain
 (range-FFT x Doppler-FFT x coherently combined channels) and the named
@@ -79,6 +82,20 @@ processing losses come from the processing model, so the range equation itself
 stays free of FFT-length bookkeeping. Antenna gains are **element** gains;
 coherent array/beamforming gain lives in the integration gain to avoid double
 counting.
+
+### Losses
+
+`L_system` collects the terms that lie outside the datasheet front-end, the
+antenna pattern and the processing model: TX power and noise-figure derating,
+TX/RX feed losses from the MMIC reference plane to the antenna, antenna
+efficiency relative to directivity, a radome (applied on both passes), and a
+range-dependent coherence loss from per-chirp frequency errors. They are the
+fields of `SystemLosses`, passed as `Radar(losses=...)`, and all default to
+zero. Printing a `LinkBudget` lists every processing and system term with its
+value, zeros included, so an omitted term shows as an explicit zero.
+[docs/losses.md](docs/losses.md) catalogues all terms, including those in other
+components (`Atmosphere`, `Rain`, processing losses) and those not modelled,
+with their defaults, typical sizes at 77 GHz and a checklist for studies.
 
 `chirp_repetition_time_s` is optional for range/SNR/Pd calculations. Leave it
 unset for range-only budgets; set it when you need CPI duration, velocity
@@ -123,9 +140,15 @@ by the detector. When the TX axis is combined coherently the transmitters are
 resolved first, so the empty subbands are discarded and there is no collapsing.
 `examples/ddma_combinations.py` prints all of these side by side.
 
-Range and Doppler window losses default to the Hann-window constant
-`WINDOW_LOSS_HANN_DB` (1.76 dB). Common-window constants are also exported for
-rectangular, Hamming, Blackman, Blackman-Harris and flat-top windows.
+Range and Doppler window and straddle losses are computed from the windows
+(`range_window`, `doppler_window`, any SciPy window name; Hann by default) and
+the FFT sizes (`range_fft_size`, `doppler_fft_size`; no zero-padding by
+default): the window loss from its equivalent noise bandwidth, the straddle
+loss averaged over a target position uniform between FFT bins. Hann without
+padding gives 1.76 dB and 0.47 dB per axis. Each value can be overridden;
+`window_loss_db` and `straddle_loss_db` (with `statistic="max"` for the worst
+case) compute them directly, and `WINDOW_LOSS_*` constants are exported for
+common windows.
 
 A note on fluctuation: the cells integrated across the array in one CPI share a
 single RCS realisation, so spatial non-coherent integration is correctly
@@ -201,7 +224,10 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
   explicit list of named coherent/non-coherent `CombiningStage` axes for
   combining topologies beyond the fixed RX/TX axes.
 * **Target** — `ConstantRcsTarget`, `AspectRcsTarget`, `RcsTableTarget`, presets.
-* **Environment** — `FreeSpace`, `Atmosphere`, `Rain`, `CompositeEnvironment`.
+* **Environment** — `FreeSpace`, `Atmosphere` (constant, or `Atmosphere.itu_p676`
+  for given conditions), `Rain` (ITU-R P.838-3), `CompositeEnvironment`.
+* **System losses** — `SystemLosses`: derating, feeds, antenna efficiency, radome
+  and per-chirp coherence (see [docs/losses.md](docs/losses.md)).
 
 Sweeps (`radarperf.sweeps`) wrap the per-point link budget into the arrays you
 plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
@@ -230,10 +256,15 @@ Each takes an optional `ax` and returns it, so they compose and overlay; see
   from ti.com; Infineon CTRX8188F: controlled-datasheet typical) — verify against
   the exact revision or your own measurements. **RCS presets are illustrative.**
   Copy a preset and override the fields with controlled or measured numbers.
-* **Rain clutter is approximate.** Attenuation uses the ITU-R P.838 power law;
-  the volume-clutter reflectivity uses a Marshall-Palmer Z-R relation with a
+* **Rain clutter is approximate.** Attenuation uses ITU-R P.838-3 and clear-air
+  absorption ITU-R P.676-13 (`radarperf.itu`, checked against ITU-published
+  values); the volume-clutter reflectivity uses a Marshall-Palmer Z-R relation with a
   Rayleigh assumption (at 77 GHz raindrops are in the Mie regime), so calibrate
   `dielectric_factor` and the Z-R coefficients before trusting absolute numbers.
+* **Losses default to zero.** `SystemLosses` terms, the environment
+  (`FreeSpace` unless one is passed) and the beamforming/MIMO/other processing
+  losses all start at zero; choose them per study (see
+  [docs/losses.md](docs/losses.md)).
 * Antenna pattern separability (`PatternCutAntenna`) is exact on the cuts and a
   reasonable engineering approximation off them. **The SENCITY presets are
   digitised** from preliminary datasheet charts (PCB mount, no radome) — verify

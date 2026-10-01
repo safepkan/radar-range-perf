@@ -76,10 +76,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Final
+from functools import lru_cache
+from typing import Final, Literal
+
+import numpy as np
+from scipy.signal import get_window
 
 from .protocols import ProcessingBudget, Waveform
 from .units import linear_to_db
+
+#: A window for :func:`scipy.signal.get_window` (periodic): a name such as
+#: ``"hann"``, or a tuple with a parameter such as ``("kaiser", 8.0)``.
+WindowSpec = str | tuple[str, float]
 
 
 class MimoScheme(Enum):
@@ -100,14 +108,97 @@ class BeamCombination(Enum):
 
 _MULTIPLEXED = frozenset({MimoScheme.TDM, MimoScheme.DDM, MimoScheme.BPM})
 
-# Incremental single-bin FFT SNR loss from window ENBW, relative to rectangular.
-# Assumes standard periodic spectral-analysis windows.
+# Incremental single-bin FFT SNR loss from window ENBW, relative to rectangular:
+# 10 log10(ENBW in bins) of SciPy's periodic windows (``get_window``; hann,
+# hamming, blackman, blackmanharris (4-term), flattop), checked by a test.
 WINDOW_LOSS_RECTANGULAR_DB: Final[float] = 0.0
 WINDOW_LOSS_HANN_DB: Final[float] = 1.76
 WINDOW_LOSS_HAMMING_DB: Final[float] = 1.34
 WINDOW_LOSS_BLACKMAN_DB: Final[float] = 2.37
 WINDOW_LOSS_BLACKMAN_HARRIS_DB: Final[float] = 3.02
 WINDOW_LOSS_FLAT_TOP_DB: Final[float] = 5.76
+
+
+def window_loss_db(window: WindowSpec, length: int) -> float:
+    """Single-bin FFT SNR loss of a window relative to rectangular [dB].
+
+    ``10 log10`` of the equivalent noise bandwidth, in bins, of the periodic
+    ``length``-point window from :func:`scipy.signal.get_window`.
+    """
+    return _window_loss_db(window, _positive_length(length))
+
+
+def straddle_loss_db(
+    window: WindowSpec,
+    length: int,
+    fft_size: int | None = None,
+    *,
+    statistic: Literal["mean", "max"] = "mean",
+) -> float:
+    """Straddle (scalloping) loss of a windowed, zero-padded FFT [dB].
+
+    A tone falls at a uniformly distributed position between two adjacent bins
+    of an ``fft_size``-point FFT (default ``length``, no padding) of ``length``
+    windowed samples.  ``"mean"`` averages the peak-bin loss in dB over that
+    position; ``"max"`` is the loss midway between bins (the classic scalloping
+    loss, e.g. 1.42 dB for Hann without padding).
+    """
+    n = _positive_length(length)
+    size = n if fft_size is None else int(fft_size)
+    if size < n:
+        raise ValueError("fft_size must be at least the window length")
+    if statistic not in ("mean", "max"):
+        raise ValueError("statistic must be 'mean' or 'max'")
+    return _straddle_loss_db(window, n, size, statistic)
+
+
+@lru_cache(maxsize=256)
+def _window_loss_db(window: WindowSpec, length: int) -> float:
+    w = np.asarray(get_window(window, length, fftbins=True), dtype=float)
+    enbw_bins = length * float(np.sum(w**2)) / float(np.sum(w)) ** 2
+    return float(linear_to_db(enbw_bins))
+
+
+@lru_cache(maxsize=256)
+def _straddle_loss_db(
+    window: WindowSpec, length: int, fft_size: int, statistic: str
+) -> float:
+    w = np.asarray(get_window(window, length, fftbins=True), dtype=float)
+    # Offsets from a bin centre, in units of the unpadded bin spacing, up to
+    # midway between padded bins; the response of a real window is symmetric.
+    offsets = np.linspace(0.0, 0.5 * length / fft_size, 257)
+    phase = np.exp(-2j * np.pi * np.outer(offsets, np.arange(length)) / length)
+    gain = np.abs(phase @ w) ** 2 / float(np.sum(w)) ** 2
+    loss = -10.0 * np.log10(gain)
+    if statistic == "max":
+        return float(loss[-1])
+    return float(np.trapezoid(loss, offsets) / offsets[-1]) if offsets[-1] > 0 else 0.0
+
+
+def _positive_length(length: int) -> int:
+    n = int(length)
+    if n < 1:
+        raise ValueError("window length must be >= 1")
+    return n
+
+
+def _fft_axis_losses(
+    window: WindowSpec,
+    length: int,
+    fft_size: int | None,
+    window_override: float | None,
+    straddle_override: float | None,
+) -> tuple[float, float]:
+    """Window and straddle loss of one FFT axis: overrides, else computed."""
+    window_db = (
+        window_loss_db(window, length) if window_override is None else window_override
+    )
+    straddle_db = (
+        straddle_loss_db(window, length, fft_size)
+        if straddle_override is None
+        else straddle_override
+    )
+    return window_db, straddle_db
 
 
 @dataclass(frozen=True)
@@ -136,12 +227,22 @@ class StandardProcessing:
         subarray. In that case only ``n_tx`` (total transmit power) is added
         here; the other ``n_tx`` (ideal array directivity) is replaced by the
         full-aperture antenna model.
-    Loss terms:
-        Window / straddle / CFAR losses as before, plus ``beamforming_loss_db``
-        for the angular straddle / scan loss incurred when a coherently combined
-        beam does not point exactly at the target (set to 0 if the beam is
-        refined onto the target, up to a few dB for a coarse beam grid).
-        Range and Doppler window losses default to ``WINDOW_LOSS_HANN_DB``.
+    range_window, doppler_window, range_fft_size, doppler_fft_size:
+        The FFT windows (default Hann) and FFT sizes (default: no zero-padding)
+        of the range and Doppler FFTs.  The window and straddle losses are
+        computed from them (:func:`window_loss_db`, :func:`straddle_loss_db`
+        with the mean over target position) for ``n_samples`` and the chirps per
+        transmitter.
+    range_window_loss_db, doppler_window_loss_db, range_straddle_loss_db,
+    doppler_straddle_loss_db:
+        Overrides for the computed values; ``None`` (default) computes them.
+    Other loss terms:
+        ``cfar_loss_db`` (1.0 dB, equal to cell-averaging CFAR with 32 reference
+        cells for a Swerling 1 target at Pfa 1e-6; see ``docs/losses.md``) and
+        ``beamforming_loss_db`` for the angular straddle / scan loss incurred
+        when a coherently combined beam does not point exactly at the target
+        (0 if the beam is refined onto the target or the antenna model already
+        covers it).
     """
 
     mimo: MimoScheme = MimoScheme.NONE
@@ -150,10 +251,14 @@ class StandardProcessing:
     n_doppler_subbands: int = 0
     transmit_coherent: bool = False
     tx_array_gain_in_antenna: bool = False
-    range_window_loss_db: float = WINDOW_LOSS_HANN_DB
-    doppler_window_loss_db: float = WINDOW_LOSS_HANN_DB
-    range_straddle_loss_db: float = 0.6
-    doppler_straddle_loss_db: float = 0.6
+    range_window: WindowSpec = "hann"
+    doppler_window: WindowSpec = "hann"
+    range_fft_size: int | None = None
+    doppler_fft_size: int | None = None
+    range_window_loss_db: float | None = None
+    doppler_window_loss_db: float | None = None
+    range_straddle_loss_db: float | None = None
+    doppler_straddle_loss_db: float | None = None
     cfar_loss_db: float = 1.0
     beamforming_loss_db: float = 0.0
     mimo_loss_db: float = 0.0
@@ -201,17 +306,33 @@ class StandardProcessing:
 
         coherent_gain = base_coherent * coherent_factor
 
+        range_window_db, range_straddle_db = _fft_axis_losses(
+            self.range_window,
+            waveform.n_samples,
+            self.range_fft_size,
+            self.range_window_loss_db,
+            self.range_straddle_loss_db,
+        )
+        doppler_window_db, doppler_straddle_db = _fft_axis_losses(
+            self.doppler_window,
+            max(1, round(chirps_per_tx)),
+            self.doppler_fft_size,
+            self.doppler_window_loss_db,
+            self.doppler_straddle_loss_db,
+        )
+        # Zero-valued terms are kept so an omitted loss shows as an explicit
+        # zero; beamforming is listed only when an angular axis is combined.
         losses = {
-            "range_window": self.range_window_loss_db,
-            "doppler_window": self.doppler_window_loss_db,
-            "range_straddle": self.range_straddle_loss_db,
-            "doppler_straddle": self.doppler_straddle_loss_db,
+            "range_window": range_window_db,
+            "doppler_window": doppler_window_db,
+            "range_straddle": range_straddle_db,
+            "doppler_straddle": doppler_straddle_db,
             "cfar": self.cfar_loss_db,
-            "beamforming": self.beamforming_loss_db if angular_combination else 0.0,
-            "mimo": self.mimo_loss_db,
-            "other": self.other_loss_db,
         }
-        losses = {name: value for name, value in losses.items() if value != 0.0}
+        if angular_combination:
+            losses["beamforming"] = self.beamforming_loss_db
+        losses["mimo"] = self.mimo_loss_db
+        losses["other"] = self.other_loss_db
 
         return ProcessingBudget(
             coherent_gain_db=float(linear_to_db(coherent_gain)),
@@ -279,15 +400,23 @@ class StagedProcessing:
     TDM duty-cycle bookkeeping -- ``n_samples * n_chirps`` is taken as the full
     coherent base.  For TDM, use :class:`StandardProcessing` (or set
     ``include_doppler_fft_gain=False`` and fold the integration in elsewhere).
+
+    Windows, FFT sizes and the window/straddle loss overrides work as in
+    :class:`StandardProcessing`, with ``n_samples`` and ``n_chirps`` as the
+    window lengths.
     """
 
     combining_stages: tuple[CombiningStage, ...] = ()
     include_range_fft_gain: bool = True
     include_doppler_fft_gain: bool = True
-    range_window_loss_db: float = WINDOW_LOSS_HANN_DB
-    doppler_window_loss_db: float = WINDOW_LOSS_HANN_DB
-    range_straddle_loss_db: float = 0.6
-    doppler_straddle_loss_db: float = 0.6
+    range_window: WindowSpec = "hann"
+    doppler_window: WindowSpec = "hann"
+    range_fft_size: int | None = None
+    doppler_fft_size: int | None = None
+    range_window_loss_db: float | None = None
+    doppler_window_loss_db: float | None = None
+    range_straddle_loss_db: float | None = None
+    doppler_straddle_loss_db: float | None = None
     cfar_loss_db: float = 1.0
     other_loss_db: float = 0.0
     additional_gain_db: float = 0.0
@@ -308,15 +437,28 @@ class StagedProcessing:
                 n_signal *= stage.signal_bearing_count
                 n_total *= stage.count
 
+        range_window_db, range_straddle_db = _fft_axis_losses(
+            self.range_window,
+            waveform.n_samples,
+            self.range_fft_size,
+            self.range_window_loss_db,
+            self.range_straddle_loss_db,
+        )
+        doppler_window_db, doppler_straddle_db = _fft_axis_losses(
+            self.doppler_window,
+            waveform.n_chirps,
+            self.doppler_fft_size,
+            self.doppler_window_loss_db,
+            self.doppler_straddle_loss_db,
+        )
         losses = {
-            "range_window": self.range_window_loss_db,
-            "doppler_window": self.doppler_window_loss_db,
-            "range_straddle": self.range_straddle_loss_db,
-            "doppler_straddle": self.doppler_straddle_loss_db,
+            "range_window": range_window_db,
+            "doppler_window": doppler_window_db,
+            "range_straddle": range_straddle_db,
+            "doppler_straddle": doppler_straddle_db,
             "cfar": self.cfar_loss_db,
             "other": self.other_loss_db,
         }
-        losses = {name: value for name, value in losses.items() if value != 0.0}
 
         gain_db = float(linear_to_db(coherent_gain)) + self.additional_gain_db
         return ProcessingBudget(

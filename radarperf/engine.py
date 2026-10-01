@@ -10,14 +10,20 @@ The SNR is built in the unambiguous "single-sample SNR times dimensionless
 integration gain" form of the FMCW radar equation::
 
     snr_sample = Pt G_t G_r lambda^2 sigma
-                 / ((4 pi)^3 R^4 k T_sys B_n L_path)
+                 / ((4 pi)^3 R^4 k T_sys B_n L_path L_system)
     SNR        = snr_sample * coherent_gain / processing_losses
 
-The noise power per complex sample is ``k T_sys B_n`` with system temperature
-``T_sys = T_ant + (F - 1) T0`` (``T_ant`` the antenna noise temperature,
-default ``T0 = 290 K``; ``F`` the receiver noise factor) and noise bandwidth
-``B_n`` (the waveform's effective noise bandwidth, defaulting to the ADC sample
-rate).  With ``T_ant = T0`` and ``B_n = f_s`` this reduces to ``k T0 F f_s``.
+Signal and noise are referred to the front-end's RF reference plane, where the
+datasheet TX power and noise figure apply.  ``L_system`` collects the named
+hardware, installation and coherence terms of :class:`~radarperf.losses.SystemLosses`
+(TX derating, feeds, antenna efficiency, radome, per-chirp phase error); all are
+zero by default.  The noise power per complex sample is ``k T_sys B_n`` with
+system temperature ``T_sys = T_ant / L_rx + T0 (1 - 1/L_rx) + (F - 1) T0``
+(``T_ant`` the antenna noise temperature, default ``T0 = 290 K``; ``L_rx`` the
+passive receive-side loss, at ``T0``; ``F`` the receiver noise factor including
+any derating) and noise bandwidth ``B_n`` (the waveform's effective noise
+bandwidth, defaulting to the ADC sample rate).  With ``T_ant = T0`` and
+``B_n = f_s`` this reduces to ``k T0 F f_s``.
 ``coherent_gain`` / losses come from the processing model. Antenna gains are
 normally per-channel element/subarray gains, with coherent array gain in
 ``coherent_gain``. A complete-aperture antenna pattern can instead carry the
@@ -34,7 +40,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Optional
+from typing import Mapping, Optional
 
 import numpy as np
 
@@ -42,6 +48,7 @@ from .antenna import AntennaPair
 from .detection import probability_of_detection
 from .environment import FreeSpace
 from .geometry import Geometry
+from .losses import SystemLosses
 from .protocols import Environment, Frontend, Processing, Target, Waveform
 from .results import LinkBudget
 from .units import (
@@ -75,8 +82,10 @@ class _BudgetTerms:
     rcs_m2: FloatOrArray
     clutter_rcs_m2: FloatOrArray
     path_loss_db: FloatOrArray
+    system_loss_db: FloatOrArray
     coherent_gain_db: float
     processing_loss_db: float
+    processing_losses_db: Mapping[str, float]
     n_noncoherent: int
     n_collapsing: int
 
@@ -85,10 +94,15 @@ class _BudgetTerms:
 class Radar:
     """A composed radar configuration ready to be evaluated.
 
-    ``antenna_noise_temperature_k`` is the noise temperature seen at the antenna
-    port (the scene brightness temperature).  It enters the system temperature as
-    ``T_sys = T_ant + (F - 1) T0``; the default of ``T0 = 290 K`` reproduces the
-    usual "all noise lumped into the noise figure" convention.
+    ``antenna_noise_temperature_k`` is the noise temperature seen by the antenna
+    (the scene brightness temperature).  It enters the system temperature as
+    ``T_sys = T_ant / L_rx + T0 (1 - 1/L_rx) + (F - 1) T0``; the default of
+    ``T0 = 290 K`` reproduces the usual "all noise lumped into the noise figure"
+    convention.
+
+    ``losses`` names the hardware, installation and coherence terms that lie
+    outside the front-end datasheet figures, the antenna pattern and the
+    processing model.  They default to zero; see :class:`SystemLosses`.
     """
 
     frontend: Frontend
@@ -97,6 +111,7 @@ class Radar:
     antenna: AntennaPair
     default_pfa: float = 1.0e-6
     antenna_noise_temperature_k: float = REFERENCE_TEMPERATURE
+    losses: SystemLosses = SystemLosses()
 
     def _budget_terms(
         self,
@@ -127,16 +142,30 @@ class Radar:
         )
         l_path = db_to_linear(path_loss_db)
 
-        noise_factor = db_to_linear(self.frontend.noise_figure_db)
+        losses = self.losses
+        system_loss_db = (
+            losses.transmit_loss_db
+            + losses.receive_loss_db
+            + np.asarray(losses.coherence_loss_db(rng), dtype=float)
+        )
+        l_system = db_to_linear(system_loss_db)
+
+        # Passive receive-side losses at T0 attenuate the scene noise and add
+        # their own; everything is referred to the front-end reference plane.
+        rx_transmission = db_to_linear(-losses.receive_loss_db)
+        noise_factor = db_to_linear(
+            self.frontend.noise_figure_db + losses.noise_figure_derating_db
+        )
         system_temperature_k = (
-            self.antenna_noise_temperature_k
+            self.antenna_noise_temperature_k * rx_transmission
+            + REFERENCE_TEMPERATURE * (1.0 - rx_transmission)
             + (noise_factor - 1.0) * REFERENCE_TEMPERATURE
         )
         noise_per_sample_w = (
             BOLTZMANN * system_temperature_k * wf.effective_noise_bandwidth_hz
         )
 
-        common = pt * gt * gr * lam**2 / (_FOUR_PI_CUBED * rng**4 * l_path)
+        common = pt * gt * gr * lam**2 / (_FOUR_PI_CUBED * rng**4 * l_path * l_system)
         signal_per_sample_w = common * sigma
         snr_sample = signal_per_sample_w / noise_per_sample_w
 
@@ -169,8 +198,10 @@ class Radar:
             rcs_m2=sigma,
             clutter_rcs_m2=sigma_c,
             path_loss_db=path_loss_db,
+            system_loss_db=system_loss_db,
             coherent_gain_db=budget.coherent_gain_db,
             processing_loss_db=proc_loss_db,
+            processing_losses_db=budget.losses_db,
             n_noncoherent=budget.n_noncoherent,
             n_collapsing=budget.n_collapsing,
         )
@@ -197,6 +228,8 @@ class Radar:
             "coherent_gain_db": t.coherent_gain_db,
             "processing_loss_db": t.processing_loss_db,
             "path_loss_db": float(t.path_loss_db),
+            "system_loss_db": float(t.system_loss_db),
+            "noise_figure_db": self.frontend.noise_figure_db,
         }
 
         return LinkBudget(
@@ -210,11 +243,14 @@ class Radar:
             coherent_gain_db=t.coherent_gain_db,
             processing_loss_db=t.processing_loss_db,
             path_loss_db=float(t.path_loss_db),
+            system_loss_db=float(t.system_loss_db),
             n_noncoherent=t.n_noncoherent,
             n_collapsing=t.n_collapsing,
             rcs_m2=float(t.rcs_m2),
             clutter_rcs_m2=float(t.clutter_rcs_m2),
             breakdown_db=breakdown,
+            processing_losses_db=dict(t.processing_losses_db),
+            system_losses_db=self.losses.itemised_db(float(geometry.range_m)),
         )
 
     def probability_of_detection(

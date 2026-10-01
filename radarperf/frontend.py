@@ -10,7 +10,8 @@ Cascaded configurations are produced with :func:`cascade`.
    datasheet headline figures from ti.com; :func:`ctrx8188f` uses controlled
    datasheet typical values.  Output power and noise figure still vary with chirp
    slope, RF band, temperature, EIRP back-off and board losses, so verify against
-   the exact datasheet revision or your own measurements.  Treat the presets as
+   the exact datasheet revision or your own measurements.  Derating and board
+   losses go in :class:`~radarperf.losses.SystemLosses`.  Treat the presets as
    templates: copy one and override the fields, or build a
    :class:`GenericFrontend` directly.
 """
@@ -59,8 +60,8 @@ def cascade(
 
     TX and RX channel counts add up; per-channel power and noise figure are
     assumed unchanged (a deliberately optimistic first approximation -- real
-    cascades pay distribution and synchronisation losses you can fold into the
-    processing-loss budget).
+    cascades pay distribution and synchronisation losses; put them in
+    :class:`~radarperf.losses.SystemLosses` or ``other_loss_db``).
     """
     if count < 1:
         raise ValueError("count must be >= 1")
@@ -134,9 +135,15 @@ def ctrx8188f(**overrides: object) -> GenericFrontend:
 
     Controlled datasheet typical values: 14.5 dBm/ch output power; RX noise figure
     10.2 dB (low-noise mode @ 10 MHz, the datasheet headline). Ultra-low-noise
-    mode reaches 9.7 dB @ 10 MHz. Separate single-return phase-noise diagnostics
-    use :func:`radarperf.phase_noise.ctrx8188f_phase_noise`; the link-budget
-    engine does not yet include phase noise.
+    mode reaches 9.7 dB @ 10 MHz. Both figures refer to the waveguide port on
+    the far side of a 1.2 mm reference PCB, so the package-to-PCB transition is
+    included. Minimum output power is 13.0 dBm and maximum noise
+    figure 13.2 dB; put such cases in
+    :class:`~radarperf.losses.SystemLosses` derating terms (see
+    ``docs/losses.md``). Separate single-return phase-noise diagnostics
+    use :func:`radarperf.phase_noise.ctrx8188f_phase_noise`; the link budget
+    includes only the per-chirp coherence loss
+    (``SystemLosses.chirp_frequency_error_rms_hz``).
     """
     base = GenericFrontend(
         tx_power_w=dbm_to_watt(14.5),
