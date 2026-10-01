@@ -114,7 +114,7 @@ half wavelengths thick in the material; paint and coatings shift that optimum
 
 | Term | Where | Default | Sourced values | Source |
 |---|---|---|---|---|
-| Gaseous absorption | `Atmosphere(specific_attenuation_db_per_km)` or `Atmosphere.itu_p676(...)` | the engine's default environment is `FreeSpace()`, i.e. 0; `Atmosphere()` uses 0.35 dB/km | see the table below | [4] |
+| Gaseous absorption | `Atmosphere(specific_attenuation_db_per_km)`, `Atmosphere.itu_p676(...)` or `Atmosphere.itu_reference(height_m)` | the engine's default environment is `FreeSpace()`, i.e. 0; `Atmosphere()` uses 0.35 dB/km | see the table below | [4] |
 | Rain attenuation | `Rain(rain_rate_mm_per_hr, polarization_tilt_deg)` | off | `k R^α` with `k`, `α` from ITU-R P.838-3 at the waveform's centre frequency; see the table below | [9] |
 | Rain clutter | `Rain` | off | Marshall–Palmer Z–R relation, Rayleigh reflectivity and Probert-Jones beam filling; not validated at 77 GHz, where raindrops are Mie scatterers | see `radarperf.environment` |
 | Fog, snow, dust | not modelled | | | |
@@ -138,6 +138,20 @@ and 1013.25 hPa total pressure:
 
 For the standard atmosphere the value is 0.35 dB/km at 76 GHz and 0.34 dB/km
 from 77 to 81 GHz.
+
+Gaseous attenuation falls with height, because pressure, and above all water
+vapour, fall. `Atmosphere.itu_reference(height_m)` evaluates the same P.676-13
+method in the ITU-R reference atmosphere of P.835-7 Annex 1 [12]: temperature
+and total pressure of the U.S. Standard Atmosphere 1976, and water vapour
+7.5 g/m³ at sea level falling with a 2 km scale height. It assumes a
+horizontal path at that height. At 76.5 GHz:
+
+| Height | Temperature, total pressure, water vapour density | One-way [dB/km] |
+|---:|---|---:|
+| 0 m | 15.0 °C, 1013.25 hPa, 7.5 g/m³ | 0.35 |
+| 1000 m | 8.5 °C, 898.8 hPa, 4.55 g/m³ | 0.22 |
+| 2000 m | 2.0 °C, 795.0 hPa, 2.76 g/m³ | 0.15 |
+| 5000 m | −17.5 °C, 540.5 hPa, 0.62 g/m³ | 0.056 |
 
 Rain attenuation at 77 GHz from ITU-R P.838-3 [9] (its Table 5 lists
 `k_H = 1.1320`, `α_H = 0.7177`, `k_V = 1.1276`, `α_V = 0.7073`), for a
@@ -262,3 +276,7 @@ For each study or one-off calculation, state:
 11. Infineon, CTRX8188F User Manual, rev. 0.20, 2025-11-10 (restricted, NDA):
     Table 46 (`Configure_RX()` request), Table 120 (ramp segment
     configuration CONFIG0).
+12. ITU-R P.835-7 (08/2024), *Reference atmospheres*, Annex 1, equations
+    (1a), (2a), (3a) and (6), <https://www.itu.int/rec/R-REC-P.835>.
+    Implemented in `radarperf.itu.reference_atmosphere`; the tests compare it
+    with the U.S. Standard Atmosphere 1976.

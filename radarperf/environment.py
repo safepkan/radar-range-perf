@@ -29,7 +29,11 @@ from typing import Sequence, cast
 import numpy as np
 
 from .geometry import Geometry
-from .itu import gaseous_specific_attenuation_db_per_km, rain_coefficients
+from .itu import (
+    gaseous_specific_attenuation_db_per_km,
+    rain_coefficients,
+    reference_atmosphere,
+)
 from .protocols import Antenna, Environment, Waveform
 from .units import SPEED_OF_LIGHT, FloatOrArray
 
@@ -59,8 +63,9 @@ class Atmosphere:
     ``2 * gamma * R``, independent of frequency and altitude.  The default,
     0.35 dB/km, is ITU-R P.676-13 at 76.5 GHz for its standard sea-level
     atmosphere (1013.25 hPa, 15 degC, 7.5 g/m^3 water vapour), rounded.  Use
-    :meth:`itu_p676` for other conditions or frequencies; ``docs/losses.md``
-    tabulates a few.
+    :meth:`itu_p676` for other conditions or frequencies, or
+    :meth:`itu_reference` for the ITU-R reference atmosphere at a height;
+    ``docs/losses.md`` tabulates a few.
     """
 
     specific_attenuation_db_per_km: float = 0.35
@@ -87,6 +92,25 @@ class Atmosphere:
             water_vapour_density_g_m3=water_vapour_density_g_m3,
         )
         return cls(oxygen + water_vapour)
+
+    @classmethod
+    def itu_reference(
+        cls, height_m: float, frequency_hz: float = 76.5e9
+    ) -> "Atmosphere":
+        """Build from ITU-R P.676-13 in the ITU-R P.835-7 reference atmosphere.
+
+        The conditions at ``height_m`` (geometric, above mean sea level) come
+        from :func:`radarperf.itu.reference_atmosphere`.  The path is taken as
+        horizontal at that height; a slant path would need the attenuation
+        integrated over height.
+        """
+        conditions = reference_atmosphere(height_m)
+        return cls.itu_p676(
+            frequency_hz,
+            temperature_c=conditions.temperature_c,
+            pressure_hpa=conditions.pressure_hpa,
+            water_vapour_density_g_m3=conditions.water_vapour_density_g_m3,
+        )
 
     def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
         range_km = np.asarray(geometry.range_m, dtype=float) / 1000.0

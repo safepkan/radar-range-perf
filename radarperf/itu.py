@@ -6,16 +6,19 @@
 * :func:`rain_coefficients` -- ITU-R P.838-3 (03/2005): the coefficients ``k``
   and ``alpha`` of the rain power law ``gamma_R = k R**alpha``, equations
   (2)-(5) with the constants of Tables 1-4.
+* :func:`reference_atmosphere` -- ITU-R P.835-7 (08/2024), Annex 1: the ITU-R
+  reference atmosphere's temperature, total pressure and water-vapour density
+  versus height, equations (1a), (2a), (3a) and (6), for the lowest 11 km.
 
-The tests check both against values published by the ITU: the P.676-13
-validation examples and P.838-3 Table 5.  Frequencies are in hertz here and
+The tests check the first two against values published by the ITU: the
+P.676-13 validation examples and P.838-3 Table 5.  Frequencies are in hertz here and
 converted to the recommendations' gigahertz internally.
 """
 
 from __future__ import annotations
 
 import math
-from typing import Final
+from typing import Final, NamedTuple
 
 import numpy as np
 
@@ -261,3 +264,32 @@ def rain_coefficients(
     k_alpha_h, k_alpha_v = k_h * alpha_h, k_v * alpha_v
     alpha = (k_alpha_h + k_alpha_v + (k_alpha_h - k_alpha_v) * weight) / (2 * k)  # (5)
     return k, alpha
+
+
+class AtmosphericConditions(NamedTuple):
+    """Temperature, total pressure and water-vapour density at one height."""
+
+    temperature_c: float
+    pressure_hpa: float
+    water_vapour_density_g_m3: float
+
+
+def reference_atmosphere(height_m: float) -> AtmosphericConditions:
+    """ITU-R reference atmosphere at a geometric height, ITU-R P.835-7 Annex 1.
+
+    Temperature and total (barometric) pressure follow the U.S. Standard
+    Atmosphere 1976 in its lowest layer, equations (2a) and (3a) at the
+    geopotential height of equation (1a); water-vapour density is the
+    exponential profile of equation (6), 7.5 g/m^3 at sea level with a 2 km
+    scale height.  Covers 0 to 11 km geopotential height (about 11.02 km
+    geometric).  The returned values feed
+    :func:`gaseous_specific_attenuation_db_per_km` directly.
+    """
+    height_km = height_m / 1000.0
+    geopotential_km = 6356.766 * height_km / (6356.766 + height_km)  # (1a)
+    if not 0.0 <= geopotential_km <= 11.0:
+        raise ValueError("the P.835 lowest layer covers 0-11 km geopotential height")
+    temperature_k = 288.15 - 6.5 * geopotential_km  # (2a)
+    pressure_hpa = 1013.25 * (288.15 / temperature_k) ** (-34.1632 / 6.5)  # (3a)
+    water_vapour = 7.5 * math.exp(-height_km / 2.0)  # (6)
+    return AtmosphericConditions(temperature_k - 273.15, pressure_hpa, water_vapour)

@@ -1,11 +1,17 @@
-"""ITU-R P.676-13 and P.838-3 against values published by the ITU."""
+"""ITU-R P.676-13, P.838-3 and P.835-7 against published values."""
 
 from __future__ import annotations
+
+import math
 
 import pytest
 
 from radarperf import Atmosphere, FmcwWaveform, Geometry, Rain
-from radarperf.itu import gaseous_specific_attenuation_db_per_km, rain_coefficients
+from radarperf.itu import (
+    gaseous_specific_attenuation_db_per_km,
+    rain_coefficients,
+    reference_atmosphere,
+)
 
 # ITU-R validation examples for P.676-13 (CG-3M3J-13-ValEx, rev. 8.3.0, sheet
 # "P.676-13 SpAtt"): dry-air pressure 1013.25 hPa, 7.5 g/m^3, 288.15 K.
@@ -89,3 +95,42 @@ def test_rain_uses_p838_at_the_waveform_frequency() -> None:
     assert fixed.specific_attenuation_db_per_km(77e9) == pytest.approx(10.0**0.7)
     with pytest.raises(ValueError):
         Rain(rain_rate_mm_per_hr=10.0, k=1.0)
+
+
+# U.S. Standard Atmosphere 1976, which P.835-7 Annex 1 adopts for temperature
+# and pressure: geometric height [m]: (temperature [K], pressure [hPa]).
+US_STANDARD_ATMOSPHERE_1976 = {
+    0.0: (288.150, 1013.25),
+    1000.0: (281.651, 898.76),
+    5000.0: (255.676, 540.48),
+}
+
+
+@pytest.mark.parametrize("height_m", sorted(US_STANDARD_ATMOSPHERE_1976))
+def test_reference_atmosphere_matches_us_standard_atmosphere(height_m: float) -> None:
+    temperature_k, pressure_hpa = US_STANDARD_ATMOSPHERE_1976[height_m]
+    conditions = reference_atmosphere(height_m)
+    assert conditions.temperature_c + 273.15 == pytest.approx(temperature_k, abs=1e-3)
+    assert conditions.pressure_hpa == pytest.approx(pressure_hpa, abs=0.01)
+
+
+def test_reference_atmosphere_water_vapour_and_limits() -> None:
+    # P.835-7 equation (6): 7.5 g/m^3 at sea level, 2 km scale height.
+    assert reference_atmosphere(0.0).water_vapour_density_g_m3 == 7.5
+    assert reference_atmosphere(2000.0).water_vapour_density_g_m3 == pytest.approx(
+        7.5 / math.e
+    )
+    with pytest.raises(ValueError):
+        reference_atmosphere(-1.0)
+    with pytest.raises(ValueError):
+        reference_atmosphere(12000.0)
+
+
+def test_atmosphere_itu_reference_at_sea_level_is_the_standard_value() -> None:
+    assert Atmosphere.itu_reference(0.0).specific_attenuation_db_per_km == (
+        pytest.approx(Atmosphere.itu_p676().specific_attenuation_db_per_km)
+    )
+    assert (
+        Atmosphere.itu_reference(1000.0).specific_attenuation_db_per_km
+        < Atmosphere.itu_reference(0.0).specific_attenuation_db_per_km
+    )
