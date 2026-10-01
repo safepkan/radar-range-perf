@@ -30,7 +30,8 @@ from lannik_psi import (
     CENTER_FREQUENCY_HZ,
     RX_SOURCE_SUBARRAY_HEIGHT_M,
     RX_SOURCE_SUBARRAY_WIDTH_M,
-    TARGET,
+    RX_SUPPLIED_LAYOUT,
+    BoresightSinr,
     RxAntennaLayout,
     lannik_psi,
     load_tx_antenna,
@@ -43,7 +44,7 @@ from quadrant_mimo import (
     quadrant_fields_uv,
     split_tx_quadrants,
 )
-from radarperf import Geometry, RectangularArrayAntenna
+from radarperf import RectangularArrayAntenna
 from radarperf.units import SPEED_OF_LIGHT
 from rx_layout_experiment import RECTANGLE_CASES, channel_steering_vectors
 
@@ -347,8 +348,8 @@ def run(
     output_dir.mkdir(parents=True, exist_ok=True)
     tx = load_tx_antenna()
     quadrants = split_tx_quadrants(tx)
-    product = lannik_psi()
-    boresight_snr_100m = product.radar.link_budget(TARGET, Geometry(range_m=100)).snr_db
+    product = lannik_psi(RX_SUPPLIED_LAYOUT, name="Lannik Psi, large RX")
+    boresight = BoresightSinr.of(product)
     tx_boresight = float(tx.gain_dbi_uv(0.0, 0.0))
     records: list[dict[str, object]] = []
     for case in CASES:
@@ -358,9 +359,8 @@ def run(
             mimo_tx_gain_dbi(quadrants, np.asarray(case.u), np.asarray(case.v))
         )
         ratio = 10 ** ((mimo_tx - coherent_tx) / 10)
-        directional_snr_100m = (
-            boresight_snr_100m
-            + coherent_tx
+        directional_relative_db = (
+            coherent_tx
             - tx_boresight
             + float(subarray_relative_gain_db(np.asarray(case.u), np.asarray(case.v)))
         )
@@ -403,7 +403,7 @@ def run(
                         staggered=layout_case.provisional,
                         coherent_snr_db=snr_db,
                         range_m=float(
-                            100 * 10 ** ((directional_snr_100m - snr_db) / 40)
+                            boresight.range_at(snr_db - directional_relative_db)
                         ),
                         mimo_snr_difference_db=mimo_tx - coherent_tx,
                         phase_rms_deg=phase_rms,

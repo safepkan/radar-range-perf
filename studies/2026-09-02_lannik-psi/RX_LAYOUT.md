@@ -5,10 +5,29 @@ behind the rectangular prototype decision is idealized: it is not a finalized
 antenna specification or a demonstrated ambiguity-resolution capability. See
 the decision record at the end for the outcome.
 
-See [NOTES.md](NOTES.md) for system context and [MIMO.md](MIMO.md) for the
-interlaced-MIMO architecture. The corresponding experimental script is
-[rx_layout_experiment.py](rx_layout_experiment.py). Keep geometry-specific
-reasoning and the eventual decision here rather than duplicating those notes.
+**Model update, 2026-10-01:** The experiments here work in coherent SNR; their
+error probabilities and MIMO energies are unchanged. The "1 m² reference
+range" attached to each SNR came from the September model (77 GHz, free space,
+no system losses). With the study's current assumptions (76.5 GHz, ITU-R
+reference atmosphere at 1000 m, antenna loss and per-chirp frequency error; see
+[NOTES.md](NOTES.md)) the same SNRs correspond to shorter ranges for the large
+variant:
+
+| Event | Coherent SNR | September | 2026-10-01 |
+|---|---:|---:|---:|
+| Vertical edge | 10 dB | 893 m | 785 m |
+| Vertical edge | 16 dB | 632 m | 560 m |
+| Horizontal edge | 10 dB | 554 m | 492 m |
+| Horizontal edge | 16 dB | 392 m | 350 m |
+| Corner | 10 dB | 379 m | 338 m |
+| Corner | 16 dB | 268 m | 240 m |
+
+The "roughly 550 m" horizontal-edge figure below is therefore about 490 m now,
+and the principal edges quoted as ±11.9° and ±5.9° are ±12.0° and ±6.0° at
+76.5 GHz. Competing-lobe searches on a fixed u/v grid shift slightly with the
+frequency, mostly at deep MIMO correlation minima. The first prototype ordered
+is the small square variant; this note concerns the large variant, which
+follows it.
 
 ## Decision and current direction
 
@@ -20,7 +39,7 @@ official prototype preset yet.
 
 **Decision, 2026-09-10 meeting: the rectangular prototype uses a two-pitch
 (height/4) alternating column stagger, option C (eight rows, 42.3 mm tall) in
-[technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md). The second prototype is
+[technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md). The second prototype is
 the rotated 2 × 4 square-subarray URA in a smaller package.** The extra RX
 height of option C fits within the margin to the edge, so option D (seven
 rows) is not needed. This supersedes the 2026-09-09 preference for the URA, which
@@ -467,7 +486,7 @@ change these numbers and must be re-evaluated for MIMO discrimination. The
 horizontal-edge margin scales with the amount of defocus, from 1.8 dB at 0.6
 times the prescribed phase to 4.3 dB at 1.4 times: an under-realized defocus
 weakens the MIMO-limited horizontal case, which is why the horizontal-edge
-metric in [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) matters. The
+metric in [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md) matters. The
 stagger's vertical information is purely RX geometry and does not depend on
 any of this.
 
@@ -629,7 +648,7 @@ Still open after the meeting (geometry decided, see the decision record):
 - **TX-side specification.** Formulate what the supplier must ensure about
   the four quadrant patterns, the defocus and the per-port deliverables so
   that the properties MIMO relies on are guaranteed without over-specifying
-  the detailed design; see [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md).
+  the detailed design; see [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md).
   This is the main remaining item.
 - Supplier: confirmation of the decided RX layouts (option C and the rotated
   square URA) and of any feed, coupling or schedule implications.
@@ -695,7 +714,7 @@ only partly complete.
   plausibility protects only about ±2° around the horizontal plane), the
   equal-total-height variants (7 rows with a two-pitch stagger keeps
   37.6 mm at -0.6 dB) and the supplier-facing
-  [technical description for RFQ](rfq/TECHNICAL_DESCRIPTION.md) draft.
+  [technical description for RFQ](deliverables/2026-09-17_rfq/TECHNICAL_DESCRIPTION.md) draft.
 - **2026-09-10, review:** A separate review found a phase-wrapping bug in
   the defocus-scale sweep (fixed; 0.6× now 17.8/1.8 dB) and that the in-beam
   map reported MIMO at the strongest coherent competitor rather than the
