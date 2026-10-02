@@ -1,11 +1,14 @@
 """Shared paths, I/O and estimators for the CARKIT validation study.
 
-Three datasets feed the study, each with its own capture format, windows and
+Each dataset has its own module for its capture format, windows and
 constants: walk_common.py for the 2026-09-11 walk, outdoor_common.py for the
-2026-09-22 outdoor reflector captures and window_common.py for the
-out-of-window captures of 2026-08-27 and 2026-09-30. Scripts import from their
-dataset module, which re-exports what they need from here. The estimators here
-take their windows as arguments, so each dataset's processing stays explicit.
+2026-09-22 outdoor reflector captures, window_common.py for the out-of-window
+captures (2026-08-27 in Infineon's format; 2026-09-30, 2026-10-02 and any
+other recording in our firmware's format) and field_common.py for the
+2026-10-01 field captures, which highway_traffic.py also draws on. Scripts
+import from their dataset module, which re-exports what they need from here.
+The estimators here take their windows as arguments, so each dataset's
+processing stays explicit.
 """
 
 from __future__ import annotations
@@ -37,6 +40,11 @@ DISPLAY_GROUP = 8
 # and the resolution of the range weighting's response there (2^20-point FFT).
 CW_OFFSET_BAND_HZ = (1.0, 20e6)
 RESPONSE_FFT_SIZE = 2**20
+# A CPI whose broadband background (median remote-Doppler power over this band
+# of beat frequencies) exceeds its capture's median by more than this is
+# treated as interfered (interference_flags).
+INTERFERENCE_BAND_HZ = (2e6, 20e6)
+INTERFERENCE_THRESHOLD_DB = 1.0
 
 
 def db(value: npt.ArrayLike) -> FloatArray:
@@ -295,6 +303,21 @@ def cross_channel_cross(first: ComplexArray, second: ComplexArray) -> FloatArray
     mixed = first.sum(axis=-1) * np.conj(second.sum(axis=-1))
     own = np.sum(first * np.conj(second), axis=-1)
     return np.asarray(((mixed - own) / (n * (n - 1))).real)
+
+
+def interference_flags(
+    levels_db: npt.ArrayLike, threshold_db: float = INTERFERENCE_THRESHOLD_DB
+) -> BoolArray:
+    """CPIs whose broadband background is raised, as by another radar's chirps.
+
+    ``levels_db`` holds one background level per CPI, such as the median
+    remote-Doppler power over a wide band of beat frequencies. Another radar's
+    chirps crossing ours raise it at all ranges at once, unlike a target or
+    its pedestal. A CPI is flagged when its level exceeds the capture's median
+    by more than ``threshold_db``.
+    """
+    levels = np.asarray(levels_db, dtype=float)
+    return np.asarray(levels > np.median(levels) + threshold_db)
 
 
 def delay_s(range_m: npt.ArrayLike) -> FloatArray:

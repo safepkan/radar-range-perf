@@ -37,16 +37,18 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 ## Studies
 
 - `2026-09-11_carkit-validation/` — validation of the CARKIT radar
-  (CTRX8188F, TX1, eight RX) against our models, from two measurements: a
-  walking corner reflector (2026-09-11) and a hand-held reflector at 5 and 10 m
-  with 400 and 800 MHz sweeps (2026-09-22). The measured per-RX SNR is
-  1.2–2.4 dB above the range model depending on the noise reference, so no
-  correction follows. Every strong return carries the same per-chirp frequency
-  error (about 14–17 kHz rms, a phase error of 2πτδf), 12–16 dB above what the
-  CTRX8188F CW phase-noise table predicts. Results are in
-  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the `walk_*.py` and
-  `outdoor_*.py` scripts process the raw data (not in the repo) via
-  `make study_260911_carkit_validation`.
+  (CTRX8188F, eight TX, eight RX, FARAD-IV antenna) against our range and
+  phase-noise models, from a corner reflector carried and on a tripod, a
+  hand-held reflector at 5 and 10 m, the office-window scene with Infineon's
+  firmware and ours, and traffic seen from a motorway bridge. Two reflector
+  sessions disagree by 4.4 dB (1.2–1.7 dB above and 3–4 dB below the model
+  without hardware losses), so the absolute check is open. The receiver's
+  low-IF background excess is noise between 1 and 5 MHz. With our firmware's
+  chirp timing the per-chirp frequency error is 3.1–3.6 kHz rms, at the
+  CTRX8188F CW phase-noise table's level; with Infineon's it is 14–30 kHz.
+  Results, open questions and planned measurements are in
+  [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the scripts process the
+  raw data (not in the repo) via `make study_260911_carkit_validation`.
 - `2026-09-02_lannik-psi/` — Lannik Psi antenna-concept study, 2026-09-02 to
   2026-10-01, concluded. It took the June config-3 estimate to a TX aperture
   concept, two RX prototype layouts, interlaced half-aperture MIMO to resolve

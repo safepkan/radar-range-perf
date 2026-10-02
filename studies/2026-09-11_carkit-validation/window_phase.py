@@ -36,6 +36,10 @@ phase common to all returns, of rms 2 pi sqrt(b), as motion of the radar
 gives. The case's delta_f is the fit at gamma = 0; gamma free tests the delay
 law. p5-p95 come from resampling CPIs.
 
+CPIs that window_scene.py flags as interfered by other radars are dropped:
+an interference burst reaches many range cells and all RX channels at once, so
+it is not independent between returns.
+
 The CW datasheet prediction uses the toolbox's CTRX8188F tables, typical and
 maximum, from both RF bands, since our firmware's sweep is centred at 77.0 GHz,
 the boundary between them.
@@ -45,6 +49,7 @@ from __future__ import annotations
 
 import argparse
 import itertools
+import json
 from pathlib import Path
 from typing import Any, Literal
 
@@ -139,8 +144,11 @@ def refine_lines(capture: Capture, gains: ComplexArray, tau: FloatArray) -> Floa
     return np.asarray((slots[None, :] + np.array(skews)[:, None]) % 1)
 
 
-def analyze(capture: Capture, scene: dict[str, FloatArray]) -> dict[str, Any]:
-    """Per-CPI cross-powers and per-return amplitude checks for one case."""
+def analyze(
+    capture: Capture, scene: dict[str, FloatArray], frames: list[int]
+) -> dict[str, Any]:
+    """Per-CPI cross-powers and per-return amplitude checks for one case,
+    over the CPIs in ``frames``."""
     padded_range = scene["padded_range_m"]
     cell = SPEED_OF_LIGHT / (2 * capture.sampled_bandwidth_hz)
     ranges, snr = static_peaks(
@@ -165,13 +173,13 @@ def analyze(capture: Capture, scene: dict[str, FloatArray]) -> dict[str, Any]:
     amplitude = []
     power = np.zeros(ranges.size)
     weight_square = np.zeros(ranges.size)
-    for frame in range(capture.n_frames):
+    for frame in frames:
         gains = chirp_gains(capture.load(frame), beat, capture.sample_rate_hz)
         if lines is None:
             lines = refine_lines(capture, gains, tau)
         errors, weights, frame_power = tone_model_errors(gains, lines)
-        power += frame_power / capture.n_frames
-        weight_square += np.mean(weights**2, axis=0) / capture.n_frames
+        power += frame_power / len(frames)
+        weight_square += np.mean(weights**2, axis=0) / len(frames)
         cross.append(
             weighted_cross_power(errors.imag / (2 * np.pi * tau), weights, band, window)
             / kept
@@ -435,6 +443,7 @@ def sub_band_results(
     scene: dict[str, FloatArray],
     base: dict[str, Any],
     edges_hz: list[float],
+    frames: list[int],
 ) -> list[dict[str, Any]]:
     """The base result's returns and cleanliness, cross-powers per sub-band."""
     nc = capture.n_chirps
@@ -451,7 +460,7 @@ def sub_band_results(
         )
     cross: list[list[FloatArray]] = [[] for _ in bands]
     tau = base["tau"]
-    for frame in range(capture.n_frames):
+    for frame in frames:
         gains = chirp_gains(
             capture.load(frame),
             capture.beat_frequency_hz(base["ranges"]),
@@ -566,8 +575,10 @@ def main() -> None:
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(20260930)
+    scene_cases = json.loads((args.scene / "summary.json").read_text())["cases"]
 
     captures: dict[str, Capture] = {}
+    frames: dict[str, list[int]] = {}
     results: dict[str, dict[str, Any]] = {}
     cases: dict[str, Any] = {}
     for case in resolve_cases(args.cases, args.data, ALL_CASES):
@@ -575,13 +586,16 @@ def main() -> None:
             continue
         capture = load_capture(case, args.data, args.infineon_data)
         scene = dict(np.load(args.scene / f"{case}.npz"))
-        result = analyze(capture, scene)
+        dropped = scene_cases[case].get("interference_cpis", [])
+        frames[case] = [k for k in range(capture.n_frames) if k not in dropped]
+        result = analyze(capture, scene, frames[case])
         captures[case] = capture
         results[case] = result
         estimate = bootstrap([result], [case], rng)
         every = bootstrap([result], [case], rng, clean_only=False)
         clean_ranges = result["ranges"][result["clean"]]
         cases[case] = {
+            "cpis_dropped_interference": dropped,
             "returns": [
                 {
                     "range_m": float(r),
@@ -645,7 +659,9 @@ def main() -> None:
         for case in group:
             scene = dict(np.load(args.scene / f"{case}.npz"))
             for k, sub in enumerate(
-                sub_band_results(captures[case], scene, results[case], edges)
+                sub_band_results(
+                    captures[case], scene, results[case], edges, frames[case]
+                )
             ):
                 per_band[k].append(sub)
         spectra[label] = band_spectrum(per_band, edges)

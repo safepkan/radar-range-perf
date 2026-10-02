@@ -16,7 +16,10 @@ products between RX pairs would not separate. Its shape against beat frequency
 is compared between 0 and 10 dB TX backoff and a capture without scene.
 
 Levels of matched static returns compare the TX settings, and the linear phase
-rate of the strongest returns within each CPI is the radar's own motion.
+rate of the strongest returns within each CPI is the radar's own motion. Each
+CPI's median remote-Doppler power over 2-20 MHz flags interference from other
+radars (carkit_common.interference_flags); the flagged CPIs are listed, not
+removed, since the captures with conclusions drawn from them have none.
 """
 
 from __future__ import annotations
@@ -31,15 +34,16 @@ from scipy.fft import rfft
 from scipy.ndimage import median_filter
 
 from carkit_common import (
+    INTERFERENCE_BAND_HZ,
     FloatArray,
     db,
+    interference_flags,
     linear_rate,
     write_summary,
 )
 from window_common import (
     ADC_BITS,
     ALL_CASES,
-    CASES,
     FAR_DOPPLER_HZ,
     GENERATED_DIR,
     INFINEON_CASES,
@@ -109,6 +113,11 @@ def analyze(capture: Capture) -> tuple[dict[str, Any], dict[str, FloatArray]]:
     extremes = [np.inf, -np.inf]
     rms = 0.0
     offsets = np.zeros(n_rx)
+    native_beat = capture.beat_frequency_hz(capture.range_axis())
+    band = (native_beat > INTERFERENCE_BAND_HZ[0]) & (
+        native_beat < INTERFERENCE_BAND_HZ[1]
+    )
+    levels = np.zeros(capture.n_frames)
     for frame in range(capture.n_frames):
         raw = capture.load(frame)
         extremes = [min(extremes[0], raw.min()), max(extremes[1], raw.max())]
@@ -124,6 +133,9 @@ def analyze(capture: Capture) -> tuple[dict[str, Any], dict[str, FloatArray]]:
             profile += np.mean(np.abs(padded) ** 2, axis=(0, 2))
         cells = slow_time_spectrum(range_spectrum(x))[far]
         covariance += np.einsum("drk,drl->rkl", cells, cells.conj())
+        levels[frame] = float(
+            db(np.median(np.mean(np.abs(cells[:, band]) ** 2, axis=-1)))
+        )
     profile /= capture.n_frames
     covariance /= capture.n_frames * far.sum()
     eigenvalues = np.linalg.eigvalsh(covariance)
@@ -168,6 +180,7 @@ def analyze(capture: Capture) -> tuple[dict[str, Any], dict[str, FloatArray]]:
             "mean_rx_rms_counts": rms,
             "offset_range_counts": [float(offsets.min()), float(offsets.max())],
         },
+        "interference_cpis": np.flatnonzero(interference_flags(levels)).tolist(),
         "independent_background_db_counts2": reference_db,
         "total_over_independent_1_10_mhz_db": float(
             np.median(db(total[mid_if]) - db(independent[mid_if]))
@@ -203,7 +216,7 @@ def thermal_floor(case: str, arrays: dict[str, dict[str, FloatArray]]) -> FloatA
     count, so their white-noise floors per cell are equal.
     """
     values = arrays[case]
-    if case in CASES:
+    if case not in INFINEON_CASES:
         return np.asarray(
             median_filter(
                 values["independent_floor"], FLOOR_SMOOTHING_BINS, mode="nearest"
@@ -298,20 +311,27 @@ def compare_levels(
     }
 
 
-def plot(output: Path, arrays: dict[str, dict[str, FloatArray]]) -> None:
+def plot(
+    output: Path,
+    arrays: dict[str, dict[str, FloatArray]],
+    recordings: dict[str, str],
+) -> None:
     present = {case.split("-")[0] for case in arrays}
     families = [f for f in ("short", "medium", "long", "infineon") if f in present]
     families += sorted(present - set(families))
     titles = {
-        "short": "2026-09-30 short: 240 MHz, 23.5 MHz/µs",
-        "medium": "2026-09-30 medium: 120 MHz, 11.7 MHz/µs",
-        "long": "2026-09-30 long: 122 MHz, 2.98 MHz/µs",
-        "infineon": "2026-08-27 Infineon firmware, 8TX DDMA (per-chirp power)",
+        "short": "short: 240 MHz, 23.5 MHz/µs",
+        "medium": "medium: 120 MHz, 11.7 MHz/µs",
+        "long": "long: 122 MHz, 2.98 MHz/µs",
+        "infineon": "Infineon firmware, 8TX DDMA (per-chirp power)",
     }
     figure, axes = plt.subplots(
         len(families), 1, figsize=(13, 3.75 * len(families)), layout="constrained"
     )
     for axis, family in zip(np.atleast_1d(axes), families):
+        dates = sorted(
+            {recordings[case] for case in arrays if case.split("-")[0] == family}
+        )
         for case, values in arrays.items():
             if case.split("-")[0] != family:
                 continue
@@ -331,8 +351,8 @@ def plot(output: Path, arrays: dict[str, dict[str, FloatArray]]) -> None:
         axis.set(
             xlabel="Apparent range [m]",
             ylabel="dB ADC-count²",
-            title=f"{titles.get(family, family)}; static profile (solid), independent "
-            "remote-Doppler floor per cell (dotted)",
+            title=f"{', '.join(dates)} {titles.get(family, family)}; static profile "
+            "(solid), independent remote-Doppler floor per cell (dotted)",
         )
         axis.grid(alpha=0.3)
         axis.legend(fontsize=8)
@@ -378,7 +398,22 @@ def main() -> None:
     data_arguments(parser)
     case_arguments(parser, ALL_CASES)
     parser.add_argument("--output", type=Path, default=GENERATED_DIR / "scene")
+    parser.add_argument(
+        "--level-pairs",
+        default=None,
+        help="comma-separated case:reference pairs whose matched static returns "
+        "are compared (default: the 2026-09-30 pairs)",
+    )
     args = parser.parse_args()
+    level_pairs = (
+        LEVEL_PAIRS
+        if args.level_pairs is None
+        else tuple(
+            (pair.split(":")[0].strip(), pair.split(":")[1].strip())
+            for pair in args.level_pairs.split(",")
+            if pair.strip()
+        )
+    )
     args.output.mkdir(parents=True, exist_ok=True)
 
     summaries: dict[str, Any] = {}
@@ -395,7 +430,7 @@ def main() -> None:
         np.savez_compressed(
             args.output / f"{case}.npz", allow_pickle=False, **arrays[case]
         )
-    plot(args.output, arrays)
+    plot(args.output, arrays, {case: c.recording for case, c in captures.items()})
     write_summary(
         args.output,
         {
@@ -403,7 +438,7 @@ def main() -> None:
             "background_reference_mhz": [f / 1e6 for f in BACKGROUND_REFERENCE_HZ],
             "levels": {
                 case: compare_levels(arrays, case, reference)
-                for case, reference in LEVEL_PAIRS
+                for case, reference in level_pairs
                 if case in arrays and reference in arrays
             },
             "cases": summaries,

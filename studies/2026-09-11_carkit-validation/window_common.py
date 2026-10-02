@@ -7,7 +7,10 @@ unit:
   <waveform>-<TX>-<backoff>[-suffix], each with up to ten CPIs of real int16
   ADC samples ordered [chirp, sample, RX] and a JSON sidecar per CPI. Their
   location is taken from ``--data``, else ``$CARKIT_WINDOW_DATA``, else
-  ``~/Data/carkit/2026-09-30_out-the_window``.
+  ``~/Data/carkit/2026-09-30_out-the_window``. Other recordings in this format
+  (the 2026-10-02 window captures, the field and highway captures) load the
+  same way with ``--data`` and their own case names; a capture's recording is
+  the date of its first CPI.
 - 2026-08-27, Infineon's firmware and RadarGUI, 8TX DDMA, alternating between
   two modes frame by frame. Recorded in Infineon's packet format and converted
   once by window_convert_infineon.m (l2-sp's CARKIT decoder) to the same sample
@@ -255,7 +258,7 @@ def _load_own(case: str, data: Path | None) -> Capture:
         )
     return Capture(
         case=case,
-        recording="2026-09-30",
+        recording=str(first["timestamp"])[:10],
         firmware=str(first["fw_version"]),
         binary_paths=tuple(paths),
         sha256=tuple(str(entry["sha256"]) for entry in metadata),

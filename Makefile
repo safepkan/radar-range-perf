@@ -71,29 +71,44 @@ study_260902_lannik_psi:
 	$(PYTHON) -m pytest studies/2026-09-02_lannik-psi -q
 
 # Regenerate the CARKIT validation study from the raw data, which are not in
-# the repo: the 2026-09-11 walk, the 2026-09-22 outdoor reflector captures and
-# the out-of-window captures of 2026-09-30 and 2026-08-27 (the latter converted
-# once with window_convert_infineon.m). Override their locations with
-# CARKIT_WALK_DATA=/path, CARKIT_OUTDOOR_DATA=/path, CARKIT_WINDOW_DATA=/path and
-# CARKIT_WINDOW_INFINEON_DATA=/path.
+# the repo: the 2026-09-11 walk, the 2026-09-22 outdoor reflector captures, the
+# out-of-window captures of 2026-09-30, 2026-08-27 (converted once with
+# window_convert_infineon.m) and 2026-10-02, and the 2026-10-01 field and
+# highway captures. Override their locations with CARKIT_WALK_DATA=/path,
+# CARKIT_OUTDOOR_DATA=/path, CARKIT_WINDOW_DATA=/path,
+# CARKIT_WINDOW_INFINEON_DATA=/path, CARKIT_WINDOW_1002_DATA=/path,
+# CARKIT_FIELD_DATA=/path and CARKIT_HIGHWAY_DATA=/path.
 CARKIT_WALK_DATA ?= $(HOME)/Data/tmp/walk-hallesaker-tx1-1-psi
 CARKIT_OUTDOOR_DATA ?= $(HOME)/Data/carkit/2026-09-22_phase_noise_outdoor_reflector
 CARKIT_WINDOW_DATA ?= $(HOME)/Data/carkit/2026-09-30_out-the_window
 CARKIT_WINDOW_INFINEON_DATA ?= $(HOME)/Data/carkit/2026-08-27_test_out_of_office_window/converted_adc
+CARKIT_WINDOW_1002_DATA ?= $(HOME)/Data/carkit/2026-10-02_out_the_window
+CARKIT_FIELD_DATA ?= $(HOME)/Data/carkit/2026-10-01_reflector_lindevi
+CARKIT_HIGHWAY_DATA ?= $(HOME)/Data/carkit/2026-10-01_highway_sandsjobacka
 CARKIT_STUDY := studies/2026-09-11_carkit-validation
 CARKIT_STEPS := walk_extract walk_background walk_reference_snr walk_dynamics \
 	walk_pedestal walk_long_range walk_model outdoor_scene outdoor_phase outdoor_model \
-	window_scene window_phase window_range_scale
+	window_scene window_phase window_range_scale field_if field_level highway_traffic
+CARKIT_WINDOW_1002_OUTPUT := $(CARKIT_STUDY)/generated/window/2026-10-02
+CARKIT_WINDOW_1002_LEVELS := medium-10dB:medium-0dB,short-10dB:short-0dB,medium-8TX:medium-0dB
 .PHONY: study_260911_carkit_validation
 study_260911_carkit_validation:
 	$(PYTHON) -m pytest $(CARKIT_STUDY) -q
 	@export CARKIT_WALK_DATA="$(CARKIT_WALK_DATA)" \
 		CARKIT_OUTDOOR_DATA="$(CARKIT_OUTDOOR_DATA)" \
 		CARKIT_WINDOW_DATA="$(CARKIT_WINDOW_DATA)" \
-		CARKIT_WINDOW_INFINEON_DATA="$(CARKIT_WINDOW_INFINEON_DATA)" MPLBACKEND=Agg; \
+		CARKIT_WINDOW_INFINEON_DATA="$(CARKIT_WINDOW_INFINEON_DATA)" \
+		CARKIT_FIELD_DATA="$(CARKIT_FIELD_DATA)" \
+		CARKIT_HIGHWAY_DATA="$(CARKIT_HIGHWAY_DATA)" MPLBACKEND=Agg; \
 	for step in $(CARKIT_STEPS); do \
 		$(PYTHON) $(CARKIT_STUDY)/$$step.py || exit 1; \
-	done
+	done; \
+	$(PYTHON) $(CARKIT_STUDY)/window_scene.py --data "$(CARKIT_WINDOW_1002_DATA)" \
+		--cases auto --output $(CARKIT_WINDOW_1002_OUTPUT)/scene \
+		--level-pairs $(CARKIT_WINDOW_1002_LEVELS) || exit 1; \
+	$(PYTHON) $(CARKIT_STUDY)/window_phase.py --data "$(CARKIT_WINDOW_1002_DATA)" \
+		--cases auto --scene $(CARKIT_WINDOW_1002_OUTPUT)/scene \
+		--output $(CARKIT_WINDOW_1002_OUTPUT)/phase
 
 .PHONY: clean
 clean:
