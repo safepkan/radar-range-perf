@@ -54,8 +54,8 @@ print(budget)
 |---|---|---|---|---|
 | TX power | `Frontend.tx_power_w` | datasheet typical | CTRX8188F: 14.5 dBm typical, 13.0 dBm minimum per channel | [1] Table 22 |
 | TX power derating | `SystemLosses.tx_power_derating_db` | 0 | CTRX8188F: up to 1 dB over temperature with closed-loop power control; up to 1.5 dB variation over a ramp in 76–77 GHz; 1.5 dB from typical to minimum | [1] Tables 22, 24 |
-| Noise figure | `Frontend.noise_figure_db` | datasheet typical | CTRX8188F, 10 MHz IF: low-noise mode 10.2 dB typical, 13.2 dB maximum (the preset); ultra-low-noise mode 9.7 dB typical, 12.7 dB maximum. We read the modes as RX gain 0 dB and +3 dB (below) | [1] Table 30 |
-| NF derating | `SystemLosses.noise_figure_derating_db` | 0 | CTRX8188F: up to 3 dB from typical to maximum; for a negative RX gain step, up to the step's magnitude; 0.3 dB (low-noise) or 0.2 dB (ultra-low-noise) higher at 1 MHz IF than at 10 MHz | [1] Table 30 |
+| Noise figure | `Frontend.noise_figure_db` | datasheet typical | CTRX8188F, 10 MHz IF: low-noise mode 10.2 dB typical, 13.2 dB maximum (the preset); ultra-low-noise mode 9.7 dB typical, 12.7 dB maximum. The modes are the RX gain steps 0 dB and +3 dB (below) | [1] Table 30; [13] |
+| NF derating | `SystemLosses.noise_figure_derating_db` | 0 | CTRX8188F: up to 3 dB from typical to maximum; for a negative RX gain step, up to the step's magnitude (a worst-case bound); 0.3 dB (low-noise) or 0.2 dB (ultra-low-noise) higher at 1 MHz IF than at 10 MHz | [1] Table 30; [13] |
 | Noise bandwidth | `FmcwWaveform.noise_bandwidth_hz` | the sample rate (ideal anti-alias filter) | none | |
 | ADC quantisation, IF gain shape | not modelled | | none | |
 
@@ -65,8 +65,8 @@ figures for the reference footprint and stack-up ([1] Section 5, Figure 5). A
 different PCB, or anything between that plane and the antenna, is a feed loss.
 
 The datasheet gives the noise figure for a "low noise operation mode" and an
-"ultra low noise operation mode" ([1] Table 30). We read the two modes as the
-RX gain steps 0 dB and +3 dB, not as a separate setting:
+"ultra low noise operation mode" ([1] Table 30). The two modes are the RX gain
+steps 0 dB and +3 dB, not a separate setting. The documents point that way:
 
 - Every Table 30 row for either mode (nominal conversion gain, noise figure at
   1 MHz and at 10 MHz IF) is specified at one gain step: 0 dB for low-noise,
@@ -79,9 +79,22 @@ RX gain steps 0 dB and +3 dB, not as a separate setting:
   gain select with steps +3, 0, −3, −6, −12 and −18 dB, in `Configure_RX()`
   (Table 46) and per ramp segment (`RX_GAINSET_SEL`, Table 120).
 
-Infineon has not confirmed this reading yet. If it holds, a receiver at +3 dB
-gain has the ultra-low-noise figures, 0.5 dB below the preset at 10 MHz IF:
-use `frontend.ctrx8188f(noise_figure_db=9.7)`.
+Infineon has confirmed it [13]: there is no noise-mode setting; the system
+integrator sets the RX gain with `Configure_RX()` or in Infineon's ramp design
+tool, and the default is 0 dB. A receiver at +3 dB gain therefore has the
+ultra-low-noise figures, 0.5 dB below the preset at 10 MHz IF: use
+`frontend.ctrx8188f(noise_figure_db=9.7)`. For a negative gain step, the
+datasheet's allowance of at most the step's magnitude in extra noise figure is
+a worst-case bound, the theoretical limit for a gain reduction; Infineon did
+not say which row and column it is counted from, so the safe reading is the
+0 dB row's maximum plus the step's magnitude.
+
+Infineon also states [13] that the datasheet's minimum and maximum values hold
+over the whole functional range (junction temperature −40 to 135 °C,
+76–81 GHz) unless a row states a narrower condition, and that typical values
+are for a nominal part at nominal supply voltage and room temperature. So a
+typical value is a starting point for a unit at room temperature, not a bound;
+derating terms cover temperature and part spread.
 
 ### Feed and antenna
 
@@ -416,3 +429,5 @@ For each study or one-off calculation, state:
     (1a), (2a), (3a) and (6), <https://www.itu.int/rec/R-REC-P.835>.
     Implemented in `radarperf.itu.reference_atmosphere`; the tests compare it
     with the U.S. Standard Atmosphere 1976.
+13. Infineon, email reply to our questions on the CTRX8188F noise modes and the
+    conditions of [1] Table 30, 2026-10-02 (not public).

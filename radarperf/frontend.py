@@ -133,15 +133,15 @@ def awr2e44p(**overrides: object) -> GenericFrontend:
 def ctrx8188f(**overrides: object) -> GenericFrontend:
     """Infineon CTRX8188F (76-81 GHz, 8 TX / 8 RX).
 
-    Controlled datasheet typical values: 14.5 dBm/ch output power; RX noise figure
-    10.2 dB (low-noise mode @ 10 MHz, the datasheet headline). Ultra-low-noise
-    mode reaches 9.7 dB @ 10 MHz. Both figures refer to the waveguide port on
-    the far side of a 1.2 mm reference PCB, so the package-to-PCB transition is
-    included. The datasheet specifies the low-noise mode at RX gain step 0 dB
-    and the ultra-low-noise mode at +3 dB, and the user manual has no other
-    noise-mode setting, so we read the modes as these gain steps (our reading,
-    not yet confirmed by Infineon; ``docs/losses.md`` gives the evidence). With
-    the receiver at +3 dB, pass ``noise_figure_db=9.7``. Minimum output power
+    Controlled datasheet typical values (a nominal part at nominal supply and
+    room temperature): 14.5 dBm/ch output power; RX noise figure 10.2 dB
+    (low-noise mode @ 10 MHz, the datasheet headline). Ultra-low-noise mode
+    reaches 9.7 dB @ 10 MHz. Both figures refer to the waveguide port on the
+    far side of a 1.2 mm reference PCB, so the package-to-PCB transition is
+    included. The two modes are the RX gain steps 0 dB (the chip's default)
+    and +3 dB, with no separate noise-mode setting, as Infineon has confirmed
+    (``docs/losses.md``). With the receiver at +3 dB, pass
+    ``noise_figure_db=9.7``. Minimum output power
     is 13.0 dBm and maximum noise figure 13.2 dB (12.7 dB at +3 dB); put such
     cases in :class:`~radarperf.losses.SystemLosses` derating terms (see
     ``docs/losses.md``). Separate single-return phase-noise diagnostics
