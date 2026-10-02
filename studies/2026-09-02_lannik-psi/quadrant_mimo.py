@@ -348,7 +348,7 @@ def mimo_tx_gain_dbi(
 
 
 def required_detection_snr_db(product: Product) -> tuple[float, ...]:
-    """Required SNR [dB] at each detection level, at the product's per-beam Pfa."""
+    """Required SNR [dB] at each detection level, at the product's per-test Pfa."""
     processing_budget = product.radar.processing.budget(
         product.waveform,
         product.radar.frontend.n_tx,
@@ -357,7 +357,7 @@ def required_detection_snr_db(product: Product) -> tuple[float, ...]:
     return tuple(
         required_snr_db(
             level,
-            product.radar.default_pfa,
+            product.radar.false_alarm_budget().pfa_per_test,
             swerling=TARGET.swerling,
             n_pulses=processing_budget.n_noncoherent,
         )

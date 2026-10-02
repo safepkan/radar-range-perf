@@ -216,7 +216,8 @@ waveform is an assumption, not a design. There is no tracker model.
    - Named presets for the two prototype antennas.
    - Staggered RX phase centres in the main range model.
    - Import of measured or simulated complex patterns.
-   - The per-beam Pfa computation, promoted from this study.
+   - The per-beam Pfa computation, promoted from this study (done
+     2026-10-01: `radarperf.false_alarms`; see the NOTES decision log).
 8. **Tracker-level ambiguity resolution:**
    - Enumerate all plausible aliases, not just the folded one, and weigh them
      with gain and RCS plausibility and pattern uncertainty.

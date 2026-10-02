@@ -29,6 +29,7 @@ from __future__ import annotations
 from . import (
     antenna,
     detection,
+    false_alarms,
     frontend,
     itu,
     phase_noise,
@@ -58,6 +59,7 @@ from .detection import (
 )
 from .engine import Radar
 from .environment import Atmosphere, CompositeEnvironment, FreeSpace, Rain
+from .false_alarms import FalseAlarmBudget, false_alarm_budget
 from .frontend import GenericFrontend, cascade
 from .geometry import Geometry
 from .losses import SystemLosses
@@ -73,18 +75,20 @@ from .processing import (
     WINDOW_LOSS_HAMMING_DB,
     WINDOW_LOSS_HANN_DB,
     WINDOW_LOSS_RECTANGULAR_DB,
-    WindowSpec,
     straddle_loss_db,
     window_loss_db,
 )
 from .protocols import (
     Antenna,
+    BeamSet,
     Environment,
+    FftAxis,
     Frontend,
     Processing,
     ProcessingBudget,
     Target,
     Waveform,
+    WindowSpec,
 )
 from .results import LinkBudget
 from .target import (
@@ -135,6 +139,9 @@ __all__ = [
     "CompositeEnvironment",
     "LinkBudget",
     "ProcessingBudget",
+    "FftAxis",
+    "FalseAlarmBudget",
+    "false_alarm_budget",
     "SystemLosses",
     "probability_of_detection",
     "required_snr_db",
@@ -143,6 +150,7 @@ __all__ = [
     "cumulative_pd",
     "probability_of_acquisition_mofn",
     "Antenna",
+    "BeamSet",
     "Environment",
     "Frontend",
     "Processing",
@@ -150,6 +158,7 @@ __all__ = [
     "Waveform",
     "units",
     "detection",
+    "false_alarms",
     "frontend",
     "itu",
     "phase_noise",

@@ -12,6 +12,12 @@ used here were cross-checked against Monte-Carlo simulation:
 
 For a single coherent FMCW range-Doppler-angle cell, ``n_pulses = 1`` and the
 per-pulse SNR is simply the integrated SNR from the link budget.
+
+Every ``pfa`` here is per test: the probability that one detection cell (one
+FFT bin of one beam) exceeds the threshold.  No multiple-testing correction is
+applied.  ``Radar`` instead takes a Pfa per range-Doppler cell; its per-test
+equivalent is ``radar.false_alarm_budget().pfa_per_test``
+(:mod:`radarperf.false_alarms`).
 """
 
 from __future__ import annotations
@@ -34,7 +40,7 @@ _GL_WEIGHTS = _GL_W * _GL_X  # weight x * exp(-x): turns Gamma(1,1) into Gamma(2
 
 
 def detection_threshold(n_pulses: int, pfa: float) -> float:
-    """Square-law detector threshold (in noise-power units) for a given Pfa."""
+    """Square-law detector threshold (in noise-power units) for a per-test Pfa."""
     if n_pulses < 1:
         raise ValueError("n_pulses must be >= 1")
     if not 0.0 < pfa < 1.0:
@@ -49,7 +55,7 @@ def probability_of_detection(
     n_pulses: int = 1,
     n_collapsing: int = 0,
 ) -> FloatOrArray:
-    """Probability of detection for per-look ``snr_db`` and ``pfa``.
+    """Probability of detection for per-look ``snr_db`` and per-test ``pfa``.
 
     ``snr_db`` is the per-look SNR in dB and may be a scalar or array.
     ``n_pulses`` is the number of *signal-bearing* looks integrated
@@ -167,7 +173,7 @@ def required_snr_db(
     *,
     bracket_db: tuple[float, float] = (-30.0, 80.0),
 ) -> float:
-    """Per-pulse SNR [dB] needed to achieve ``pd`` at ``pfa`` (exact inversion)."""
+    """Per-pulse SNR [dB] for ``pd`` at a per-test ``pfa`` (exact inversion)."""
     if not 0.0 < pd < 1.0:
         raise ValueError("pd must be in (0, 1)")
 
@@ -185,7 +191,8 @@ def required_snr_db(
 def albersheim_required_snr_db(pd: float, pfa: float, n_pulses: int = 1) -> float:
     """Albersheim's approximation for a non-fluctuating (Swerling 0) target.
 
-    Valid roughly for 0.1 <= Pd <= 0.9 and 1e-7 <= Pfa <= 1e-3.
+    ``pfa`` is per test.  Valid roughly for 0.1 <= Pd <= 0.9 and
+    1e-7 <= Pfa <= 1e-3.
     """
     a = np.log(0.62 / pfa)
     b = np.log(pd / (1.0 - pd))
@@ -199,7 +206,10 @@ def albersheim_required_snr_db(pd: float, pfa: float, n_pulses: int = 1) -> floa
 def shnidman_required_snr_db(
     pd: float, pfa: float, n_pulses: int = 1, swerling: int = 1
 ) -> float:
-    """Shnidman's approximation for required per-pulse SNR, Swerling 0-4."""
+    """Shnidman's approximation for required per-pulse SNR, Swerling 0-4.
+
+    ``pfa`` is per test.
+    """
     n = n_pulses
     k_map = {0: np.inf, 5: np.inf, 1: 1.0, 2: float(n), 3: 2.0, 4: 2.0 * n}
     k = k_map[swerling]

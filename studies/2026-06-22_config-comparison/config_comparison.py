@@ -15,7 +15,9 @@ Scenario (common to all three configurations)
 ---------------------------------------------
 * Target: 1 m^2 RCS, Swerling 1, at boresight.
 * Acquisition: closing at 15 m/s, 20 Hz frame rate, 2-of-3 confirmation.
-* Pfa = 1e-6.
+* Pfa = 1e-6 per test (per FFT bin), as in June. ``pfa_reference="test"``
+  overrides the Pfa per range-Doppler cell that the toolbox has used by
+  default since 2026-10-01.
 
 A single large ``initial_range_m`` is used for every configuration (so the
 single-scan Pd is solidly zero at the start of the run) and each plot is then
@@ -34,12 +36,24 @@ Modelling notes
   -- see the printed diagnostics and adjust if a mode is pinned.
 * Phase noise, clutter and antenna sidelobes are not modelled, so the deep
   (long-range, high-SNR) tails are optimistic.
+
+Toolbox changes since the deliverables
+--------------------------------------
+The toolbox's defaults have changed since June; the script pins the June
+model where the toolbox still offers it, so reruns reproduce the deliverables:
+
+* Window and straddle losses: computed since 2026-10-01 (Hann without
+  padding: 1.761 and 0.47 dB per axis). Pinned at the June values, 1.76 and
+  0.6 dB per axis (``june_processing_losses``).
+* False alarms: per range-Doppler cell by default since 2026-10-01. Pinned at
+  1e-6 per test (``pfa_reference="test"``).
 """
 
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,6 +69,7 @@ from radarperf import (
     Radar,
     RadialApproach,
     StandardProcessing,
+    WINDOW_LOSS_HANN_DB,
     antenna,
     frontend,
     sweeps,
@@ -70,6 +85,10 @@ CLOSING_SPEED_MPS = 15.0
 FRAME_TIME_S = 1.0 / 20.0  # 20 Hz frame rate
 CONFIRM = (2, 3)  # 2-of-3 sliding confirmation
 PFA = 1.0e-6
+# The toolbox's fixed processing-loss defaults in June, pinned so reruns keep
+# the June model: Hann window loss and straddle loss per range/Doppler axis.
+JUNE_WINDOW_LOSS_DB = WINDOW_LOSS_HANN_DB  # 1.76 dB
+JUNE_STRADDLE_LOSS_DB = 0.6
 # One range, far enough that Pd is ~0 for every configuration at the start.
 INITIAL_RANGE_M = 3000.0
 DETECTION_LEVELS = (0.5, 0.9)
@@ -92,6 +111,25 @@ class Config:
     processing_note: str
 
 
+class JuneProcessingLosses(TypedDict):
+    """``StandardProcessing`` loss overrides that reproduce the June model."""
+
+    range_window_loss_db: float
+    doppler_window_loss_db: float
+    range_straddle_loss_db: float
+    doppler_straddle_loss_db: float
+
+
+def june_processing_losses() -> JuneProcessingLosses:
+    """The June processing-loss model: fixed window and straddle losses."""
+    return JuneProcessingLosses(
+        range_window_loss_db=JUNE_WINDOW_LOSS_DB,
+        doppler_window_loss_db=JUNE_WINDOW_LOSS_DB,
+        range_straddle_loss_db=JUNE_STRADDLE_LOSS_DB,
+        doppler_straddle_loss_db=JUNE_STRADDLE_LOSS_DB,
+    )
+
+
 def config_1() -> Config:
     """Lannik Omega as-is: AWR2E44P + SENCITY THIS-II, DDM-MIMO."""
     waveform = FmcwWaveform.from_slope(
@@ -109,9 +147,11 @@ def config_1() -> Config:
             rx_combination=BeamCombination.NONCOHERENT,
             tx_combination=BeamCombination.NONCOHERENT,
             n_doppler_subbands=6,
+            **june_processing_losses(),
         ),
         antenna=antenna.sencity_this_ii(),
         default_pfa=PFA,
+        pfa_reference="test",
     )
     return Config(
         name="Lannik Omega (as-is)",
@@ -138,9 +178,11 @@ def config_2() -> Config:
         processing=StandardProcessing(
             transmit_coherent=True,
             rx_combination=BeamCombination.COHERENT,
+            **june_processing_losses(),
         ),
         antenna=AntennaPair.from_element(ConstantGainAntenna(21.0)),
         default_pfa=PFA,
+        pfa_reference="test",
     )
     return Config(
         name="Modified Lannik Omega",
@@ -167,9 +209,11 @@ def config_3() -> Config:
         processing=StandardProcessing(
             transmit_coherent=True,
             rx_combination=BeamCombination.COHERENT,
+            **june_processing_losses(),
         ),
         antenna=AntennaPair.from_element(ConstantGainAntenna(17.0)),
         default_pfa=PFA,
+        pfa_reference="test",
     )
     return Config(
         name="New product (CTRX8188F)",

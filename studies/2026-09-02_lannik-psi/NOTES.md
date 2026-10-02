@@ -251,10 +251,11 @@ partially correlated beams exceed it almost independently. The large
 variant's 64 beams act as about 56 independent tests and the small variant's
 128 as about 80, not 8. Each beam must be tested at `1.8e-8` or `1.2e-8`,
 which costs 1.1–1.2 dB of SNR at Pd=90%, about 6–7% of range.
-`per_beam_pfa()` in `lannik_psi.py` computes this for each product's own beam
-set. It writes the noise vector as a Gamma-distributed power times a
-uniformly distributed direction, so the rare exceedances themselves need not
-be simulated.
+Until 2026-10-01 `per_beam_pfa()` in `lannik_psi.py` computed this for each
+product's own beam set. It wrote the noise vector as a Gamma-distributed power
+times a uniformly distributed direction, so the rare exceedances themselves
+need not be simulated. The toolbox now does it (`radarperf.false_alarms`; see
+the decision log).
 
 **Why correlated beams count as separate tests:** "Eight independent beams"
 describes how the noise *energy* is shared. It is the right count for
@@ -1069,3 +1070,14 @@ The main-script figures show the large RX baseline.
   off-boresight ranges at 6°, about the TX 3 dB half-width, rather than the
   use cases' indicative ±8°. Make the Pd coverage figure the README's
   headline, archived in `deliverables/2026-10-01_conclusion/`.
+- **2026-10-01, after concluding:** The per-cell false-alarm accounting moved
+  into the toolbox, where a Pfa per range–Doppler cell is now the default
+  (`radarperf.false_alarms`), and `per_beam_pfa()` was removed. The toolbox
+  estimates the beam count with lower variance: 54 effective tests for the
+  large variant's 64 beams (56 here before) and 80 for the small variant's 128.
+  It also counts the unpadded Hann range and Doppler bins as 0.99 tests per
+  cell each. Re-running `lannik_psi.py` reproduces the Pd 50% / 90% ranges in
+  these notes and the README to within 1 m (boresight 913 / 572 m and
+  767 / 479 m unchanged). The breakdown's per-cell step costs 1.15 dB instead
+  of 1.17 dB, Pacq rises by 1 m, and the per-beam Pfa prints as 1.9e-8 and
+  1.3e-8. The tables keep the values as concluded.

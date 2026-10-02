@@ -1,4 +1,4 @@
-"""Checks of the range-curve and false-alarm helpers in ``lannik_psi.py``."""
+"""Checks of the range-curve helpers and beam tests in ``lannik_psi.py``."""
 
 from __future__ import annotations
 
@@ -10,10 +10,14 @@ from lannik_psi import (
     BoresightSinr,
     build_rx_antenna,
     lannik_psi,
-    per_beam_pfa,
     rx_array_factor_periods,
 )
-from radarperf import FreeSpace, MultiBeamUniformArrayAntenna, SystemLosses
+from radarperf import (
+    FreeSpace,
+    MultiBeamUniformArrayAntenna,
+    SystemLosses,
+    false_alarm_budget,
+)
 
 
 def test_boresight_sinr_inverts_and_follows_r4_in_free_space() -> None:
@@ -42,18 +46,21 @@ def _beams(u: list[float], v: list[float]) -> MultiBeamUniformArrayAntenna:
     )
 
 
-def test_per_beam_pfa_for_one_beam_and_for_orthogonal_beams() -> None:
+def test_beam_tests_for_one_beam_and_for_orthogonal_beams() -> None:
     pfa_per_cell = 1.0e-6
-    # One beam: the per-beam and per-cell probabilities are the same.
-    single = per_beam_pfa(_beams([0.0], [0.0]), pfa_per_cell)
-    assert single == pytest.approx(pfa_per_cell, rel=0.05)
+    # One beam: one test per cell.
+    single = false_alarm_budget(
+        pfa_per_cell, beam_weights=_beams([0.0], [0.0]).beam_weights()
+    )
+    assert single.effective_tests == 1.0
     # Eight orthogonal beams (the 2 x 4 DFT grid of one period) are
     # independent tests: P = 1 - (1 - p)**8, so p is about pfa_per_cell / 8.
     period_u, period_v = rx_array_factor_periods(build_rx_antenna(RX_SQUARE_LAYOUT))
     grid_u, grid_v = np.meshgrid(
         np.arange(2) * period_u / 2.0, np.arange(4) * period_v / 4.0, indexing="ij"
     )
-    orthogonal = per_beam_pfa(
-        _beams(list(grid_u.ravel()), list(grid_v.ravel())), pfa_per_cell
+    orthogonal = false_alarm_budget(
+        pfa_per_cell,
+        beam_weights=_beams(list(grid_u.ravel()), list(grid_v.ravel())).beam_weights(),
     )
-    assert pfa_per_cell / orthogonal == pytest.approx(8.0, rel=0.05)
+    assert orthogonal.effective_tests == pytest.approx(8.0, rel=1e-3)

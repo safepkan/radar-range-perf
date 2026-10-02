@@ -29,6 +29,11 @@ normally per-channel element/subarray gains, with coherent array gain in
 ``coherent_gain``. A complete-aperture antenna pattern can instead carry the
 array directivity when the processing configuration explicitly omits that term.
 
+The false-alarm probability is per range-Doppler resolution cell by default:
+:meth:`Radar.false_alarm_budget` counts the effective tests per cell from the
+processing model's FFT axes and any receive beam set, and the detector tests
+each bin at the correspondingly lower per-test Pfa (:mod:`radarperf.false_alarms`).
+
 The core physics is computed once, vectorised, in :meth:`Radar._budget_terms`.
 It broadcasts over the fields of the supplied :class:`~radarperf.geometry.Geometry`,
 so a single scalar point and a whole sweep grid go through exactly the same
@@ -40,16 +45,17 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Mapping, Optional
+from typing import Literal, Mapping, Optional
 
 import numpy as np
 
 from .antenna import AntennaPair
 from .detection import probability_of_detection
 from .environment import FreeSpace
+from .false_alarms import FalseAlarmBudget, false_alarm_budget
 from .geometry import Geometry
 from .losses import SystemLosses
-from .protocols import Environment, Frontend, Processing, Target, Waveform
+from .protocols import BeamSet, Environment, Frontend, Processing, Target, Waveform
 from .results import LinkBudget
 from .units import (
     BOLTZMANN,
@@ -103,6 +109,14 @@ class Radar:
     ``losses`` names the hardware, installation and coherence terms that lie
     outside the front-end datasheet figures, the antenna pattern and the
     processing model.  They default to zero; see :class:`SystemLosses`.
+
+    ``default_pfa`` (and the ``pfa`` argument of :meth:`link_budget`,
+    :meth:`probability_of_detection` and :mod:`radarperf.sweeps`) is the
+    false-alarm probability per range-Doppler resolution cell, over all beams
+    formed in it; the detector tests each bin at the lower per-test value from
+    :meth:`false_alarm_budget`.  The functions in :mod:`radarperf.detection`
+    take the per-test value.  ``pfa_reference="test"`` instead applies the
+    value to every test unchanged, the convention before 2026-10-01.
     """
 
     frontend: Frontend
@@ -112,6 +126,35 @@ class Radar:
     default_pfa: float = 1.0e-6
     antenna_noise_temperature_k: float = REFERENCE_TEMPERATURE
     losses: SystemLosses = SystemLosses()
+    pfa_reference: Literal["cell", "test"] = "cell"
+
+    def __post_init__(self) -> None:
+        if self.pfa_reference not in ("cell", "test"):
+            raise ValueError("pfa_reference must be 'cell' or 'test'")
+
+    def false_alarm_budget(self, pfa: Optional[float] = None) -> FalseAlarmBudget:
+        """The per-test Pfa and threshold for ``pfa`` (default ``default_pfa``).
+
+        For a Pfa per cell, the effective tests per range-Doppler cell come
+        from the processing budget's range and Doppler FFT axes and, when the
+        receive antenna is a :class:`~radarperf.protocols.BeamSet`, its beams.
+        The looks include noise-only (collapsing) cells.
+        """
+        value = self.default_pfa if pfa is None else pfa
+        budget = self.processing.budget(
+            self.waveform, self.frontend.n_tx, self.frontend.n_rx
+        )
+        looks = budget.n_noncoherent + budget.n_collapsing
+        if self.pfa_reference == "test":
+            return FalseAlarmBudget(pfa_per_test=value, looks=looks)
+        rx = self.antenna.rx
+        return false_alarm_budget(
+            value,
+            looks,
+            range_axis=budget.range_axis,
+            doppler_axis=budget.doppler_axis,
+            beam_weights=rx.beam_weights() if isinstance(rx, BeamSet) else None,
+        )
 
     def _budget_terms(
         self,
@@ -211,8 +254,14 @@ class Radar:
         target: Target,
         geometry: Geometry,
         environment: Environment = FreeSpace(),
+        *,
+        pfa: Optional[float] = None,
     ) -> LinkBudget:
-        """Evaluate SNR / SCR / SINR (with breakdown) at one geometry."""
+        """Evaluate SNR / SCR / SINR (with breakdown) at one geometry.
+
+        The false-alarm budget reported with it is for ``pfa`` (default
+        ``default_pfa``; see :meth:`false_alarm_budget`).
+        """
         if not geometry.is_scalar:
             raise ValueError(
                 "link_budget expects a single-point Geometry; use the helpers in "
@@ -251,6 +300,7 @@ class Radar:
             breakdown_db=breakdown,
             processing_losses_db=dict(t.processing_losses_db),
             system_losses_db=self.losses.itemised_db(float(geometry.range_m)),
+            false_alarms=self.false_alarm_budget(pfa),
         )
 
     def probability_of_detection(
@@ -268,15 +318,16 @@ class Radar:
         Uses the SINR (signal vs noise+clutter) by default; set
         ``use_sinr=False`` to detect against thermal noise only.  The Swerling
         case defaults to the target's, and ``n_pulses`` is the number of
-        non-coherent looks reported by the processing model.
+        non-coherent looks reported by the processing model.  ``pfa`` has the
+        same meaning as ``default_pfa`` (see :meth:`false_alarm_budget`).
         """
-        budget = self.link_budget(target, geometry, environment)
+        budget = self.link_budget(target, geometry, environment, pfa=pfa)
         metric_db = budget.sinr_db if use_sinr else budget.snr_db
         case = target.swerling if swerling is None else swerling
         return float(
             probability_of_detection(
                 metric_db,
-                self.default_pfa if pfa is None else pfa,
+                self.false_alarm_budget(pfa).pfa_per_test,
                 swerling=case,
                 n_pulses=budget.n_noncoherent,
                 n_collapsing=budget.n_collapsing,

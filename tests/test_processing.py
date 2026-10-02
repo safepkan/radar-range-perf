@@ -7,6 +7,7 @@ import pytest
 from scipy.signal import get_window
 
 from radarperf import (
+    FftAxis,
     FmcwWaveform,
     MimoScheme,
     StagedProcessing,
@@ -134,5 +135,20 @@ def test_loss_overrides_win() -> None:
 def test_tdm_doppler_window_uses_chirps_per_tx() -> None:
     tdm = StandardProcessing(mimo=MimoScheme.TDM, doppler_fft_size=64)
     # 128 chirps over 2 TX: a 64-chirp Doppler FFT, so no padding.
-    losses = tdm.budget(_wf(), 2, 1).losses_db
-    assert losses["doppler_straddle"] == pytest.approx(straddle_loss_db("hann", 64))
+    budget = tdm.budget(_wf(), 2, 1)
+    assert budget.losses_db["doppler_straddle"] == pytest.approx(
+        straddle_loss_db("hann", 64)
+    )
+    assert budget.doppler_axis == FftAxis("hann", 64, 64)
+    assert budget.doppler_axis.padding == 1.0
+
+
+def test_budgets_report_the_searched_fft_axes() -> None:
+    standard = StandardProcessing(range_window="blackman", range_fft_size=1024)
+    budget = standard.budget(_wf(), 1, 1)
+    assert budget.range_axis == FftAxis("blackman", 256, 1024)
+    assert budget.range_axis.padding == 4.0
+    assert budget.doppler_axis == FftAxis("hann", 128)
+    staged = StagedProcessing(doppler_fft_size=256).budget(_wf(), 1, 1)
+    assert staged.range_axis == FftAxis("hann", 256)
+    assert staged.doppler_axis == FftAxis("hann", 128, 256)

@@ -17,8 +17,40 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Mapping, Protocol, runtime_checkable
 
+import numpy as np
+import numpy.typing as npt
+
 from .geometry import Geometry
 from .units import FloatOrArray
+
+#: A window for :func:`scipy.signal.get_window` (periodic): a name such as
+#: ``"hann"``, or a tuple with a parameter such as ``("kaiser", 8.0)``.
+WindowSpec = str | tuple[str, float]
+
+
+@dataclass(frozen=True)
+class FftAxis:
+    """One FFT axis the detector searches: window, length and FFT size.
+
+    ``length`` windowed samples are transformed with an ``fft_size``-point FFT
+    (default ``length``, no zero padding).  A resolution cell is one bin of the
+    unpadded FFT; padding samples it ``fft_size / length`` times more finely.
+    """
+
+    window: WindowSpec
+    length: int
+    fft_size: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.length < 1:
+            raise ValueError("length must be >= 1")
+        if self.fft_size is not None and self.fft_size < self.length:
+            raise ValueError("fft_size must be at least the window length")
+
+    @property
+    def padding(self) -> float:
+        """FFT bins per resolution cell (``fft_size / length``)."""
+        return (self.length if self.fft_size is None else self.fft_size) / self.length
 
 
 @dataclass(frozen=True)
@@ -48,12 +80,19 @@ class ProcessingBudget:
         (windowing, straddle, CFAR, beamforming/angle straddle, ...).  Kept
         itemised, zeros included, so the link budget can show where SNR went
         and which terms were set to zero.
+    range_axis, doppler_axis:
+        The range and Doppler FFTs the detector searches, from which the
+        engine counts the effective tests per resolution cell
+        (:mod:`radarperf.false_alarms`).  ``None`` counts one test per cell
+        on that axis.
     """
 
     coherent_gain_db: float
     n_noncoherent: int = 1
     n_collapsing: int = 0
     losses_db: Mapping[str, float] = field(default_factory=dict)
+    range_axis: FftAxis | None = None
+    doppler_axis: FftAxis | None = None
 
     @property
     def total_loss_db(self) -> float:
@@ -114,6 +153,22 @@ class Antenna(Protocol):
         Must accept scalar or broadcastable-array angles and return a matching
         shape, so a single :class:`~radarperf.geometry.Geometry` batch can be
         evaluated in one vectorised pass.
+        """
+
+
+@runtime_checkable
+class BeamSet(Protocol):
+    """A receive antenna that forms several beams and detects in the best one.
+
+    The engine treats every beam as a test in each range-Doppler cell and
+    raises the detection threshold to hold the false-alarm probability per
+    cell (see :mod:`radarperf.false_alarms`).
+    """
+
+    def beam_weights(self) -> npt.NDArray[np.complex128]:
+        """Unit-norm channel weights of every beam, shape ``(beams, channels)``.
+
+        Receiver noise is taken as white and of equal power over the channels.
         """
 
 

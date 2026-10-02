@@ -44,7 +44,7 @@ radar = Radar(
     waveform=waveform,
     processing=StandardProcessing(mimo=MimoScheme.TDM),
     antenna=AntennaPair.from_element(element),
-    default_pfa=1e-6,
+    default_pfa=1e-6,                            # per range-Doppler cell
 )
 
 budget = radar.link_budget(target.car(), Geometry(range_m=120.0))
@@ -150,6 +150,24 @@ padding gives 1.76 dB and 0.47 dB per axis. Each value can be overridden;
 case) compute them directly, and `WINDOW_LOSS_*` constants are exported for
 common windows.
 
+The false-alarm probability given to `Radar` (`default_pfa`, and the `pfa`
+argument of `Radar.link_budget`, `Radar.probability_of_detection` and the
+sweeps in `radarperf.sweeps`) is per range–Doppler resolution cell: false detections
+per bin of the unpadded FFTs, over all beams formed in that cell. Zero padding and receive beam sets
+add tests per cell, so the engine counts them (`radarperf.false_alarms`) and
+tests each bin at a lower Pfa. Padding therefore lowers straddle loss but
+raises the threshold: Hann with fourfold padding saves 0.44 dB of straddle
+and costs 0.18 dB of threshold per axis. The link budget prints the tests per
+axis, the per-test Pfa and the threshold increase. See "False alarms per
+cell" in [docs/losses.md](docs/losses.md); `Radar(pfa_reference="test")`
+restores the earlier per-test convention.
+
+The low-level functions in `radarperf.detection` (`probability_of_detection`,
+`required_snr_db`, `detection_threshold`, `albersheim_required_snr_db`,
+`shnidman_required_snr_db`) take the Pfa per test and apply no correction.
+To evaluate a radar at its per-cell Pfa with them, pass
+`radar.false_alarm_budget().pfa_per_test`.
+
 A note on fluctuation: the cells integrated across the array in one CPI share a
 single RCS realisation, so spatial non-coherent integration is correctly
 modelled with Swerling 1 (Rayleigh) or 3 (chi-4), not the independent-per-look
@@ -212,7 +230,8 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
   from arbitrary complex aperture excitations and `UniformArrayAntenna` for a
   steerable ULA/URA factor layered over any element/subarray pattern.
   `MultiBeamUniformArrayAntenna` supplies the best-beam envelope and exposes
-  every individual beam for a set of u/v steering points. The engine takes a
+  every individual beam for a set of u/v steering points; the engine counts
+  its beams as false-alarm tests. The engine takes a
   transmit/receive `AntennaPair` (`AntennaPair.from_element` when the two
   coincide); `load_pattern_cut_csv` / `load_antenna_pair_csv` build elements
   from measured/datasheet az/el tables, with packaged Huber+Suhner presets

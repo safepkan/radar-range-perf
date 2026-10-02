@@ -16,8 +16,8 @@ Scenario
 * Target: 1 m^2 RCS, Swerling 1, at boresight and 6 degrees off boresight
   horizontally and vertically (``OFF_AXIS_REFERENCE_DEG``).
 * Acquisition: closing at 15 m/s, 20 Hz frame rate, 2-of-3 confirmation.
-* Pfa = 1e-6 per range-Doppler cell over all RX beams; ``per_beam_pfa``
-  converts it to the per-beam value for each beam set.
+* Pfa = 1e-6 per range-Doppler cell over all RX beams; the toolbox converts it
+  to the per-test value for each beam set (``radarperf.false_alarms``).
 * Centre frequency 76.5 GHz; ITU-R reference atmosphere at 1000 m (0.22 dB/km
   one way) and the named system losses in ``LOSSES``. See "Loss and
   environment assumptions" in ``NOTES.md``.
@@ -80,8 +80,9 @@ Modelling notes
   aperture supplies the per-channel subarray pattern. A parametrized channel
   URA then forms an interleaved set of u/v-steered beams; the ideal 8-channel
   coherent peak gain remains in processing. Detection uses the best-gain beam
-  at each look direction, tested at the per-beam Pfa that holds the per-cell
-  Pfa over all beams. Implementation limits are not modelled.
+  at each look direction, tested at the per-test Pfa that holds the per-cell
+  Pfa over all beams (the toolbox's default convention since 2026-10-01).
+  Implementation limits are not modelled.
 * Each RX layout uses one beam set throughout: a grid sampling the
   boresight-centered fundamental array-factor period (8 x 8 for the small
   variant, 8 x 4 for the large) plus an equally sized half-cell-offset grid.
@@ -120,8 +121,6 @@ from matplotlib.colors import Normalize
 from matplotlib.patches import Rectangle
 from matplotlib.projections.polar import PolarAxes
 from scipy.io import loadmat
-from scipy.special import gammaincc
-from scipy.optimize import brentq
 
 from radarperf import (
     AntennaPair,
@@ -143,6 +142,7 @@ from radarperf import (
     SystemLosses,
     UniformArrayAntenna,
     UniformRectangularApertureAntenna,
+    false_alarm_budget,
     frontend,
     probability_of_detection,
     required_snr_db,
@@ -175,7 +175,7 @@ OFF_AXIS_REFERENCE_DEG = 6.0
 # 50 m/s; it sets no Pd, Pfa or confirmation rule.
 USE_CASE_MAX_CLOSING_SPEED_MPS = 50.0
 # False-alarm probability per range-Doppler cell, over all RX beams together.
-# Each beam is tested at the lower per-beam value from per_beam_pfa().
+# The toolbox tests each beam at the lower per-test value that holds it.
 PFA_PER_CELL = 1.0e-6
 INITIAL_RANGE_M = 3000.0
 DETECTION_LEVELS = (0.5, 0.9)
@@ -239,10 +239,6 @@ EARLIER_PFA_PER_BEAM = 1.0e-6
 # Config 3 of the 2026-06-22 comparison, as published in its deliverable
 # config3_pd_pacq_vs_range.png: single-scan Pd = 50% / 90% ranges [m].
 JUNE_PUBLISHED_PD_RANGES_M = (994.0, 614.0)
-# Monte Carlo settings for per_beam_pfa(): directions on the unit sphere, not
-# noise samples, so the rare exceedances themselves are never simulated.
-BEAM_PFA_SAMPLES = 400_000
-BEAM_PFA_SEED = 20261001
 
 # --- Antenna ---------------------------------------------------------------
 
@@ -723,94 +719,6 @@ def form_rx_beams(
     )
 
 
-def rx_beam_weights(
-    rx_antenna: MultiBeamUniformArrayAntenna,
-) -> npt.NDArray[np.complex128]:
-    """Unit-norm channel weights of every formed RX beam, shape (beams, channels)."""
-    wavelength_m = SPEED_OF_LIGHT / rx_antenna.center_frequency_hz
-    horizontal = (
-        (np.arange(rx_antenna.horizontal_count) - (rx_antenna.horizontal_count - 1) / 2)
-        * rx_antenna.horizontal_spacing_m
-        / wavelength_m
-    )
-    vertical = (
-        (np.arange(rx_antenna.vertical_count) - (rx_antenna.vertical_count - 1) / 2)
-        * rx_antenna.vertical_spacing_m
-        / wavelength_m
-    )
-    channel_h, channel_v = np.meshgrid(horizontal, vertical, indexing="ij")
-    phase = (
-        2.0
-        * np.pi
-        * (
-            np.outer(rx_antenna.steering_u, channel_h.ravel())
-            + np.outer(rx_antenna.steering_v, channel_v.ravel())
-        )
-    )
-    return np.asarray(
-        np.exp(1j * phase) / np.sqrt(rx_antenna.element_count), dtype=np.complex128
-    )
-
-
-_PER_BEAM_PFA_CACHE: dict[tuple[object, ...], float] = {}
-
-
-def per_beam_pfa(
-    rx_antenna: MultiBeamUniformArrayAntenna,
-    pfa_per_cell: float = PFA_PER_CELL,
-) -> float:
-    """Per-beam Pfa that gives ``pfa_per_cell`` for the best-of-beams detector.
-
-    In each range-Doppler cell the detector compares the largest beam power,
-    ``max_k |w_k^H n|^2`` over unit-norm beam weights ``w_k``, with one
-    threshold ``T`` (in units of the noise power). Receiver noise ``n`` is white
-    complex Gaussian over the ``N`` channels, so ``n = r s`` with
-    ``r^2 ~ Gamma(N, 1)`` independent of the direction ``s``, uniform on the
-    unit sphere. Hence
-
-        P(max > T) = E_s[Q(N, T / M(s))],   M(s) = max_k |w_k^H s|^2,
-
-    with ``Q`` the regularized upper incomplete gamma function. The expectation
-    is averaged over ``BEAM_PFA_SAMPLES`` seeded directions, which reaches
-    probabilities near 1e-6 without simulating the exceedances themselves. One
-    beam alone has ``P = exp(-T)``; the function returns ``exp(-T)`` at the
-    threshold where the best-beam probability equals ``pfa_per_cell``.
-    ``pfa_per_cell / per_beam_pfa`` is the effective number of independent
-    tests per cell.
-    """
-    weights = rx_beam_weights(rx_antenna)
-    key = (weights.shape, weights.tobytes(), pfa_per_cell)
-    cached = _PER_BEAM_PFA_CACHE.get(key)
-    if cached is not None:
-        return cached
-    channel_count = weights.shape[1]
-    rng = np.random.default_rng(BEAM_PFA_SEED)
-    max_fraction = np.empty(BEAM_PFA_SAMPLES)
-    chunk = 50_000
-    for start in range(0, BEAM_PFA_SAMPLES, chunk):
-        count = min(chunk, BEAM_PFA_SAMPLES - start)
-        directions = rng.standard_normal(
-            (count, channel_count)
-        ) + 1j * rng.standard_normal((count, channel_count))
-        directions /= np.linalg.norm(directions, axis=1, keepdims=True)
-        max_fraction[start : start + count] = np.max(
-            np.abs(directions @ weights.conj().T) ** 2, axis=1
-        )
-
-    def log_excess(threshold: float) -> float:
-        probability = float(np.mean(gammaincc(channel_count, threshold / max_fraction)))
-        return float(np.log(probability) - np.log(pfa_per_cell))
-
-    # The best beam exceeds T at least as often as one beam, and at most as
-    # often as all beams together (union bound); this brackets the root.
-    single = -np.log(pfa_per_cell)
-    union = -np.log(pfa_per_cell / weights.shape[0])
-    threshold = float(brentq(log_excess, single - 1.0, union + 1.0))
-    result = float(np.exp(-threshold))
-    _PER_BEAM_PFA_CACHE[key] = result
-    return result
-
-
 def rx_beam_straddle_db(
     rx_antenna: MultiBeamUniformArrayAntenna, samples: int = 161
 ) -> tuple[float, float]:
@@ -832,7 +740,7 @@ def rx_beam_straddle_db(
         steering_u=grid_u.ravel(),
         steering_v=grid_v.ravel(),
     )
-    response = np.abs(rx_beam_weights(probe).conj() @ rx_beam_weights(rx_antenna).T)
+    response = np.abs(probe.beam_weights().conj() @ rx_antenna.beam_weights().T)
     loss_db = 10.0 * np.log10(np.max(response**2, axis=1))
     return float(np.min(loss_db)), float(np.mean(loss_db))
 
@@ -885,8 +793,9 @@ def lannik_psi(
 ) -> Product:
     """Build Lannik Psi with the proposed full-aperture TX model.
 
-    The detector's per-beam Pfa is derived from ``pfa_per_cell`` for this RX
-    beam set (:func:`per_beam_pfa`) unless ``pfa_per_beam`` sets it directly.
+    The toolbox derives the detector's per-test Pfa from ``pfa_per_cell`` for
+    this RX beam set (``Radar.false_alarm_budget``) unless ``pfa_per_beam``
+    sets it directly.
     ``noise_figure_db`` overrides the CTRX8188F preset's 10.2 dB. The overrides
     exist for sensitivity checks and the range breakdown, as does
     ``center_frequency_hz``.
@@ -901,15 +810,6 @@ def lannik_psi(
     tx_antenna = load_tx_antenna(center_frequency_hz=center_frequency_hz)
     rx_boresight_array = build_rx_antenna(rx_layout, center_frequency_hz)
     rx_antenna = form_rx_beams(rx_boresight_array)
-    if pfa_per_beam is None:
-        beam_pfa = per_beam_pfa(rx_antenna, pfa_per_cell)
-        pfa_note = (
-            f"Pfa {pfa_per_cell:.0e} per cell = {beam_pfa:.1e} per beam "
-            f"({pfa_per_cell / beam_pfa:.0f} effective tests)"
-        )
-    else:
-        beam_pfa = pfa_per_beam
-        pfa_note = f"Pfa {beam_pfa:.0e} per beam"
     front_end = (
         frontend.ctrx8188f()
         if noise_figure_db is None
@@ -928,9 +828,18 @@ def lannik_psi(
             rx=rx_antenna,
             name="Lannik Psi proposed antenna",
         ),
-        default_pfa=beam_pfa,
+        default_pfa=pfa_per_cell if pfa_per_beam is None else pfa_per_beam,
         losses=losses,
+        pfa_reference="cell" if pfa_per_beam is None else "test",
     )
+    if pfa_per_beam is None:
+        false_alarms = radar.false_alarm_budget()
+        pfa_note = (
+            f"Pfa {pfa_per_cell:.0e} per cell = {false_alarms.pfa_per_test:.1e} "
+            f"per beam ({false_alarms.effective_tests:.0f} effective tests)"
+        )
+    else:
+        pfa_note = f"Pfa {pfa_per_beam:.0e} per beam"
     return Product(
         name=variant_name(rx_layout) if name is None else name,
         radar=radar,
@@ -1901,7 +1810,7 @@ def compute_pd_coverage_maps(
         return np.asarray(
             probability_of_detection(
                 sinr_db,
-                product.radar.default_pfa,
+                product.radar.false_alarm_budget().pfa_per_test,
                 swerling=TARGET.swerling,
                 n_pulses=processing_budget.n_noncoherent,
                 n_collapsing=processing_budget.n_collapsing,
@@ -2134,6 +2043,7 @@ def placeholder_product(
         antenna=AntennaPair(tx=tx, rx=placeholder, name=name),
         default_pfa=EARLIER_PFA_PER_BEAM,
         losses=EARLIER_LOSSES,
+        pfa_reference="test",
     )
     return Product(
         name=name,
@@ -2512,7 +2422,9 @@ def print_beam_pfa_trade(rx_layout: RxAntennaLayout = RX_LAYOUT) -> None:
         rx_antenna = form_rx_beams(
             boresight_array, float(np.sin(np.radians(separation_deg)))
         )
-        beam_pfa = per_beam_pfa(rx_antenna)
+        beam_pfa = false_alarm_budget(
+            PFA_PER_CELL, beam_weights=rx_antenna.beam_weights()
+        ).pfa_per_test
         cost_db = required_snr_db(0.9, beam_pfa, swerling=1) - reference_db
         worst_db, mean_db = rx_beam_straddle_db(rx_antenna)
         print(

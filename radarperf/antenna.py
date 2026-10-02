@@ -682,10 +682,19 @@ class MultiBeamUniformArrayAntenna:
     returns the maximum gain across beams and ``gain_dbi_per_beam`` exposes the
     individual patterns with the beam index on axis 0.
 
-    This is an optimistic antenna-layer model of "detection in any beam": it
-    selects the strongest beam without applying a multiple-testing Pfa penalty
-    or modelling correlated receiver noise between beams. Those effects belong
-    in a future multi-beam detector model.
+    It stands for a detector that tests every beam and reports a detection in
+    any of them. The false-alarm side of that is in the engine: the antenna is
+    a :class:`~radarperf.protocols.BeamSet`, so with the Pfa per range-Doppler
+    cell (the default) every beam counts as a test, correlated noise between
+    beams included, and the detection threshold rises to match (see
+    :mod:`radarperf.false_alarms`).
+
+    The detection side is an approximation. Pd is evaluated in the beam with
+    the strongest expected signal, this envelope. Where several beams receive
+    comparable signal, as between beams, any of them may detect, so Pd there is
+    conservative: with an equal response in two orthogonal beams and a shared
+    Swerling 1 fluctuation, Pd 0.50 in the strongest beam is 0.57 in either,
+    about 1 dB of SNR (``tests/test_false_alarms.py``).
     """
 
     def __init__(
@@ -765,6 +774,36 @@ class MultiBeamUniformArrayAntenna:
             center_frequency_hz=self.center_frequency_hz,
             steering_u=float(self.steering_u[index]),
             steering_v=float(self.steering_v[index]),
+        )
+
+    def beam_weights(self) -> npt.NDArray[np.complex128]:
+        """Unit-norm channel weights of every beam, shape ``(beams, channels)``.
+
+        Channels are ordered horizontal-major (``h * vertical_count + v``) at
+        positions centred on the array; beam ``k`` is phase-steered to
+        ``(steering_u[k], steering_v[k])``.
+        """
+        horizontal = (
+            (np.arange(self.horizontal_count) - (self.horizontal_count - 1) / 2)
+            * self.horizontal_spacing_m
+            / self._wavelength_m
+        )
+        vertical = (
+            (np.arange(self.vertical_count) - (self.vertical_count - 1) / 2)
+            * self.vertical_spacing_m
+            / self._wavelength_m
+        )
+        channel_h, channel_v = np.meshgrid(horizontal, vertical, indexing="ij")
+        phase = (
+            2.0
+            * np.pi
+            * (
+                np.outer(self.steering_u, channel_h.ravel())
+                + np.outer(self.steering_v, channel_v.ravel())
+            )
+        )
+        return np.asarray(
+            np.exp(1j * phase) / np.sqrt(self.element_count), dtype=np.complex128
         )
 
     def gain_dbi_per_beam(

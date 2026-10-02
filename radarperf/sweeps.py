@@ -13,6 +13,9 @@ These produce the arrays you actually plot:
 Both the link budget and Pd are evaluated vectorised over the whole grid in a
 single call (the engine broadcasts over an array :class:`Geometry`), so large
 sweeps stay fast.
+
+A ``pfa`` argument has the radar's meaning: per range-Doppler cell by default,
+converted to the per-test value by :meth:`Radar.false_alarm_budget`.
 """
 
 from __future__ import annotations
@@ -79,7 +82,7 @@ def range_sweep(
     pd = np.asarray(
         probability_of_detection(
             metric,
-            radar.default_pfa if pfa is None else pfa,
+            radar.false_alarm_budget(pfa).pfa_per_test,
             swerling=case,
             n_pulses=terms.n_noncoherent,
             n_collapsing=terms.n_collapsing,
@@ -129,7 +132,7 @@ def map_2d(
     pd = np.asarray(
         probability_of_detection(
             metric,
-            radar.default_pfa if pfa is None else pfa,
+            radar.false_alarm_budget(pfa).pfa_per_test,
             swerling=case,
             n_pulses=terms.n_noncoherent,
             n_collapsing=terms.n_collapsing,
@@ -374,7 +377,7 @@ def acquisition_sweep(
     pd = np.asarray(
         probability_of_detection(
             np.asarray(metric, dtype=float),
-            radar.default_pfa if pfa is None else pfa,
+            radar.false_alarm_budget(pfa).pfa_per_test,
             swerling=case,
             n_pulses=terms.n_noncoherent,
             n_collapsing=terms.n_collapsing,

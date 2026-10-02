@@ -82,12 +82,8 @@ from typing import Final, Literal
 import numpy as np
 from scipy.signal import get_window
 
-from .protocols import ProcessingBudget, Waveform
+from .protocols import FftAxis, ProcessingBudget, Waveform, WindowSpec
 from .units import linear_to_db
-
-#: A window for :func:`scipy.signal.get_window` (periodic): a name such as
-#: ``"hann"``, or a tuple with a parameter such as ``("kaiser", 8.0)``.
-WindowSpec = str | tuple[str, float]
 
 
 class MimoScheme(Enum):
@@ -183,18 +179,18 @@ def _positive_length(length: int) -> int:
 
 
 def _fft_axis_losses(
-    window: WindowSpec,
-    length: int,
-    fft_size: int | None,
+    axis: FftAxis,
     window_override: float | None,
     straddle_override: float | None,
 ) -> tuple[float, float]:
     """Window and straddle loss of one FFT axis: overrides, else computed."""
     window_db = (
-        window_loss_db(window, length) if window_override is None else window_override
+        window_loss_db(axis.window, axis.length)
+        if window_override is None
+        else window_override
     )
     straddle_db = (
-        straddle_loss_db(window, length, fft_size)
+        straddle_loss_db(axis.window, axis.length, axis.fft_size)
         if straddle_override is None
         else straddle_override
     )
@@ -232,13 +228,16 @@ class StandardProcessing:
         of the range and Doppler FFTs.  The window and straddle losses are
         computed from them (:func:`window_loss_db`, :func:`straddle_loss_db`
         with the mean over target position) for ``n_samples`` and the chirps per
-        transmitter.
+        transmitter.  The budget also reports both axes, so the engine can
+        count the tests that zero padding adds per resolution cell
+        (:mod:`radarperf.false_alarms`).
     range_window_loss_db, doppler_window_loss_db, range_straddle_loss_db,
     doppler_straddle_loss_db:
         Overrides for the computed values; ``None`` (default) computes them.
     Other loss terms:
-        ``cfar_loss_db`` (1.0 dB, equal to cell-averaging CFAR with 32 reference
-        cells for a Swerling 1 target at Pfa 1e-6; see ``docs/losses.md``) and
+        ``cfar_loss_db`` (1.0 dB, an allowance for a CFAR not yet chosen; a
+        cell-averaging CFAR with 32 reference cells costs about as much for a
+        Swerling 1 target at Pfa 1e-6; see ``docs/losses.md``) and
         ``beamforming_loss_db`` for the angular straddle / scan loss incurred
         when a coherently combined beam does not point exactly at the target
         (0 if the beam is refined onto the target or the antenna model already
@@ -306,19 +305,15 @@ class StandardProcessing:
 
         coherent_gain = base_coherent * coherent_factor
 
+        range_axis = FftAxis(self.range_window, waveform.n_samples, self.range_fft_size)
+        doppler_axis = FftAxis(
+            self.doppler_window, max(1, round(chirps_per_tx)), self.doppler_fft_size
+        )
         range_window_db, range_straddle_db = _fft_axis_losses(
-            self.range_window,
-            waveform.n_samples,
-            self.range_fft_size,
-            self.range_window_loss_db,
-            self.range_straddle_loss_db,
+            range_axis, self.range_window_loss_db, self.range_straddle_loss_db
         )
         doppler_window_db, doppler_straddle_db = _fft_axis_losses(
-            self.doppler_window,
-            max(1, round(chirps_per_tx)),
-            self.doppler_fft_size,
-            self.doppler_window_loss_db,
-            self.doppler_straddle_loss_db,
+            doppler_axis, self.doppler_window_loss_db, self.doppler_straddle_loss_db
         )
         # Zero-valued terms are kept so an omitted loss shows as an explicit
         # zero; beamforming is listed only when an angular axis is combined.
@@ -339,6 +334,8 @@ class StandardProcessing:
             n_noncoherent=int(n_signal),
             n_collapsing=int(n_total - n_signal),
             losses_db=losses,
+            range_axis=range_axis,
+            doppler_axis=doppler_axis,
         )
 
 
@@ -437,19 +434,15 @@ class StagedProcessing:
                 n_signal *= stage.signal_bearing_count
                 n_total *= stage.count
 
+        range_axis = FftAxis(self.range_window, waveform.n_samples, self.range_fft_size)
+        doppler_axis = FftAxis(
+            self.doppler_window, waveform.n_chirps, self.doppler_fft_size
+        )
         range_window_db, range_straddle_db = _fft_axis_losses(
-            self.range_window,
-            waveform.n_samples,
-            self.range_fft_size,
-            self.range_window_loss_db,
-            self.range_straddle_loss_db,
+            range_axis, self.range_window_loss_db, self.range_straddle_loss_db
         )
         doppler_window_db, doppler_straddle_db = _fft_axis_losses(
-            self.doppler_window,
-            waveform.n_chirps,
-            self.doppler_fft_size,
-            self.doppler_window_loss_db,
-            self.doppler_straddle_loss_db,
+            doppler_axis, self.doppler_window_loss_db, self.doppler_straddle_loss_db
         )
         losses = {
             "range_window": range_window_db,
@@ -466,4 +459,6 @@ class StagedProcessing:
             n_noncoherent=int(n_signal),
             n_collapsing=int(n_total - n_signal),
             losses_db=losses,
+            range_axis=range_axis,
+            doppler_axis=doppler_axis,
         )
