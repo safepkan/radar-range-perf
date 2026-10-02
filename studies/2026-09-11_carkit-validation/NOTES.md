@@ -41,10 +41,11 @@ CARKIT unit:
   losses. With the reflector on a tripod, and our firmware instead of
   Infineon's, it is 4.3–4.5 dB weaker at 16 and 34 m than when carried at
   15–27 m, which puts the measurement 3–4 dB below the model. The receiver
-  noise is the same in both sessions to 0.12 dB, so the difference is on the
-  signal side. The reflector's azimuth is ruled out; the radar's elevation
-  pointing, the reflector's aim and the TX power as each firmware programs
-  it are not.
+  noise at the ADC is the same in both sessions to 0.12 dB, which rules out a
+  change of gain behind the receiver's first stages, but not a loss in front
+  of them. The reflector's azimuth is ruled out; the radar's elevation
+  pointing, the reflector's aim, the TX power as each firmware programs it
+  and anything lossy in front of the antenna are not.
 - **A first analysis of the carried session found +4 dB.** Most of that came
   from assuming 10 dBsm for a reflector that measures 11.3 dBsm (1.3 dB), and
   from taking the noise at the far end of the range spectrum, where the
@@ -584,8 +585,12 @@ Notes on the terms:
   step +3 dB and its "low noise" rows at 0 dB, with conversion gains 3 dB apart
   (Table 30). The user manual has no other noise-mode setting than the RX gain
   select. We therefore read the modes as gain steps
-  ([docs/losses.md](../../docs/losses.md) gives the evidence); Infineon has not
-  confirmed this yet. The datasheet gives no minimum noise figure. Its figures are
+  ([docs/losses.md](../../docs/losses.md) gives the evidence), and Infineon
+  has confirmed it (email, 2026-10-02): there is no noise-mode setting; the
+  integrator sets the RX gain with `Configure_RX()` or in the ramp design
+  tool, and the default is 0 dB. CARKIT ran at +3 dB in every capture here
+  except 2026-08-27, which ran at the default. The datasheet gives no minimum
+  noise figure. Its figures are
   specified with all TX off, and with a source reflection of −15 dB or better
   at the reference plane, while the antenna is specified only to −10 dB. Noise
   from the TX that scales with its power would have changed the receiver
@@ -596,10 +601,13 @@ Notes on the terms:
   16.0 dBm (Table 22), are ±1.5 dB around the typical value. Over a ramp in
   76–77 GHz it may vary by up to 1.5 dB, and over temperature by up to 1 dB
   with closed-loop power control (Table 24). The maximum noise figure at the
-  walk's gain is 3.0 dB above typical (Table 30). These limits hold over
-  junction temperatures from −40 to 135 °C; the datasheet does not state the
-  conditions of its typical values. They say how far one unit may be from the
-  typical part, not where ours is, so they are not in the model.
+  walk's gain is 3.0 dB above typical (Table 30). Minimum and maximum hold
+  over the whole functional range, junction temperatures from −40 to 135 °C
+  and 76–81 GHz, unless a row states a narrower condition, and the
+  noise-figure rows do not; typical values are for a nominal part at nominal
+  supply voltage and room temperature (Infineon, same email). The limits say
+  how far one unit may be from the typical part, not where ours is, so they
+  are not in the model.
 
 The terms widen the gap: only the noise figure acts in the measurement's
 favour, while the antenna, the cover and anything not modelled lower the
@@ -675,13 +683,16 @@ and multipath can add. The walk's inbound level also rises with range: 33.3,
 ([Range structure and geometry](#range-structure-and-geometry)).
 
 **Against the walk.** At 15–27 m the walk gives 33.3 ± 0.6 dB (14 CPIs). The
-tripod session is 4.3–4.5 dB lower at 16 and 34 m. The receiver is not the
-difference: its noise density at 18–24 MHz is 18.59 dB ADC-count² per sample
-with the TX off in the field, and 18.47 dB in the walk's far quarter, after
-each dataset's windows are taken out. Against the model without hardware
-losses, with the walking reflector's 11.27 dBsm and the noise at the
-reflector's beat frequency, the tripod session is 3.3–4.3 dB low at 16 and
-34 m (2.8–3.1 dB with the noise at 18–24 MHz), and 1.0–1.3 dB high at 90 m.
+tripod session is 4.3–4.5 dB lower at 16 and 34 m. The receiver's noise
+density at 18–24 MHz is 18.59 dB ADC-count² per sample with the TX off in the
+field, and 18.47 dB in the walk's far quarter, after each dataset's windows
+are taken out. A change of gain behind the receiver's first stages would show
+there. A loss in front of them would not: it lowers the signal, while the
+noise it adds makes up for the noise it removes, so the noise at the ADC stays
+the same. Against the model without hardware losses, with the walking
+reflector's 11.27 dBsm and the noise at the reflector's beat frequency, the
+tripod session is 3.3–4.3 dB low at 16 and 34 m (2.8–3.1 dB with the noise at
+18–24 MHz), and 1.0–1.3 dB high at 90 m.
 
 What could cause 4.4 dB:
 
@@ -698,8 +709,25 @@ What could cause 4.4 dB:
   all for a radar in the plane of one plate. Plates glued onto absorber may
   have moved since the walk.
 - **TX power as each firmware programs it: possible.** Ours programs the
-  maximum and calibrates it at every run ([Firmware](#firmware));
-  Infineon's settings are not recorded.
+  maximum and calibrates it at every run ([Firmware](#firmware)); every chirp
+  segment selects that calibrated power setting (`TX1_PA_POWER_SEL` 0 in
+  CONFIG1, user manual Table 121). Infineon's settings are not recorded.
+- **A loss in front of the antenna: possible.** A film of water or dirt on
+  the cover would cost the signal on both passes without changing the noise
+  at the ADC. Nothing records the cover's state in either session.
+
+A loss is easy to come by and a gain is not: the walk's level at 15–27 m is
+steady (0.6 dB rms over 14 CPIs at different ranges), and a reflector held by
+hand cannot return more than its aligned RCS. So the tripod session most
+likely lost 4.4 dB to something that does not change with range between 16
+and 34 m. Of the candidates, only the elevation pointing would also explain
+the extra 2–3 dB at 3.8 and 7.3 m, where a small height difference adds to the
+angle. A one-off fit of the FARAD-IV preset's elevation pattern, anchored to
+the walk's level, gives a tilt of 6–7.5° and a height offset of 12–16 cm with
+1.0 dB rms over 3.8–52 m (7.3 m 1.9 dB low), against 1.6 dB rms for a constant
+loss at a free level. It predicts 29.3 dB at 90 m, where 33 dB is measured, so
+it needs about 4 dB of constructive multipath there. Suggestive, not
+decisive; the tilt scan in measurement 1 settles it.
 
 The walk's averaging and selection conventions move its value by at most
 2 dB ([Method](#method)), and its short-range points have a 0.6 dB spread, so
@@ -1423,24 +1451,25 @@ and the measurements that would close them.
    - When we switched to our firmware; whether the walk and outdoor captures
      used Infineon's application with Viktor's host tool; which firmware the
      report's lab measurements used.
-5. **Infineon,** asked by email on 2026-10-02: whether the datasheet's
-   ultra-low-noise rows are the +3 dB RX gain setting
-   ([Loss terms](#loss-terms)).
-6. **Slack:** a figure for the housing cover's loss, if anyone has one.
+5. **Slack:** a figure for the housing cover's loss, if anyone has one.
 
 Answered since 2026-10-01: 10 dB backoff gives 10.0 dB, and the calibrated
 8TX beam 17.5 of an ideal 18.1 dB (window, 2026-10-02); the reflector in the
 field is the walk's (photos); the field's low-IF background is the receiver's
 (TX off); the cover was on in every measurement, since CARKIT is a closed unit
 whose cover cannot easily be removed; the radar on the bridge was about 7 m
-above the road (deck height from public sources, ±0.5 m).
+above the road (deck height from public sources, ±0.5 m); Infineon confirmed
+that the datasheet's noise modes are the RX gain steps (ultra-low-noise at
++3 dB, low-noise at 0 dB, the default) and that its typical values are for a
+nominal part at room temperature ([Loss terms](#loss-terms)).
 
 ### Open questions
 
 1. **Why the two reflector sessions differ by 4.4 dB**
    ([The reflector on a tripod](#the-reflector-on-a-tripod)). Candidates: the
-   radar's elevation pointing, the reflector's aim or state, the TX power as
-   each firmware programs it. Until it is settled, the measurements place
+   radar's elevation pointing (which would also explain the extra loss at
+   short range), the reflector's aim or state, the TX power as each firmware
+   programs it, a loss in front of the antenna. Until it is settled, the measurements place
    CARKIT within −4 to +2 dB of the model. Viktor's answer on elevation may
    narrow it; measurement 1 decides it.
 2. **Which part of the chirp timing sets δf** (flyback, wait, or another
@@ -1450,7 +1479,7 @@ above the road (deck height from public sources, ±0.5 m).
    background's fall from 7 to 14 MHz is gain shape, not noise. It changes a
    long-range budget by at most about 0.5 dB. Measurement 3.
 4. **The housing cover's loss.** The same in every measurement and not
-   measurable on this unit. Unless a figure turns up (item 6), it stays an
+   measurable on this unit. Unless a figure turns up (item 5), it stays an
    unknown loss in every comparison with the model.
 5. **The walking reflector's RCS** (11.27 or 11.5 dBsm) and how the two
    home-made reflectors differ. Measurement 1.
