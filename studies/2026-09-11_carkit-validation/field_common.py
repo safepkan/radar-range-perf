@@ -313,7 +313,7 @@ def reference_radar(capture: Capture) -> Radar:
         waveform=waveform,
         processing=StandardProcessing(
             rx_combination=BeamCombination.NONCOHERENT,
-            range_window="blackman_harris",
+            range_window="blackmanharris",
             doppler_window="hann",
             range_fft_size=capture.n_samples,
             doppler_fft_size=capture.n_chirps,
