@@ -4,11 +4,25 @@
 folder, since they cannot be regenerated without the raw data. When adding or
 removing a figure link, update that list. -->
 
-Status 2026-10-03. The summary below gives the results and conclusions; the
-sections after it describe the measurements and the analysis behind each
-result. What is open, which answers and captures we are waiting for, and which
-measurements would close the open points are listed at the end
-([Open questions and next measurements](#open-questions-and-next-measurements)).
+Status 2026-10-03. The summary gives the results and conclusions and can be
+read on its own. The sections after it hold the detail:
+
+- [Measurements](#measurements): what was captured, when, with which firmware
+  and how the radar and reflectors were mounted.
+- [Sensitivity against the model](#sensitivity-against-the-model): the radar
+  equation against the reflector, carried and on a tripod, with the loss
+  terms.
+- [The receiver background](#the-receiver-background): its rise towards low
+  IF, and whether that is noise or the IF gain's shape.
+- [Scale, gain and interference](#scale-gain-and-interference): the range
+  scale, TX backoff, the eight-TX beam and interference from other radars.
+- [The per-chirp frequency error](#the-per-chirp-frequency-error): the LO's
+  chirp-to-chirp error, its level against the datasheet and what sets it.
+- [Viktor's report](#viktors-report): how its +4 dB reconciles with these
+  results.
+- [Open questions and next measurements](#open-questions-and-next-measurements):
+  what we are waiting for, what is open and which measurements would close it.
+- [Reproducing](#reproducing): commands, raw data and scripts.
 
 ## Summary
 
@@ -35,12 +49,12 @@ our own:
 0.7 dB above the model with datasheet values, so the model shows no sign of
 being optimistic. With our firmware the same reflector on a tripod came out
 4.4 dB lower, for reasons not yet known, so the absolute check is still open
-for the firmware Psi will use. The receiver is up to about 1 dB noisier at low IF (1–5 MHz) than at the
-IFs of long-range targets, where a flat noise figure fits. The LO's per-chirp
-frequency error is at the level the datasheet's CW phase noise predicts with
-our firmware's chirp timing, and 4–9 times larger with Infineon's, so the time
-between chirps is a design parameter for Psi. Range scale, TX backoff and the
-coherent eight-TX beam behave as configured.
+for the firmware Psi will use. The receiver is up to about 1 dB noisier at low
+IF (1–5 MHz) than at the IFs of long-range targets, where a flat noise figure
+fits. The LO's per-chirp frequency error is at the level the datasheet's CW
+phase noise predicts with our firmware's chirp timing, and 4–9 times larger
+with Infineon's, so the time between chirps is a design parameter for Psi.
+Range scale, TX backoff and the coherent eight-TX beam behave as configured.
 
 ### Sensitivity and receiver
 
@@ -97,6 +111,10 @@ coherent eight-TX beam behave as configured.
   capture's CPIs** (none to 19 % in the captures of 40 CPIs or more). The
   analysis drops those CPIs.
 
+Details: [Sensitivity against the model](#sensitivity-against-the-model),
+[The receiver background](#the-receiver-background) and
+[Scale, gain and interference](#scale-gain-and-interference).
+
 ### Phase noise and chirp timing
 
 Phase noise of the LO makes a return's phase vary from chirp to chirp. For a
@@ -134,6 +152,8 @@ long range.
   coherent loss, and a weak target's own pedestal stays far below the noise;
   around strong returns it sets the pedestal. With Infineon's timing it would
   be 0.6–1.3 rad, or 1.5–7 dB of coherent loss for every target.
+
+Details: [The per-chirp frequency error](#the-per-chirp-frequency-error).
 
 ### What it means for the toolbox's models
 
@@ -204,24 +224,36 @@ Details are in
   (1.3 dB; about 11.5 dBsm in the far field, not yet applied), from taking the
   noise at the far end of the range spectrum, where the receiver is quieter
   than at the target's beat frequency (1.2 dB), and from a model with the
-  noise figure of the 0 dB gain step instead of the +3 dB used (0.5 dB).
+  noise figure of the 0 dB gain step instead of the +3 dB used (0.5 dB;
+  [Reconciling the +4 dB](#reconciling-the-4-db)).
 - A conclusion posted on 2026-09-29, that the LO's per-chirp error is 8–12 dB
   above the datasheet and could reach 0.7 rad at 1 km, held only for
   Infineon's chirp timing.
 
 ## Measurements
 
-Seven sets of captures, all with our single CARKIT unit: the walk
-(2026-09-11), the outdoor reflector captures of 2026-09-22 (formerly the
-phase-noise-outdoor study), three sets of captures out of the office window,
-on 2026-08-27 with Infineon's firmware and on 2026-09-30 and 2026-10-02 with
-our own, and, on 2026-10-01, the field captures with the walk's reflector on a
-tripod and the highway captures of traffic from a bridge. The
-walk results were posted in the Slack thread on 2026-09-29; the posted text and
+Seven sets of captures, all with our single CARKIT unit. The names in the first
+column are used in the rest of these notes; the summary calls the walk "the
+carried reflector" and the field captures "the reflector on a tripod".
+
+| Name | Date | Firmware | What was captured | Used for |
+|---|---|---|---|---|
+| Walk | 2026-09-11 | Infineon's | A corner reflector carried out to about 50 m and back; radar on a tripod | Sensitivity against the model; receiver background; per-chirp error from the pedestal and passing vehicles |
+| Outdoor captures | 2026-09-22 | Infineon's | A reflector at nominal 5 and 10 m with two sweeps; radar and reflector hand-held | Per-chirp error: pure phase, one δf at every return, against the CW datasheet |
+| Window, 2026-08-27 | 2026-08-27 | Infineon's | The static scene out of the office window to about 500 m, eight TX in DDMA | Per-chirp error with Infineon's chirp timing |
+| Window, 2026-09-30 | 2026-09-30 | Ours | The same scene with three waveforms, TX1 and the eight-TX beam; radar hand-held | Per-chirp error with our timing, its delay law and the payload length; receiver background; range scale |
+| Window, 2026-10-02 | 2026-10-02 | Ours | The same scene from a fixed mount | TX backoff and the eight-TX beam; per-chirp error on a fixed mount |
+| Field captures | 2026-10-01 | Ours | The walk's reflector on a tripod at six distances, two chirp slopes each; TX off; the sky | Sensitivity with the reflector on a tripod; receiver background with TX off; noise or gain shape |
+| Highway captures | 2026-10-01 | Ours | Traffic seen from a bridge over the E6, to 1.2 km | Interference; vehicles to 1.2 km (no check of the range model) |
+
+The outdoor captures were formerly the phase-noise-outdoor study. The walk
+results were posted in the Slack thread on 2026-09-29; the posted text and
 figures are in [deliverables/2026-09-29](deliverables/2026-09-29/). Its
 paragraph on the Doppler pedestal is superseded (see the summary). Earlier
 versions of the walk and outdoor analyses are in the git history of the
 branches `carkit-validation-study` and `phase-noise`.
+
+### Capture parameters
 
 | | Walk | Outdoor captures | Window, 2026-08-27 | Window, 2026-09-30 |
 |---|---|---|---|---|
@@ -235,7 +267,6 @@ branches `carkit-validation-study` and `phase-noise`.
 | Chirp timing: PRI; pre-payload; flyback + wait | 15.96 µs; 5.54 µs; 60 + 60 ns | Same | 14.62 and 13.96 µs; 4.2 and 3.54 µs; 60 + 60 ns | 100 µs (long 90 µs); 4.0 µs; 2 µs + 83.7 µs (long 43 µs) |
 | TX / RX high-pass | TX1; high-pass code 0 | TX1 at 0 dB backoff; high-pass code 0 | 8TX DDMA (8 of 16 slots) at 0 dB backoff; high-pass code 4 | TX1 or 8TX coherently phased, 0 or 10 dB backoff; high-pass 300 kHz (in the host code, not the sidecar) |
 | RX gain step (metadata) and typical noise figure at 10 / 1 MHz IF | +3 dB: gain code 0 for all receivers of the recorded mode (`provenance/configuration.json`); 9.7 / 9.9 dB | +3 dB: `gain_code` 0, `gain_db` 3.0 per RX (frame sidecars); 9.7 / 9.9 dB | 0 dB, the chip's default: `gainSelection` 1 (`rx_config` in the converted sidecars); 10.2 / 10.5 dB. The receiver noise at the ADC does not fit it ([Out-of-window captures](#out-of-window-captures)) | +3 dB: `rx_gain_db` 3 (sidecars); 9.7 / 9.9 dB |
-| Raw data (not in the repo) | `~/Data/tmp/walk-hallesaker-tx1-1-psi`: 200 CPIs, offline PSI-style conversion | `~/Data/carkit/2026-09-22_phase_noise_outdoor_reflector`: 4 × 10 CPIs, manifest and sidecars | `~/Data/carkit/2026-08-27_test_out_of_office_window`: 131 frames in Infineon's format, converted once to `converted_adc/` | `~/Data/carkit/2026-09-30_out-the_window`: 11 cases of 6–10 CPIs, a sidecar per CPI |
 | Windows in this study | Periodic Blackman on both axes, fourfold padding, as in Viktor's processing | Periodic Blackman–Harris in range (also for per-chirp amplitudes), periodic Hann in Doppler, no padding | As outdoors | As outdoors |
 
 | | Field captures | Highway captures | Window, 2026-10-02 |
@@ -248,11 +279,11 @@ branches `carkit-validation-study` and `phase-noise`.
 | Sweep, sampling, chirp timing | Short and medium, as on 2026-09-30 | Long, as on 2026-09-30, 256 chirps (400 in one capture) | Short and medium, as on 2026-09-30 |
 | TX | TX1 at 0 dB backoff; one capture with no TX enabled. The sky and run 8TX captures have no calibration record and all TX phases at 0 | TX1, or 8TX coherently phased with the 2026-09-30 calibration | TX1 at 0 or 10 dB backoff, 8TX coherently phased (medium) |
 | RX gain step (metadata) and typical noise figure at 10 / 1 MHz IF | +3 dB: `rx_gain_db` 3 (sidecars); 9.7 / 9.9 dB | Same | Same |
-| Raw data (not in the repo) | `~/Data/carkit/2026-10-01_reflector_lindevi`: 12 placements and 2 empty scenes of 9–10 CPIs, no TX (97 CPIs), sky (67, 59), 5 runs (313–370); a README and photos | `~/Data/carkit/2026-10-01_highway_sandsjobacka`: 4 cases of 152–516 CPIs, about half of each run's CPIs not recorded; photos and a map | `~/Data/carkit/2026-10-02_out_the_window`: 5 cases of 9–10 CPIs |
 | Windows in this study | As outdoors | As outdoors | As outdoors |
 
 All datasets are real int16 ADC data [chirp, sample, RX] with SHA-256
-checksums, which the pipelines verify. The noise figures are the CTRX8188F
+checksums, which the pipelines verify; where they are kept is listed under
+[Raw data](#raw-data). The noise figures are the CTRX8188F
 datasheet's typical values for the RX gain step (Table 30; the
 "ultra low noise" rows at +3 dB and the "low noise" rows at 0 dB, which
 Infineon confirmed are the gain steps), as `carkit_common.noise_figure_db`
@@ -382,10 +413,10 @@ reflector. In 800MHz-10m something moved at 0–10 m at about 1 kHz Doppler
 
 ### Out-of-window captures
 
-**2026-09-30, our firmware**
-([window_scene.py](window_scene.py), [scene.png](generated/window/scene/scene.png)).
-Eleven folders named `<waveform>-<TX>-<backoff>[-suffix]`, with no other
-description; the times are the first CPI's, UTC:
+**2026-09-30, our firmware** ([window_scene.py](window_scene.py),
+[scene.png](generated/window/scene/scene.png)). Eleven folders named
+`<waveform>-<TX>-<backoff>[-suffix]`, with no other description; the times are
+the first CPI's, UTC:
 
 | Case | Time | CPIs | Configured TX | Notes |
 |---|---|---:|---|---|
@@ -420,12 +451,6 @@ The board's uptime shows a restart at about 12:32. The host code at
 `de2d009b` had no coherent 8TX, which fits this capture's TX1 setting, and its
 sidecars have no calibration record.
 
-At matched static returns, 8TX coherent is −6 to +12.7 dB relative to
-TX1 (ideally up to +18 dB at the beam's peak), and 10 dB backoff lowers them
-by 7–15 dB (median 13 dB in the medium waveform, 11–12 dB in the short). With
-the radar held by hand, neither is a finding about the hardware; the
-fixed-mount captures of 2026-10-02 settle both (below).
-
 The ADC is far from full scale: 16–19 counts rms of ±2048 with TX1, extremes
 within ±1049 counts even with 8TX; offsets are −42 to −94 counts. No
 capture clips, so the window frame is not a problem.
@@ -435,31 +460,16 @@ The long waveform (unambiguous to 1.26 km) sees static returns to about
 at 169 and 273 m (20 and 19 dB per chirp with TX1), with others at 231 and
 265 m. The 2026-08-27 recording has similar features at 174–175 and
 270–280 m. Which one is the large building needs a map. The difference is
-not a range-scale error. Our range scale is right to within 1 % (below), and
+not a range-scale error. Our range scale is right to within 1 %
+([Range scale](#range-scale)), and
 Infineon's apparent ranges agree with the delay implied by its carrier step
 to within 1 % (0.05 % at the strongest returns). So the two recordings saw
 different scatterers, as their different pointing allows.
 
-**Range scale** ([window_range_scale.py](window_range_scale.py),
-[range_scale.png](generated/window/range_scale/range_scale.png)). Range comes
-from the beat frequency, so an error in slope or sample rate scales it. A
-vehicle's Doppler speed depends only on the carrier frequency, and the board
-starts the CPIs every 100 ms. Moving targets are tracked by range over the CPIs
-of the 2026-09-30 captures, their Doppler is unwrapped against the range rate,
-and the apparent range is fitted against the Doppler-integrated distance; the
-slope of that fit is the range scale. The 16 tracks with at least five CPIs,
-beyond 60 m and within 15 cm rms give a median of 1.002, and the 13 of them
-within 0.1 of it a weighted mean of 1.002 (p5–p95 0.997–1.010 from
-resampling the tracks). Nearer
-vehicles are excluded, since they turn and their strongest scatterer moves
-along the body. Our host code's slope, frequency, timing and decimation
-encodings follow the user manual's equations exactly, so a correct scale is
-what the code predicts.
-
 The strongest returns drift in phase by the same number of Hz within each
 51 ms CPI: 1.4–3.3 Hz rms, or 2.7–6.4 mm/s: the hand-held radar moving. Two
-of the late captures also carry a small fast phase common to all returns (see
-below).
+of the late captures also carry a small fast phase common to all returns
+([Window: method and results](#window-method-and-results)).
 
 The sidecars record the ramp timing, the ramp and ADC frequencies, the TX
 channels, backoff and phases, the RX gain, the calibration and the firmware
@@ -504,17 +514,11 @@ mount: the strongest returns' common phase drifts 0.03–0.09 Hz rms within a
 CPI, against 1.4–3.3 Hz hand-held on 2026-09-30, except in `medium-8TX`
 (12 Hz rms), where something moved. No CPI is flagged as interfered.
 
-- 10 dB backoff lowers matched static returns by a median of 9.93 dB in the
-  medium waveform (10 returns) and 9.98 dB in the short (14), all within
-  8.7–11.1 dB but for one weak medium return near the noise. The datasheet
-  allows ±2 dB for a reduction of 6–12 dB at constant junction temperature
-  (Table 24). The 7–15 dB of 2026-09-30 came from the hand-held pointing.
-- The calibrated 8TX beam adds 17.5 dB at the strongest return (27 m) and
-  15.2 dB at 34 m, against 18.1 dB at the beam's peak for eight equal,
-  perfectly phased TX; at the other returns, presumably off the beam, it adds
-  2–11 dB (median 8.9 dB over all 10).
-- δf is 3.09 kHz in the medium waveform and 3.61 kHz in the short (see
-  [Window: the MMIC programming sets the error](#window-the-mmic-programming-sets-the-error)).
+On this mount, 10 dB backoff lowers matched static returns by 9.9–10.0 dB and
+the calibrated eight-TX beam adds 17.5 dB at the strongest return ([TX backoff
+and the coherent eight-TX beam](#tx-backoff-and-the-coherent-eight-tx-beam)),
+and δf is 3.09 kHz in the medium waveform and 3.61 kHz in the short ([Window:
+method and results](#window-method-and-results)).
 
 ### Field captures
 
@@ -537,7 +541,7 @@ then the medium waveform, 15–28 s apart, from 10:42 to 10:50; the runs
 The reflector is the static peak that rose most over the empty scene. Its
 apparent ranges are 3.76, 7.33, 16.03, 34.05, 52.24 and 90.45 m for the
 nominal 5–100 m, the same in both waveforms within 0.15 m. The range scale is
-right to within 1 % (range scale, above), so the nominal distances were
+right to within 1 % ([Range scale](#range-scale)), so the nominal distances were
 indicative. Its level is steady: 0.01–0.16 dB rms from CPI to CPI, as for
 fixed mounts, and within −1.5 to +1.0 dB of the RX mean in every channel.
 After the 2026-09-30 calibration's RX phases, its per-RX amplitudes fit a
@@ -572,12 +576,13 @@ range model. It is the vehicles' power that hardly changes: the moving-target
 background changes by about 1 dB from 30 m to 1.2 km (a one-off check on the
 TX1 capture).
 
-Other radars interfere: 39 of 516 CPIs with TX1 and 70 of 487 in the busiest
-8TX capture are flagged, none in the other two. The steps drop them. A
-one-off run of window_phase on the busiest 8TX capture gives δf 0.50 kHz
-(p5–p95 0–0.80 kHz) from 17 clean static returns at 35–385 m. That is no
-better a bound than the window captures' 0.56 kHz: the bridge moves (common
-phase 11.8 Hz rms, up to 193 Hz), which the fit has to absorb.
+Other radars interfere in 39 of 516 CPIs with TX1 and 70 of 487 in the busiest
+8TX capture, none in the other two ([Interference from other
+radars](#interference-from-other-radars)); the steps drop them. A one-off run
+of window_phase on the busiest 8TX capture gives δf 0.50 kHz (p5–p95
+0–0.80 kHz) from 17 clean static returns at 35–385 m. That is no better a bound
+than the window captures' 0.56 kHz: the bridge moves (common phase 11.8 Hz rms,
+up to 193 Hz), which the fit has to absorb.
 
 ### Chamber
 
@@ -587,7 +592,11 @@ above, one dummy chirp, a 300 kHz analog high-pass setting, RX gain −3 dB, and
 either a single TX or TX1 + TX6 + TX7 + TX8. Its raw and calibration data were
 not supplied, so it is not analysed here.
 
-## Range performance against thermal noise
+## Sensitivity against the model
+
+The radar equation with datasheet values against the corner reflector:
+carried on the walk, the main comparison, and on a tripod in the field
+captures.
 
 ### Model
 
@@ -604,7 +613,64 @@ The model is [walk_model.py](walk_model.py). Viktor's hand calculation gives
 reference model has no hardware losses;
 [Loss terms](#loss-terms) adds them.
 
-### Method
+### Reflector
+
+| | Chamber reflector | Walking reflector |
+|---|---|---|
+| Type | Microwave Factory [MTR76P10-T5DW-100](https://www.mwf.co.jp/en/products/rf_accessories/mtr.html), triangular trihedral | Home-made: reflecting plates glued onto a trihedral of 1 cm absorber; we have two |
+| Size | 77.8 mm inner edge if ideal (not measured) | 100 mm inner edge, from the vertex along a seam (measured 2026-10-01) |
+| RCS | 10 dBsm at 76.5 GHz, as specified | 14.3 dBsm if ideal (at 76.4 GHz); measured against the chamber reflector, 11.3 dBsm at 2.5 m, about 11.5 dBsm in the far field |
+
+A triangular trihedral with inner edge a has ideal RCS σ = 4πa⁴/(3λ²).
+
+The lab comparison put the chamber reflector at 2.22 m and the walking one at
+2.51 m, aligned their angle responses and compared P × R⁴: the walking
+reflector came out 1.27 dB stronger. The first-order on-axis near-field loss,
+|sinc(A/λR)|² with A = a²/√3 (see `pa_260916_antenna_centers.md` in l2-sp), is
+0.24 dB for the chamber reflector and 0.51 dB for the larger walking one at
+their distances. These notes earlier said the loss cancels between the two;
+that holds only for reflectors of the same size. So the far-field difference
+is about 0.27 dB larger, and the walking reflector is about 11.5 dBsm.
+
+That is 2.8 dB below an ideal 100 mm trihedral, plausible for plates glued onto
+absorber. A trihedral tolerates being pointed a few degrees off, but its
+returned beam is only about 2° wide for a 100 mm aperture at a 3.9 mm
+wavelength. Plate-angle errors of a few tenths of a degree steer that beam
+partly away from the radar. The walking reflector's metal stand, which the
+report noted, may have added to the comparison, which would make the reflector
+itself weaker still. On the walk itself (15–51 m) the near-field loss is below
+0.05 dB; in the field captures it is 0.23 dB at 3.76 m and 0.06 dB at 7.3 m
+(`field_common.near_field_loss_db`, which reproduces the two lab values above
+to 0.01 dB).
+
+The field captures use the same walking reflector (photos). The scripts keep
+11.27 dBsm (`walk_common.py`). With 11.5 dBsm, the walk's +0.7 dB over the
+model becomes +0.5 dB. That is within the stated uncertainty, and the
+correction is not applied yet. A side-by-side comparison at 10 m or more would
+settle both this and how much the two home-made reflectors differ (see the
+open questions).
+
+**The carrier's own return is negligible.** On the walk the person carrying
+the reflector is in its range cell, and the trunk moves with the reflector, so
+its return shares the reflector's Doppler cell too. Averaged over aspect, a
+person measures −6.1 to −7.4 dBsm at 76–81 GHz, −1 to +1 dBsm at the
+strongest aspect
+([Schubert et al., IRS 2013](https://mwt-www.e-technik.uni-ulm.de/downloads/papers/2013/2013_IRS_Human-RCS-Measurements_Schubert_.pdf)),
+and −8.1 dBsm at 76 GHz, with front and back about 5 dB above the side
+([Yamada, R&D Review of Toyota CRDL 39(4)](https://www.tytlabs.co.jp/en/english/review/rev394epdf/e394_046yamada.pdf)).
+The walk agrees: the power within 2 m/s of the reflector's Doppler but outside
+±0.5 m/s, mostly the swinging legs, is 0.9 % of the reflector's inbound
+(about −9 dBsm) and at about the same absolute level outbound
+([CPI length](#cpi-length)). So the trunk, part of a body of about −7 dBsm, is
+at least 18 dB below the reflector's 11.3 dBsm. With a relative phase that
+changes between CPIs, it moves a CPI's level by about ±1 dB, in line with the
+walk's 0.6 dB rms at 15–27 m, and the averaged level by less than 0.1 dB.
+
+### The carried reflector
+
+([walk_extract.py](walk_extract.py),
+[walk_reference_snr.py](walk_reference_snr.py).) The walk's reflector,
+carried towards the radar, gives the main comparison with the model.
 
 **Target cell.** For each CPI, one common range–Doppler cell is found from the
 mean of per-RX powers normalized by far-quarter noise; every RX value is read
@@ -632,32 +698,66 @@ inbound leg:
 | Linear over RX and CPIs | 34.49 dB |
 | dB over RX and CPIs | 32.53 dB |
 
-Per-CPI standard deviation is 2.2 dB. Per-RX dB means range from 30.8 to 34.2 dB.
+Per-CPI standard deviation is 2.2 dB. Per-RX dB means range from 30.8 to
+34.2 dB.
 
-### Reconciling the report
+### Range structure and geometry
 
-| Step | Change | Value |
-|---|---:|---:|
-| Report, 33 selected CPIs | | 36.57 dB |
-| Reproduction with the report's selection rule, 37 CPIs | +0.37 | 36.94 dB |
-| RX magnitude sum → linear mean of RX power | −0.34 | 36.60 dB |
-| Far-quarter noise → target-free local noise | −1.23 | 35.37 dB |
-| Reflector RCS 10 → 11.27 dBsm | −1.27 | 34.10 dB |
-| All 39 inbound CPIs | −0.23 | **33.86 dB** |
-| Model with the preset's 10.2 dB noise figure (0 dB gain) | | 32.67 dB |
-| Model at the walk's RX gain (+3 dB, noise figure 9.7 dB) | | 33.17 dB |
-| Model with the CARKIT loss terms, before the cover | | 31.10–33.13 dB |
+| Inbound band | CPIs | Mean | Median | Std |
+|---|---:|---:|---:|---:|
+| 15–27 m | 14 | 32.8 dB | 32.9 dB | 0.6 dB |
+| 27–38 m | 11 | 33.7 dB | 33.1 dB | 2.1 dB |
+| 38–52 m | 14 | 35.0 dB | 34.6 dB | 2.7 dB |
 
-The report's selection keeps CPIs within 6 dB of the local R⁻⁴-corrected
-maximum within ±5 m, over 15–51 m; all selected CPIs are inbound. The exact
-33 CPIs could not be reproduced without Viktor's code.
+The spread beyond 30 m has the signature of ground multipath: most points
+above the short-range level, with occasional deep dips. Random-phase two-ray
+interference averages to zero in dB, though not in linear units. So
+multipath explains the spread but not the 2.3 dB rise of the dB mean; that
+needs something else, for example how the reflector was held. With a 30°
+10-dB elevation beamwidth, a modest height difference between radar and
+reflector costs little gain at 17 m. The reflector was probably carried at
+about 1 m; the radar height is unknown. Free fits of mean-RX target power give
+−35 dB/decade inbound and −30 dB/decade outbound, against −40.
+
+The outbound return is about 12 dB weaker after range correction and much more
+variable, probably because of how the reflector was carried; it is excluded
+from the reference.
+
+### CPI length
+
+Reprocessing each CPI as 128–1024-chirp segments
+([cpi_length.png](generated/walk/dynamics/cpi_length.png)):
+
+| Leg | Deficit against ideal at 1024 chirps | p10–p90 | Single-tone fraction | Power outside ±0.5 m/s |
+|---|---:|---:|---:|---:|
+| Inbound | 0.20 dB | −0.13 to 0.49 dB | 0.93 | 0.9 % |
+| Outbound | 1.41 dB | 0.26 to 4.5 dB | 0.53 | 11.7 % |
+
+The inbound return integrates nearly ideally over the full CPI. The outbound
+return is spread in Doppler by the carrier's motion. A synthetic tone through
+the same processing gave 3.06 / 6.01 / 9.09 dB against the ideal 3.01 / 6.02 /
+9.03 dB (a one-off check, not part of the scripts).
+
+### RX differences
+
+The strongest-to-weakest RX power span at the target cell has a median of
+9 dB outbound and 11 dB inbound, up to 28 dB. In CPI 100, RX8 is 28 dB below
+the strongest channel at the common cell but 16 dB below over a surrounding
+patch ([rx_null_example.png](generated/walk/dynamics/rx_null_example.png)).
+The spans change from CPI to CPI, so they are not fixed calibration
+differences. Nulls this deep need a second return of comparable strength from
+another direction; the carrier's own is far too weak ([Reflector](#reflector)),
+so their cause is not known. They also explain why Viktor's coherent RX sum
+(41.6 dB, about 39 dB after the same noise and RCS corrections) gains only
+about 5 dB over the per-RX level rather than 9 dB. This is a rough
+estimate, not computed here.
 
 ### Loss terms
 
-The model above has no hardware losses: the datasheet's TX power and noise
-figure act directly on the antenna's directivity. That was the toolbox's
-implicit choice when this study started. The toolbox now names each term
-between them (`SystemLosses`; catalogue and sources in
+The reference model ([Model](#model)) has no hardware losses: the datasheet's
+TX power and noise figure act directly on the antenna's directivity. That was
+the toolbox's implicit choice when this study started. The toolbox now names
+each term between them (`SystemLosses`; catalogue and sources in
 [docs/losses.md](../../docs/losses.md)). For CARKIT in the walk
 ([walk_model.py](walk_model.py),
 [summary.json](generated/walk/model/summary.json)):
@@ -678,8 +778,8 @@ The measurement is scaled to 100 m by R⁻⁴ alone, so the range-dependent term
 apply at the walk's own ranges, where they are negligible. With the other terms
 the model is 31.10–33.13 dB before the cover. The headline measurement is then
 0.74–2.77 dB above it, and 1.96–3.99 dB with the noise from the far quarter,
-which overstates it ([Field captures: two slopes](#field-captures-two-slopes)).
-Any loss in the cover adds to both.
+which overstates it ([Noise or gain shape: two
+slopes](#noise-or-gain-shape-two-slopes)). Any loss in the cover adds to both.
 
 Notes on the terms:
 
@@ -718,52 +818,31 @@ Notes on the terms:
   are not in the model.
 
 The terms widen the gap: the antenna, the noise figure's rise towards low IF,
-the cover and anything not modelled all lower the model. The walk cannot resolve terms of this size. The averaging convention
-alone moves the measured value over 32.53–34.49 dB, the noise reference by
-1.2 dB, and the reflector's RCS comes from a near-field comparison at 2.5 m.
-The same reflector on a tripod in the field captures gives a level 4.4 dB
-lower ([The reflector on a tripod](#the-reflector-on-a-tripod)).
-A unit with TX power near the datasheet's maximum would also explain up to
-1.5 dB. So the terms are taken from their sources, not fitted to the walk. A
-reflector on a fixed mount, calibrated against the chamber reflector, would
-narrow the measured side. The cover's loss cannot be measured on this unit,
-since its cover cannot easily be removed; it remains an unknown loss in every
-comparison with the model.
-
-### Range structure and geometry
-
-| Inbound band | CPIs | Mean | Median | Std |
-|---|---:|---:|---:|---:|
-| 15–27 m | 14 | 32.8 dB | 32.9 dB | 0.6 dB |
-| 27–38 m | 11 | 33.7 dB | 33.1 dB | 2.1 dB |
-| 38–52 m | 14 | 35.0 dB | 34.6 dB | 2.7 dB |
-
-The spread beyond 30 m has the signature of ground multipath: most points
-above the short-range level, with occasional deep dips. Random-phase two-ray
-interference averages to zero in dB, though not in linear units. So
-multipath explains the spread but not the 2.3 dB rise of the dB mean; that
-needs something else, for example how the reflector was held. With a 30°
-10-dB elevation beamwidth, a modest height difference between radar and
-reflector costs little gain at 17 m. The reflector was probably carried at
-about 1 m; the radar height is unknown. Free fits of mean-RX target power give
-−35 dB/decade inbound and −30 dB/decade outbound, against −40.
-
-The outbound return is about 12 dB weaker after range correction and much more
-variable, probably because of how the reflector was carried; it is excluded
-from the reference.
+the cover and anything not modelled all lower the model. The walk cannot
+resolve terms of this size. The averaging convention alone moves the measured
+value over 32.53–34.49 dB, the noise reference by 1.2 dB, and the reflector's
+RCS comes from a near-field comparison at 2.5 m. The same reflector on a tripod
+in the field captures gives a level 4.4 dB lower ([The reflector on a
+tripod](#the-reflector-on-a-tripod)). A unit with TX power near the datasheet's
+maximum would also explain up to 1.5 dB. So the terms are taken from their
+sources, not fitted to the walk. A reflector on a fixed mount, calibrated
+against the chamber reflector, would narrow the measured side. The cover's loss
+cannot be measured on this unit, since its cover cannot easily be removed; it
+remains an unknown loss in every comparison with the model.
 
 ### The reflector on a tripod
 
-[field_level.py](field_level.py), [levels.png](generated/field/level/levels.png).
-The field captures put the walk's reflector on a tripod at six distances, each
-with two waveforms (see [Field captures](#field-captures)). Its zero-Doppler
-power per RX, averaged over RX and CPIs in ADC counts squared with
-sum-normalized windows, is scaled to 16 m by R⁻⁴ at its apparent range. That
-is independent of window and padding, so it compares directly with the walk's
-per-RX powers, scaled the same way. Two corrections follow: the receiver's IF
-response at the reflector's beat frequency, relative to 2.5 MHz, from the
-two-slope ratios ([The receiver background](#the-receiver-background)); and the
-reflector's near-field loss ([Reflector](#reflector)).
+[field_level.py](field_level.py),
+[levels.png](generated/field/level/levels.png). The field captures put the
+walk's reflector on a tripod at six distances, each with two waveforms (see
+[Field captures](#field-captures)). Its zero-Doppler power per RX, averaged
+over RX and CPIs in ADC counts squared with sum-normalized windows, is scaled
+to 16 m by R⁻⁴ at its apparent range. That is independent of window and
+padding, so it compares directly with the walk's per-RX powers, scaled the same
+way. Two corrections follow: the receiver's IF response at the reflector's beat
+frequency, relative to 2.5 MHz, from the two-slope ratios ([The receiver
+background](#the-receiver-background)); and the reflector's near-field loss
+([Reflector](#reflector)).
 
 | Apparent range | Beat, medium / short | Medium: measured → corrected | Short: measured → corrected | Azimuth |
 |---:|---|---|---|---:|
@@ -845,97 +924,36 @@ loss at a free level. It predicts 29.3 dB at 90 m, where 33 dB is measured, so
 it needs about 4 dB of constructive multipath there. Suggestive, not
 decisive; the tilt scan in measurement 1 settles it.
 
-The walk's averaging and selection conventions move its value by at most
-2 dB ([Method](#method)), and its short-range points have a 0.6 dB spread, so
-they do not explain it either. Measurement 1 in the open questions addresses
-the candidates with our firmware alone, since Infineon's may not be
-restorable: the walk's geometry repeated with careful pointing, an elevation
-tilt scan, and, if the equipment is at hand, CARKIT's radiated power measured
-directly.
-
-### RX differences
-
-The strongest-to-weakest RX power span at the target cell has a median of
-9 dB outbound and 11 dB inbound, up to 28 dB. In CPI 100, RX8 is 28 dB below
-the strongest channel at the common cell but 16 dB below over a surrounding
-patch ([rx_null_example.png](generated/walk/dynamics/rx_null_example.png)).
-The spans change from CPI to CPI, so they are not fixed calibration
-differences. Nulls this deep need a second return of comparable strength from
-another direction; the carrier's own is far too weak ([Reflector](#reflector)),
-so their cause is not known. They also explain why Viktor's coherent RX sum
-(41.6 dB, about 39 dB after the same noise and RCS corrections) gains only
-about 5 dB over the per-RX level rather than 9 dB. This is a rough
-estimate, not computed here.
-
-### CPI length
-
-Reprocessing each CPI as 128–1024-chirp segments
-([cpi_length.png](generated/walk/dynamics/cpi_length.png)):
-
-| Leg | Deficit against ideal at 1024 chirps | p10–p90 | Single-tone fraction | Power outside ±0.5 m/s |
-|---|---:|---:|---:|---:|
-| Inbound | 0.20 dB | −0.13 to 0.49 dB | 0.93 | 0.9 % |
-| Outbound | 1.41 dB | 0.26 to 4.5 dB | 0.53 | 11.7 % |
-
-The inbound return integrates nearly ideally over the full CPI. The outbound
-return is spread in Doppler by the carrier's motion. A synthetic tone through
-the same processing gave 3.06 / 6.01 / 9.09 dB against the ideal 3.01 / 6.02 /
-9.03 dB (a one-off check, not part of the scripts).
-
-### Reflector
-
-| | Chamber reflector | Walking reflector |
-|---|---|---|
-| Type | Microwave Factory [MTR76P10-T5DW-100](https://www.mwf.co.jp/en/products/rf_accessories/mtr.html), triangular trihedral | Home-made: reflecting plates glued onto a trihedral of 1 cm absorber; we have two |
-| Size | 77.8 mm inner edge if ideal (not measured) | 100 mm inner edge, from the vertex along a seam (measured 2026-10-01) |
-| RCS | 10 dBsm at 76.5 GHz, as specified | 14.3 dBsm if ideal (at 76.4 GHz); measured against the chamber reflector, 11.3 dBsm at 2.5 m, about 11.5 dBsm in the far field |
-
-A triangular trihedral with inner edge a has ideal RCS σ = 4πa⁴/(3λ²).
-
-The lab comparison put the chamber reflector at 2.22 m and the walking one at
-2.51 m, aligned their angle responses and compared P × R⁴: the walking
-reflector came out 1.27 dB stronger. The first-order on-axis near-field loss,
-|sinc(A/λR)|² with A = a²/√3 (see `pa_260916_antenna_centers.md` in l2-sp), is
-0.24 dB for the chamber reflector and 0.51 dB for the larger walking one at
-their distances. These notes earlier said the loss cancels between the two;
-that holds only for reflectors of the same size. So the far-field difference
-is about 0.27 dB larger, and the walking reflector is about 11.5 dBsm.
-
-That is 2.8 dB below an ideal 100 mm trihedral, plausible for plates glued
-onto absorber. A trihedral tolerates being pointed a few degrees off, but its
-returned beam is only about 2° wide for a 100 mm aperture at a 3.9 mm
-wavelength. Plate-angle errors of a few tenths of a degree steer that beam
-partly away from the radar. The walking reflector's metal stand, which the report noted, may have
-added to the comparison, which would make the reflector itself weaker still.
-On the walk itself (15–51 m) the near-field loss is below 0.05 dB; in the
-field captures it is 0.23 dB at 3.76 m and 0.06 dB at 7.3 m
-(`field_common.near_field_loss_db`, which reproduces the two lab values above
-to 0.01 dB).
-
-The field captures use the same walking reflector (photos). The scripts keep
-11.27 dBsm (`walk_common.py`). With 11.5 dBsm, the walk's +0.7 dB over the
-model becomes +0.5 dB. That is within the stated uncertainty, and the
-correction is not applied yet. A side-by-side comparison at 10 m or more would
-settle both this and how much the two home-made reflectors differ (see the
-open questions).
-
-**The carrier's own return is negligible.** On the walk the person carrying
-the reflector is in its range cell, and the trunk moves with the reflector, so
-its return shares the reflector's Doppler cell too. Averaged over aspect, a
-person measures −6.1 to −7.4 dBsm at 76–81 GHz, −1 to +1 dBsm at the
-strongest aspect
-([Schubert et al., IRS 2013](https://mwt-www.e-technik.uni-ulm.de/downloads/papers/2013/2013_IRS_Human-RCS-Measurements_Schubert_.pdf)),
-and −8.1 dBsm at 76 GHz, with front and back about 5 dB above the side
-([Yamada, R&D Review of Toyota CRDL 39(4)](https://www.tytlabs.co.jp/en/english/review/rev394epdf/e394_046yamada.pdf)).
-The walk agrees: the power within 2 m/s of the reflector's Doppler but outside
-±0.5 m/s, mostly the swinging legs, is 0.9 % of the reflector's inbound
-(about −9 dBsm) and at about the same absolute level outbound
-([CPI length](#cpi-length)). So the trunk, part of a body of about −7 dBsm, is
-at least 18 dB below the reflector's 11.3 dBsm. With a relative phase that
-changes between CPIs, it moves a CPI's level by about ±1 dB, in line with the
-walk's 0.6 dB rms at 15–27 m, and the averaged level by less than 0.1 dB.
+The walk's averaging and selection conventions move its value by at most 2 dB
+([The carried reflector](#the-carried-reflector)), and its short-range points
+have a 0.6 dB spread, so they do not explain it either. Measurement 1 in the
+open questions addresses the candidates with our firmware alone, since
+Infineon's may not be restorable: the walk's geometry repeated with careful
+pointing, an elevation tilt scan, and, if the equipment is at hand, CARKIT's
+radiated power measured directly.
 
 ## The receiver background
+
+Away from strong returns, the remote-Doppler background holds the receiver's
+noise. In the walk, window and field captures it rises towards low IF, by about
+1.2 dB from 20 MHz down to 1 MHz. Two explanations were open. If it is IF gain
+shape, signal and noise are shaped alike, and the SNR at a given range does not
+depend on the beat frequency: for the walk, the local noise reference is right
+(+0.7 dB over the model). If it is receiver noise that rises at low IF, a
+target's SNR improves as its beat frequency rises, and noise taken from the far
+quarter of the range spectrum is the better reference for high IF (+1.9 dB).
+The datasheet's noise figure changes only 0.2 dB between 1 and 10 MHz at the
+walk's RX gain.
+
+A TX-off capture cannot decide, since both remain with TX off; what decides is
+a signal of known level at different beat frequencies. The field captures
+provide it ([Noise or gain shape: two
+slopes](#noise-or-gain-shape-two-slopes)): between 1.25 and 5.3 MHz the excess
+is noise, and from 7 to 14 MHz it is not, within the precision available. For
+the walk this gives +0.7 dB at its own beat frequencies and about +1.2 dB for
+a target at 5–14 MHz.
+
+### Its shape and origin
 
 **Walk.** The background at |v| ≥ 10 m/s relative to the far quarter
 ([background.png](generated/walk/background/background.png)):
@@ -953,48 +971,47 @@ far quarter and 0.05 expected if the excess were common to all channels.
 Phase noise on leakage or nearby returns would be common, because the channels
 share the LO, so that explanation is ruled out.
 
-Two explanations were open. If it is IF gain shape, signal and noise are
-shaped alike, and the SNR at a given range does not depend on the beat
-frequency: the local reference is right (+0.7 dB). If it is receiver noise
-that rises at low IF, a target's SNR improves as its beat frequency rises,
-and the far quarter is the better reference for high IF (+1.9 dB). The
-datasheet NF changes only 0.3 dB between 1 and 10 MHz. A TX-off capture cannot
-decide, since both remain with TX off; what decides is a signal of known level
-at different beat frequencies. The field captures provide it
-([Field captures: two slopes](#field-captures-two-slopes)): between 1.25 and
-5.3 MHz the excess is noise, and from 7 to 14 MHz it is not, within the
-precision available. For the walk this gives +0.7 dB at its own beat
-frequencies and about +1.2 dB for a target at 5–14 MHz.
-
-**Window captures.** The channel-independent remote-Doppler floor
+**Window and field captures.** The channel-independent remote-Doppler floor
 (|f_D| > 1 kHz), from the middle four eigenvalues of the 8×8 RX covariance in
 each range bin, relative to its median over 18–24 MHz
-([background.png](generated/window/scene/background.png)). A disturbance with
-one spatial signature, such as a scene return, its pedestal or a vehicle,
-takes the largest eigenvalue whatever its angle, which products between RX
-pairs would not separate:
+([background.png](generated/window/scene/background.png),
+[field_if.py](field_if.py), [if_test.png](generated/field/if/if_test.png),
+left; the window rows are from 2026-09-30). A disturbance with one spatial
+signature, such as a scene return, its pedestal or a vehicle, takes the
+largest eigenvalue whatever its angle, which products between RX pairs would
+not separate:
 
-| Capture | 0.7 MHz | 1 MHz | 2 MHz | 3.3 MHz | 6.6 MHz | 13 MHz | 18–24 MHz [dB ADC-count²/cell] |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| short-1TX-0dB | 1.13 | 1.18 | 0.95 | 0.71 | 0.45 | 0.14 | −30.77 |
-| short-1TX-10dB | 1.18 | 1.25 | 0.95 | 0.73 | 0.40 | 0.15 | −30.90 |
-| medium-1TX-0dB | 1.14 | 1.26 | 1.01 | 0.76 | 0.53 | 0.21 | −30.84 |
-| medium-1TX-10dB | 1.11 | 1.24 | 1.02 | 0.76 | 0.44 | 0.15 | −30.88 |
-| long-1TX-0dB | 1.14 | 1.20 | 1.01 | 0.98 | 0.38 | 0.15 | −33.52 |
-| long-8TX-0dB (no scene) | 1.28 | 1.31 | 0.94 | 0.78 | 0.45 | 0.17 | −33.51 |
-| Walk, over its far quarter | | 1.5 | 1.2 | 0.9 | 0.5 | 0.2 | |
+| Capture | TX | 0.7 MHz | 1 MHz | 2 MHz | 3.3 MHz | 6.6 MHz | 13 MHz | 18–24 MHz [dB ADC-count²/cell] |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Window: short-1TX-0dB | TX1 | 1.13 | 1.18 | 0.95 | 0.71 | 0.45 | 0.14 | −30.77 |
+| Window: short-1TX-10dB | TX1, 10 dB backoff | 1.18 | 1.25 | 0.95 | 0.73 | 0.40 | 0.15 | −30.90 |
+| Window: medium-1TX-0dB | TX1 | 1.14 | 1.26 | 1.01 | 0.76 | 0.53 | 0.21 | −30.84 |
+| Window: medium-1TX-10dB | TX1, 10 dB backoff | 1.11 | 1.24 | 1.02 | 0.76 | 0.44 | 0.15 | −30.88 |
+| Window: long-1TX-0dB | TX1 | 1.14 | 1.20 | 1.01 | 0.98 | 0.38 | 0.15 | −33.52 |
+| Window: long-8TX-0dB (no scene) | TX1, as configured | 1.28 | 1.31 | 0.94 | 0.78 | 0.45 | 0.17 | −33.51 |
+| Field: notx | none | 1.13 | 1.19 | 1.00 | 0.74 | 0.43 | 0.13 | −30.83 |
+| Field: empty-medium | TX1 | 1.17 | 1.24 | 1.07 | 0.77 | 0.43 | 0.15 | −30.94 |
+| Field: empty-short | TX1 | 1.15 | 1.23 | 0.94 | 0.67 | 0.39 | 0.09 | −30.90 |
+| Field: sky-1tx | TX1 | 1.26 | 1.34 | 1.04 | 0.73 | 0.43 | 0.10 | −31.17 |
+| Field: sky-8tx | 8TX, uncalibrated | 1.59 | 1.63 | 1.15 | 0.84 | 0.47 | 0.13 | −30.97 |
+| Walk, over its far quarter | TX1 | | 1.5 | 1.2 | 0.9 | 0.5 | 0.2 | |
 
-10 dB less TX power changes the floor by at most 0.13 dB and its shape by at
-most 0.1 dB, and a capture with no scene beyond 10 m has the same floor as the
-one with the full scene. So the excess at low IF comes from the receiver, not
-from the TX or anything reflected, and it has the walk's shape, 0.2–0.3 dB
-lower at 1–2 MHz (with a different reference). The long waveform's cells are
-3 dB lower for the same noise (four times the samples, half the chirps). Below
-about 0.5 MHz the high-pass filter takes over (6 m in the medium waveform). In
-the no-scene capture a component common to the RX channels lifts the total
-remote-Doppler power 2.2 dB above the independent floor at all ranges,
-probably the high-offset skirt of the strong return within 10 m; it has not
-been examined further.
+With no TX at all, the background has the same shape and level as with TX1,
+within 0.1 dB. 10 dB less TX power changes the floor by at most 0.13 dB and
+its shape by at most 0.1 dB, and a capture with no scene beyond 10 m has the
+same floor as the one with the full scene. So the excess at low IF comes from
+the receiver, not from the TX or anything reflected, and it has the walk's
+shape, 0.2–0.3 dB lower at 1–2 MHz (with a different reference). The long
+waveform's cells are 3 dB lower for the same noise (four times the samples,
+half the chirps). Below about 0.5 MHz the high-pass filter takes over (6 m in
+the medium waveform).
+
+With all eight TX on, pointed at the sky, the background rises 0.3–0.5 dB
+below 1 MHz, and a component common to the RX channels lifts the total
+remote-Doppler power 0.27 dB above the independent floor at 1–10 MHz
+(0.03 dB or less in the other field captures). In the window capture without
+scene such a component lifts it 2.2 dB at all ranges, probably the high-offset
+skirt of the strong return within 10 m. Neither has been examined further.
 
 **Outdoor captures.** RX1, mean power over |Doppler| > 5 kHz per native bin; the
 background is the median over 2–15 m, excluding ±1.5 m around the reflector
@@ -1014,29 +1031,9 @@ background at 10 m is only the weaker reference. Its median squared coherence
 between RX channels is 0.0005–0.028, against 0.03–0.50 in the reflector's range
 bin. The 5 m captures are 0.7 dB (400 MHz) and 1.0 dB (800 MHz) above the 10 m
 captures, most visibly at 2–10 m: the reflector's own high-offset skirt (see
-[Comparison with the CW datasheet](#comparison-with-the-cw-datasheet)).
+[Outdoor: against the CW datasheet](#outdoor-against-the-cw-datasheet)).
 
-**Field captures: the background.** The same estimator on the field
-captures ([field_if.py](field_if.py),
-[if_test.png](generated/field/if/if_test.png), left), relative to 18–24 MHz,
-and the level there per cell:
-
-| Capture | TX | 0.7 MHz | 1 MHz | 2 MHz | 3.3 MHz | 6.6 MHz | 13 MHz | 18–24 MHz [dB ADC-count²/cell] |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| notx | none | 1.13 | 1.19 | 1.00 | 0.74 | 0.43 | 0.13 | −30.83 |
-| empty-medium | TX1 | 1.17 | 1.24 | 1.07 | 0.77 | 0.43 | 0.15 | −30.94 |
-| empty-short | TX1 | 1.15 | 1.23 | 0.94 | 0.67 | 0.39 | 0.09 | −30.90 |
-| sky-1tx | TX1 | 1.26 | 1.34 | 1.04 | 0.73 | 0.43 | 0.10 | −31.17 |
-| sky-8tx | 8TX, uncalibrated | 1.59 | 1.63 | 1.15 | 0.84 | 0.47 | 0.13 | −30.97 |
-
-With no TX at all, the background has the same shape and level as with TX1,
-within 0.1 dB, and the window captures' shape. With all eight TX on, pointed
-at the sky, it rises 0.3–0.5 dB below 1 MHz, and a component common to the RX
-channels lifts the total remote-Doppler power 0.27 dB above the independent
-floor at 1–10 MHz (0.03 dB or less in the others), as in the window capture
-without scene.
-
-### Field captures: two slopes
+### Noise or gain shape: two slopes
 
 ([field_if.py](field_if.py), [if_test.png](generated/field/if/if_test.png),
 right.) The short ramp sweeps twice the medium ramp's bandwidth in the same
@@ -1091,11 +1088,70 @@ reference is the SNR the reflector actually had; for long-range targets the
 model is about 0.5 dB further below the measurement, not the 1.2 dB the far
 quarter suggests.
 
+## Scale, gain and interference
+
+### Range scale
+
+([window_range_scale.py](window_range_scale.py),
+[range_scale.png](generated/window/range_scale/range_scale.png).) Range comes
+from the beat frequency, so an error in slope or sample rate scales it. A
+vehicle's Doppler speed depends only on the carrier frequency, and the board
+starts the CPIs every 100 ms. Moving targets are tracked by range over the CPIs
+of the 2026-09-30 captures, their Doppler is unwrapped against the range rate,
+and the apparent range is fitted against the Doppler-integrated distance; the
+slope of that fit is the range scale. The 16 tracks with at least five CPIs,
+beyond 60 m and within 15 cm rms give a median of 1.002, and the 13 of them
+within 0.1 of it a weighted mean of 1.002 (p5–p95 0.997–1.010 from resampling
+the tracks). Nearer vehicles are excluded, since they turn and their strongest
+scatterer moves along the body. Our host code's slope, frequency, timing and
+decimation encodings follow the user manual's equations exactly, so a correct
+scale is what the code predicts.
+
+### TX backoff and the coherent eight-TX beam
+
+"8TX" is all eight transmitters with the calibration's phases and no phase
+step: a TX beam towards boresight. On 2026-09-30, with the radar held by hand,
+8TX was −6 to +12.7 dB relative to TX1 at matched static returns (ideally up
+to +18 dB at the beam's peak), and 10 dB backoff lowered them by 7–15 dB
+(median 13 dB in the medium waveform, 11–12 dB in the short). With the
+pointing changing between captures, neither is a finding about the hardware.
+The fixed mount of 2026-10-02 settles both ([window_scene.py](window_scene.py)
+with `--level-pairs`):
+
+- 10 dB backoff lowers matched static returns by a median of 9.93 dB in the
+  medium waveform (10 returns) and 9.98 dB in the short (14), all within
+  8.7–11.1 dB but for one weak medium return near the noise. The datasheet
+  allows ±2 dB for a reduction of 6–12 dB at constant junction temperature
+  (Table 24).
+- The calibrated 8TX beam adds 17.5 dB at the strongest return (27 m) and
+  15.2 dB at 34 m, against 18.1 dB at the beam's peak for eight equal,
+  perfectly phased TX; at the other returns, presumably off the beam, it adds
+  2–11 dB (median 8.9 dB over all 10).
+
+### Interference from other radars
+
+Another radar's chirps crossing ours raise the background at all ranges at
+once, unlike a target or its pedestal. The steps flag a CPI whose median
+remote-Doppler power over 2–20 MHz of beat frequency exceeds the capture's
+median by more than 1 dB (`carkit_common.interference_flags`), and drop it. In
+the window captures the flagged CPIs are raised by 1.1–3.0 dB, the others are
+within 0.56 dB at the 90th percentile.
+
+| Capture | Flagged CPIs |
+|---|---|
+| Window, 2026-08-27 | 8 of 42 in mode 0, 15 of 89 in mode 1 |
+| Window, 2026-09-30 | 3 of 10 in `medium-8TX-0dB-highway`, none in the other cases |
+| Window, 2026-10-02 | None |
+| Field captures | None in the stationary, empty, TX-off and sky captures |
+| Highway captures | 39 of 516 with TX1, 70 of 487 in the busiest 8TX capture, none in the other two |
+
+Handling interference is a separate topic; here it only costs CPIs.
+
 ## The per-chirp frequency error
 
 A strong return raises the remote-Doppler background at its own range: a ridge
-along Doppler in the range–Doppler map. Both datasets show that it is a phase
-error per chirp, proportional to the return's round-trip delay τ:
+along Doppler in the range–Doppler map. Every dataset here shows that it is a
+phase error per chirp, proportional to the return's round-trip delay τ:
 δφ = 2πτδf, with one frequency error δf per chirp shared by all returns and RX
 channels.
 
@@ -1119,8 +1175,17 @@ values (a one-off check). Within a firmware the slope changes by a factor of 8
 (Infineon's, at 5.54 µs) or 2 (ours) without a matching change in δf. Timing
 jitter between ramp and ADC, or ADC sampling jitter, would make the error scale
 with slope (or with beat frequency), so neither fits. Between the firmwares, δf
-differs by 16 dB at nearly the same pre-payload, 4.2 and 4.0 µs
-([Window: the MMIC programming sets the error](#window-the-mmic-programming-sets-the-error)).
+differs by 16 dB at nearly the same pre-payload, 4.2 and 4.0 µs ([Window: the
+MMIC programming sets the error](#window-the-mmic-programming-sets-the-error)).
+
+The subsections follow the order in which the error was understood. The walk
+and the outdoor captures, both with Infineon's firmware, show that it is an LO
+error, pure phase and shared by all returns, at 14–19 kHz, 12–17 dB above what
+the CW datasheet predicts. The window captures then show that the MMIC's
+programming sets its size: with our firmware it is at the CW level, it follows
+the delay law to 270 m, and a longer payload averages it down. The last two
+subsections relate this to the datasheet's ramp timing and give the
+consequences at long range.
 
 ### Walk: the pedestal scales with power and range squared
 
@@ -1190,10 +1255,10 @@ the 12.6 dB higher that the delay law predicts for 167 m against 39 m.
 The law therefore holds to τ ≈ 1.1 µs. This does not yet test saturation: for
 phase noise, 4 sin²(πfτ) falls below (2πfτ)² by only 0.2 dB at 100 kHz and
 0.7 dB at 200 kHz at 167 m, whereas at 300 m the shortfall reaches 0.6 and
-2.4 dB. The window captures extend the law to 270 m with our firmware
-([Window: the MMIC programming sets the error](#window-the-mmic-programming-sets-the-error)),
-where the per-chirp quantity, averaged over the payload, saturates by only
-about 0.5 dB.
+2.4 dB. The window captures extend the law to 270 m with our firmware ([Window:
+the delay law and the payload
+length](#window-the-delay-law-and-the-payload-length)), where the per-chirp
+quantity, averaged over the payload, saturates by only about 0.5 dB.
 
 ### Outdoor: method
 
@@ -1299,7 +1364,7 @@ expected with both hand-held. The analysis removes the drift with the per-CPI
 cubic, and the remote-Doppler band excludes it. A rigid mount would remove the
 drift and the peak variation, not the fast component.
 
-### Comparison with the CW datasheet
+### Outdoor: against the CW datasheet
 
 [outdoor_model.py](outdoor_model.py) predicts the measured quantity from the
 toolbox's CTRX8188F CW table (upper band, 77–81 GHz; TX-port data treated as
@@ -1320,8 +1385,8 @@ weighting's response, folded at the PRF
 A separate small-delay calculation with a direct transform of the weighting
 also gives 3.29 kHz for the typical table. The walk, at 76.37 GHz with the same
 sampling and PRI, is 16–17 dB above the lower-band typical table (16.9 and
-19.0 kHz against 2.64 kHz, a one-off calculation). The CW prediction's spectrum is flat over slow-time
-frequency; the measured one rises.
+19.0 kHz against 2.64 kHz, a one-off calculation). The CW prediction's spectrum
+is flat over slow-time frequency; the measured one rises.
 
 The full range–Doppler prediction (`phase_noise_fft`) averaged over remote
 Doppler gives a skirt of −83.6 and −83.4 dBc/bin at 2–15 m in the two 5 m
@@ -1333,11 +1398,11 @@ prediction. The per-chirp phase only sees offsets that the 10.24 µs payload
 average passes, up to a few hundred kHz, while range bins beyond the
 reflector's mainlobe see higher offsets. So the excess is confined to low
 offsets, where the table is flat (−78 dBc/Hz up to 100 kHz), inside the
-synthesizer loop bandwidth. All these captures were made with Infineon's
-firmware; with ours the per-chirp error is at the table's level (next
-section).
+synthesizer loop bandwidth. All these captures were made with Infineon's firmware; with ours the per-chirp
+error is at the table's level ([Window: against the CW
+table](#window-against-the-cw-table)).
 
-### Window: the MMIC programming sets the error
+### Window: method and results
 
 **Method** ([window_phase.py](window_phase.py)). The returns of each case are
 the local maxima of its static profile, at least 8 dB above the per-chirp
@@ -1394,12 +1459,11 @@ independent errors.
 | 2026-10-02, medium (3 cases) | 5–13 per case, 27–284 m | 128 | **3.09 kHz (3.01–3.18)** | 2.0–4.1 mrad |
 | 2026-10-02, short (2 cases) | 5–12 per case, 24–129 m | 67 | **3.61 kHz (3.49–3.70)** | 2.8–5.0 mrad |
 
-CPIs that window_scene.py flags as interfered are dropped: 3 of 10 in
-medium-8TX-0dB-highway, 8 of 42 in Infineon mode 0 and 15 of 89 in mode 1,
-raised by 1.1–3.0 dB over all ranges (the other CPIs within 0.56 dB at the
-90th percentile). Keeping them changes the pooled and Infineon values by at
-most 0.5 kHz (earlier 3.47, 30.0 and 21.2 kHz). The 2026-10-02 captures, with
-the radar on a fixed mount, have none.
+CPIs flagged as interfered are dropped
+([Interference from other radars](#interference-from-other-radars)): 3 in
+medium-8TX-0dB-highway and 23 in the Infineon recording. Keeping them changes
+the pooled and Infineon values by at most 0.5 kHz, to 3.47, 30.0 and
+21.2 kHz.
 
 The captures spread over 3.1–4.1 kHz, more than the bootstrap intervals, since
 scene and returns differ between them. 1TX and 8TX coherent agree within that
@@ -1418,8 +1482,10 @@ building, or a phase added to the TX or RX path after the LO is split off,
 would give the same. It does not enter δf, and at a few mrad it costs no
 sensitivity.
 
-**Against the CW table.** The prediction for these waveforms (as outdoors,
-now `carkit_common.per_chirp_frequency_psd`) is 2.69–2.71 kHz typical with the
+### Window: against the CW table
+
+The prediction for these waveforms (as outdoors, now
+`carkit_common.per_chirp_frequency_psd`) is 2.69–2.71 kHz typical with the
 76–77 GHz table and 3.35–3.38 kHz with the 77–81 GHz table, and 4.78–4.82 and
 5.88–5.93 kHz maximum. Our sweeps are centred at 77.00 GHz, the boundary
 between the tables. The measured 3.45–3.53 kHz is 2.2–2.4 dB above the
@@ -1435,6 +1501,8 @@ against a flat 20.6 dB Hz²/Hz from the typical table at its 71.6 kHz PRF:
 concentrated near PRF/2 alternates from chirp to chirp, as it would if the
 synthesizer had not settled from the previous ramp when the next payload
 begins. That is a working hypothesis, not tested.
+
+### Window: the delay law and the payload length
 
 **Delay law.** Medium, pooled, by the pair's farther return, with each
 capture's common phase removed:
@@ -1468,9 +1536,10 @@ most 0.56 kHz (p95) over 8 pairs at 14–273 m. The typical tables predict
 removes more of the LO's frequency noise; an error that is constant over each
 chirp would not be reduced.
 
-**What differs.** Same unit, same window, same 10.24 µs payload (short and
-medium) and 50 MS/s sampling. The MMIC is programmed differently (see
-[Firmware](#firmware)):
+### Window: the MMIC programming sets the error
+
+Same unit, same window, same 10.24 µs payload (short and medium) and 50 MS/s
+sampling. The MMIC is programmed differently (see [Firmware](#firmware)):
 
 - Infineon's configurations follow each ramp with 60 ns flyback and 60 ns
   wait, so the next ramp starts almost at once, with 3.54–5.54 µs of
@@ -1529,23 +1598,48 @@ error, which the walk and outdoor captures show at 300 kHz.
 ### Consequences at long range
 
 For a weak target its own pedestal is negligible against the noise; what the
-error costs it is coherent gain. With our firmware's timing, δf ≈ 3.5 kHz gives a per-chirp
-phase of 0.15 rad rms at 1 km (τ = 6.7 µs) if the delay law holds that far.
-Here it holds to 270 m. That is about 0.1 dB of coherent loss (the toolbox's
-`SystemLosses.chirp_frequency_error_rms_hz` term, which uses this law), and in
-fact less, since for phase noise the delay-squared law is the small-fτ limit of
-4 sin²(πfτ); at 1 km it is reduced by 0.6, 1.7 and 3.9 dB at 30, 50 and
-75 kHz. A longer payload lowers it further: the long waveform's 0.5 kHz gives
-0.02 rad at 1 km. With Infineon's timing (14–30 kHz) it would be 0.6–1.3 rad
-at 1 km, up to 1.5–7 dB of coherent loss and a large pedestal around strong
-returns. For Psi, the time between ramps (flyback, wait, pre-payload) is
-therefore part of the waveform design. Our firmware's present timing is fine;
-how short it can be made without the error returning is what the timing test
-should show.
+error costs it is coherent gain. With our firmware's timing, δf ≈ 3.5 kHz gives
+a per-chirp phase of 0.15 rad rms at 1 km (τ = 6.7 µs) if the delay law holds
+that far. Here it holds to 270 m. That is about 0.1 dB of coherent loss (the
+toolbox's `SystemLosses.chirp_frequency_error_rms_hz` term, which uses this
+law), and in fact less, since for phase noise the delay-squared law is the
+small-fτ limit of 4 sin²(πfτ); at 1 km it is reduced by 0.6, 1.7 and 3.9 dB at
+30, 50 and 75 kHz. A longer payload lowers it further: the long waveform's
+0.5 kHz gives 0.02 rad at 1 km. With Infineon's timing (14–30 kHz) it would be
+0.6–1.3 rad at 1 km, up to 1.5–7 dB of coherent loss and a large pedestal
+around strong returns. For Psi, the time between ramps (flyback, wait,
+pre-payload) is therefore part of the waveform design. Our firmware's present
+timing is fine; how short it can be made without the error returning is what
+the timing test should show.
 
-## The report
+## Viktor's report
 
-Points raised in the thread or found in review of Viktor's walk report:
+Viktor's report on the walk ([CARKIT report.pdf](inputs/CARKIT%20report.pdf),
+2026-09-22) put the measurement 4 dB above the model. This section shows how
+that reconciles with the results above, and lists the other points raised
+in its review.
+
+### Reconciling the +4 dB
+
+| Step | Change | Value |
+|---|---:|---:|
+| Report, 33 selected CPIs | | 36.57 dB |
+| Reproduction with the report's selection rule, 37 CPIs | +0.37 | 36.94 dB |
+| RX magnitude sum → linear mean of RX power | −0.34 | 36.60 dB |
+| Far-quarter noise → target-free local noise | −1.23 | 35.37 dB |
+| Reflector RCS 10 → 11.27 dBsm | −1.27 | 34.10 dB |
+| All 39 inbound CPIs | −0.23 | **33.86 dB** |
+| Model with the preset's 10.2 dB noise figure (0 dB gain) | | 32.67 dB |
+| Model at the walk's RX gain (+3 dB, noise figure 9.7 dB) | | 33.17 dB |
+| Model with the CARKIT loss terms, before the cover | | 31.10–33.13 dB |
+
+The report's selection keeps CPIs within 6 dB of the local R⁻⁴-corrected
+maximum within ±5 m, over 15–51 m; all selected CPIs are inbound. The exact
+33 CPIs could not be reproduced without Viktor's code.
+
+### Points from the review
+
+Points raised in the thread or found in review of the report:
 
 - The 36.57 dB anchor is a selected fixed-R⁻⁴ fit of an RX magnitude sum over
   far-quarter noise, not a per-RX SNR and not a measurement at 100 m.
@@ -1559,7 +1653,8 @@ Points raised in the thread or found in review of Viktor's walk report:
 - The chamber is phase-noise limited, so its coherent RX gain (7.14 dB) says
   nothing about gain against thermal noise and must not enter range budgets.
 - Minor: Section 1.4 says 7.19 dB where Table 5 gives 7.14 dB; Table 3's
-  "ADC-bandbredd" is the sampled RF sweep; 120 ms is the frame period, not a CPI.
+  "ADC-bandbredd" is the sampled RF sweep; 120 ms is the frame period, not a
+  CPI.
 - Section 3.2: the 13 dB threshold corresponds to Pfa ≈ 2.2e-9; its 950 m is
   consistent with that. The earlier 994 m came from an early Psi configuration
   with 17 dBi antennas and Pfa = 1e-6, so the two are not comparable. A
@@ -1647,7 +1742,7 @@ the outdoor captures used Infineon's firmware, everything from 2026-09-30 ours
    the strong return within 10 m.
 7. **Minor:** a phase common to all returns, 2–5 mrad rms above 500 Hz, with
    the radar on a fixed mount
-   ([Window: the MMIC programming sets the error](#window-the-mmic-programming-sets-the-error)).
+   ([Window: method and results](#window-method-and-results)).
    It does not enter δf and costs no sensitivity.
 8. **Minor:** the 2026-08-27 recording's receiver noise is 4.7 dB above the
    other captures', where its recorded 0 dB RX gain step would put it about
@@ -1710,11 +1805,27 @@ make study_260911_carkit_validation CARKIT_WALK_DATA=/path CARKIT_OUTDOOR_DATA=/
 
 This runs the study's synthetic tests, then the walk, outdoor, window, field
 and highway steps in order, and finally the window steps on the 2026-10-02
-recording (with its own level pairs, into `generated/window/2026-10-02/`). Each step writes `summary.json` (and, for some walk steps, a
-per-frame CSV) and figures under `generated/<dataset>/<step>/`. The JSON/CSV
-files and the figures linked from these notes are tracked, so they are
-available without the raw data; the `.npz` arrays passed between steps and the
-other figures are only generated locally.
+recording (with its own level pairs, into `generated/window/2026-10-02/`). Each
+step writes `summary.json` (and, for some walk steps, a per-frame CSV) and
+figures under `generated/<dataset>/<step>/`. The JSON/CSV files and the figures
+linked from these notes are tracked, so they are available without the raw
+data; the `.npz` arrays passed between steps and the other figures are only
+generated locally.
+
+### Raw data
+
+The raw captures are not in the repo. Their default locations, the make
+variables that override them, and what each holds:
+
+| Dataset | Default location | Make variable | Content |
+|---|---|---|---|
+| Walk | `~/Data/tmp/walk-hallesaker-tx1-1-psi` | `CARKIT_WALK_DATA` | 200 CPIs, offline PSI-style conversion |
+| Outdoor captures | `~/Data/carkit/2026-09-22_phase_noise_outdoor_reflector` | `CARKIT_OUTDOOR_DATA` | 4 × 10 CPIs, manifest and sidecars |
+| Window, 2026-08-27 | `~/Data/carkit/2026-08-27_test_out_of_office_window` | `CARKIT_WINDOW_INFINEON_DATA`, its `converted_adc/` | 131 frames in Infineon's format, converted once to `converted_adc/` |
+| Window, 2026-09-30 | `~/Data/carkit/2026-09-30_out-the_window` | `CARKIT_WINDOW_DATA` | 11 cases of 6–10 CPIs, a sidecar per CPI |
+| Window, 2026-10-02 | `~/Data/carkit/2026-10-02_out_the_window` | `CARKIT_WINDOW_1002_DATA` | 5 cases of 9–10 CPIs |
+| Field captures | `~/Data/carkit/2026-10-01_reflector_lindevi` | `CARKIT_FIELD_DATA` | 12 placements and 2 empty scenes of 9–10 CPIs, no TX (97 CPIs), sky (67, 59), 5 runs (313–370); a README and photos |
+| Highway captures | `~/Data/carkit/2026-10-01_highway_sandsjobacka` | `CARKIT_HIGHWAY_DATA` | 4 cases of 152–516 CPIs, about half of each run's CPIs not recorded; photos and a map |
 
 The window steps also run on any new recording in our firmware's format,
 with the case directories discovered (`--cases auto`) or listed, and the outputs
@@ -1735,6 +1846,8 @@ run('~/Git/l2-sp/matlab/addL2SpMatlabPath.m')
 cd studies/2026-09-11_carkit-validation
 window_convert_infineon   % writes converted_adc/ beside the recording
 ```
+
+### Scripts
 
 | Script | Content |
 |---|---|
