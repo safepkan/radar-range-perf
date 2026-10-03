@@ -46,37 +46,45 @@ our own:
 - traffic on a motorway seen from a bridge, to 1.2 km (ours).
 
 **In short.** With Infineon's firmware, a carried corner reflector comes out
-0.7 dB above the model with datasheet values, so the model shows no sign of
-being optimistic. With our firmware the same reflector on a tripod came out
-4.4 dB lower, for reasons not yet known, so the absolute check is still open
-for the firmware Psi will use. The receiver is up to about 1 dB noisier at low
-IF (1–5 MHz) than at the IFs of long-range targets, where a flat noise figure
-fits. The LO's per-chirp frequency error is at the level the datasheet's CW
-phase noise predicts with our firmware's chirp timing, and 4–9 times larger
-with Infineon's, so the time between chirps is a design parameter for Psi.
-Range scale, TX backoff and the coherent eight-TX beam behave as configured.
+about 1 dB above the model with datasheet values where the receiver's noise is
+flat, as it is for long-range targets, and 0.7 dB above it at the reflector's
+own low beat frequencies, where the receiver is noisier than the model assumes.
+So the model shows no sign of being optimistic. With our firmware the same
+reflector on a tripod came out 4.4 dB lower, for reasons not yet known, so the
+absolute check is still open for the firmware Psi will use. The receiver's
+extra noise at low IF (1–5 MHz), up to about 1 dB, is not in the models; at the
+IFs of long-range targets a flat noise figure fits. The LO's per-chirp
+frequency error is at the level the datasheet's CW phase noise predicts with
+our firmware's chirp timing, and 4–9 times larger with Infineon's, so the time
+between chirps is a design parameter for Psi. Range scale, TX backoff and the
+coherent eight-TX beam behave as configured.
 
 ### Sensitivity and receiver
 
-- **The carried reflector comes out 0.7 dB above the model.** Its measured SNR
-  per receiver channel, scaled to a 10 dBsm target at 100 m, is 33.9 dB. The
-  model gives 33.2 dB from the CTRX8188F datasheet's TX power, its typical
+- **The carried reflector comes out about 1 dB above the model where the
+  receiver's noise is flat, and 0.7 dB above it as measured.** Its measured
+  SNR per receiver channel, scaled to a 10 dBsm target at 100 m, is 33.9 dB.
+  The model gives 33.2 dB from the CTRX8188F datasheet's TX power, its typical
   noise figure at the RX gain used (9.7 dB at 10 MHz IF for the +3 dB step,
   which every capture but one used), the FARAD-IV antenna's directivity (about
   15 dBi) and the processing's window losses, with no hardware losses. The
-  measured level fluctuates and rises by about 2 dB over the 15–50 m used, so
-  how the CPIs are averaged moves the measurement from 0.6 dB below to 1.3 dB
-  above the model.
+  reflector was measured at 1–3 MHz beat frequency, where the receiver is
+  noisier than the model assumes (below); against 5 MHz that costs it about
+  0.5 dB. Without it the difference is +1.2 dB at 5 MHz and +0.8 dB at 14 MHz,
+  the best current estimate of the baseline. The measured level fluctuates and
+  rises by about 2 dB over the 15–50 m used, so how the CPIs are averaged moves
+  the measurement from 0.6 dB below to 1.3 dB above the model.
 - **The hardware losses left out of the model widen the gap rather than close
   it.** By its data sheet, the antenna's realized gain is up to 0.9 dB below
   its directivity on each pass, and the noise figure is up to 0.2 dB higher at
   the carried reflector's beat frequencies (1–3 MHz) than at 10 MHz. With these
-  the model gives 31.1–33.1 dB, 0.7–2.8 dB below the measurement. The cover's
-  loss would add to that, but it is not known: the cover cannot easily be
-  removed, so every measurement includes it and none can measure it. Terms of
-  this size are comparable to the datasheet's spread of TX power between units
-  (±1.5 dB) and smaller than the 4.4 dB between the two reflector sessions, so
-  these measurements cannot check them.
+  the model gives 31.1–33.1 dB, 0.7–2.8 dB below the measurement as measured
+  and 0.9–3.0 dB below it at 5–14 MHz. The cover's loss would add to that, but
+  it is not known: the cover cannot easily be removed, so every measurement
+  includes it and none can measure it. Terms of this size are comparable to the
+  datasheet's spread of TX power between units (±1.5 dB) and smaller than the
+  4.4 dB between the two reflector sessions, so these measurements cannot check
+  them.
 - **With our firmware, the same reflector on a tripod came out 4.4 dB lower,
   for reasons not yet known.** At 16 and 34 m it was 4.3–4.5 dB weaker than
   when carried at 15–27 m, and 3.8–4.8 dB below the model. The receiver noise
@@ -97,9 +105,9 @@ Range scale, TX backoff and the coherent eight-TX beam behave as configured.
   else changed. From 1.25 to 5.3 MHz its SNR rises by 0.8 dB, about the
   background's fall (0.7 dB); gain shape would leave the SNR unchanged. From
   7 to 14 MHz it does not rise (−0.3 ± 0.2 dB). The datasheet's noise figure
-  rises only 0.2 dB from 10 to 1 MHz. So the carried reflector's +0.7 dB is
-  the SNR at its own beat frequencies; a target at 5–14 MHz gets up to about
-  0.5 dB more. Above 14 MHz the response is not measured.
+  rises only 0.2 dB from 10 to 1 MHz. Against 5 MHz, the carried reflector's
+  1–3 MHz cost it about 0.5 dB of SNR, which the models leave out. Above
+  14 MHz the response is not measured.
 - **Range scale, TX backoff and the coherent eight-TX beam behave as
   configured.** For moving vehicles, the change in apparent range matches, to
   within 1 % (best estimate +0.2 %), the distance their Doppler speed gives,
@@ -164,11 +172,12 @@ Details: [The per-chirp frequency error](#the-per-chirp-frequency-error).
   efficiency and mismatch, cover or radome) from their sources: these
   measurements are not precise enough to calibrate them, and the carried
   reflector gives no sign that the model is optimistic, pending the 4.4 dB.
-- **A flat noise figure at the 10 MHz value fits from about 5 to 14 MHz IF.**
-  Below that the receiver loses about 0.8 dB of SNR from 5.3 to 1.25 MHz,
-  against 0.2 dB between the datasheet's 10 and 1 MHz rows; where targets of
-  interest sit at low IF, `SystemLosses.noise_figure_derating_db` can carry
-  it.
+- **A flat noise figure at the 10 MHz value fits from about 5 to 14 MHz IF,
+  but not below.** Below 5 MHz the receiver loses about 0.8 dB of SNR down to
+  1.25 MHz, against 0.2 dB between the datasheet's 10 and 1 MHz rows. The
+  models here leave this out, which is why the carried reflector shows 0.7 dB
+  over the model rather than about 1 dB. Where targets of interest sit at low
+  IF, `SystemLosses.noise_figure_derating_db` can carry it.
 - **No empirical phase-noise term is needed.** For chirps timed within the
   datasheet's settling times, the CW phase-noise table predicts δf (2.7–3.4 kHz
   typical for a 10 µs payload) and `SystemLosses.chirp_frequency_error_rms_hz`
@@ -780,6 +789,8 @@ the model is 31.10–33.13 dB before the cover. The headline measurement is then
 0.74–2.77 dB above it, and 1.96–3.99 dB with the noise from the far quarter,
 which overstates it ([Noise or gain shape: two
 slopes](#noise-or-gain-shape-two-slopes)). Any loss in the cover adds to both.
+Where the receiver's noise is flat, the difference is larger: 0.9–3.0 dB at
+5–14 MHz ([The baseline difference](#the-baseline-difference)).
 
 Notes on the terms:
 
@@ -829,6 +840,39 @@ sources, not fitted to the walk. A reflector on a fixed mount, calibrated
 against the chamber reflector, would narrow the measured side. The cover's loss
 cannot be measured on this unit, since its cover cannot easily be removed; it
 remains an unknown loss in every comparison with the model.
+
+### The baseline difference
+
+The carried reflector's +0.7 dB holds at its own beat frequencies, 1.1–3.3 MHz
+on the inbound leg (17–51 m). There the receiver is noisier than at the IFs of
+long-range targets, and the model leaves that out: it uses the datasheet's
+noise figure at 10 MHz, and the datasheet's 1 MHz row is only 0.2 dB higher.
+The two-slope test measures the effect directly, as the SNR change of a fixed
+reflector between beat frequencies ([Noise or gain shape: two
+slopes](#noise-or-gain-shape-two-slopes)): +0.47 dB from 1.25 to 2.5 MHz,
++0.83 dB from 1.25 to 5.3 MHz and +0.49 dB from 1.25 to 14 MHz, the last if
+nothing changes between 5.3 and 7 MHz. The inbound CPIs are spread about evenly
+in range, so their mean log beat frequency is 2.1 MHz, 0.77 octave above
+1.25 MHz. Taking the first pair's change as even over its octave, the carried
+reflector sat 0.36 dB above the 1.25 MHz level, so a target at 5.3 MHz gets
+0.47 dB more than it and one at 14 MHz 0.13 dB more.
+
+| Measurement over the model | As measured, 1.1–3.3 MHz | At 5.3 MHz | At 14 MHz |
+|---|---:|---:|---:|
+| Reference model, no hardware losses | +0.7 dB | +1.2 dB | +0.8 dB |
+| With the loss terms, before the cover | +0.7 to +2.8 dB | +1.2 to +3.0 dB | +0.9 to +2.7 dB |
+
+At 5.3 and 14 MHz the loss terms leave out the noise figure's rise towards low
+IF, which applies only at the reflector's own beat frequencies.
+
+So the best current estimate of the baseline difference, where the receiver's
+noise is flat as the model assumes, is about +1 dB, the measurement above the
+model. At the ranges where the reflector was carried, the receiver's extra
+low-IF noise hides about half a dB of it. The uncertainty is larger than the
+difference: the averaging convention alone moves the measurement by −0.6 to
++1.3 dB, the datasheet allows ±1.5 dB of TX power between units, the far-field
+RCS of 11.5 dBsm would take 0.2 dB off, and the reflector on a tripod, below,
+came out 4.4 dB lower. Above 14 MHz the receiver's response is not measured.
 
 ### The reflector on a tripod
 
@@ -950,8 +994,8 @@ a signal of known level at different beat frequencies. The field captures
 provide it ([Noise or gain shape: two
 slopes](#noise-or-gain-shape-two-slopes)): between 1.25 and 5.3 MHz the excess
 is noise, and from 7 to 14 MHz it is not, within the precision available. For
-the walk this gives +0.7 dB at its own beat frequencies and about +1.2 dB for
-a target at 5–14 MHz.
+the walk this gives +0.7 dB at its own beat frequencies, +1.2 dB at 5.3 MHz and
++0.8 dB at 14 MHz ([The baseline difference](#the-baseline-difference)).
 
 ### Its shape and origin
 
@@ -1079,14 +1123,13 @@ so the band difference does not matter.
 From 1.25 to 14 MHz, T sums to +0.49 dB over the three usable pairs (+0.98 dB
 for noise). So, relative to a target at 1.25 MHz, one at 5.3 MHz gets 0.8 dB
 more SNR and one at 14 MHz about 0.5 dB more, if nothing changes between 5.3
-and 7 MHz, where no pair is usable. The walk's 1.0–3.3 MHz already have part
-of that gain, so a target at 5–14 MHz gets up to about 0.5 dB more than the
-walk's reflector. Below 1 MHz, a target at 0.3 MHz has about 2.4 dB less SNR,
-relative to one at 1.15 MHz, than the background's shape alone would suggest
-(T summed over the two lowest pairs). For the walk (1.0–3.3 MHz) the local
-reference is the SNR the reflector actually had; for long-range targets the
-model is about 0.5 dB further below the measurement, not the 1.2 dB the far
-quarter suggests.
+and 7 MHz, where no pair is usable; relative to the walk's reflector, 0.47 and
+0.13 dB more ([The baseline difference](#the-baseline-difference)). Below
+1 MHz, a target at 0.3 MHz has about 2.4 dB less SNR, relative to one at
+1.15 MHz, than the background's shape alone would suggest (T summed over the
+two lowest pairs). For the walk (1.0–3.3 MHz) the local reference is the SNR
+the reflector actually had; for long-range targets the model is up to about
+0.5 dB further below the measurement, not the 1.2 dB the far quarter suggests.
 
 ## Scale, gain and interference
 
@@ -1398,9 +1441,9 @@ prediction. The per-chirp phase only sees offsets that the 10.24 µs payload
 average passes, up to a few hundred kHz, while range bins beyond the
 reflector's mainlobe see higher offsets. So the excess is confined to low
 offsets, where the table is flat (−78 dBc/Hz up to 100 kHz), inside the
-synthesizer loop bandwidth. All these captures were made with Infineon's firmware; with ours the per-chirp
-error is at the table's level ([Window: against the CW
-table](#window-against-the-cw-table)).
+synthesizer loop bandwidth. All these captures were made with Infineon's
+firmware; with ours the per-chirp error is at the table's level ([Window:
+against the CW table](#window-against-the-cw-table)).
 
 ### Window: method and results
 
