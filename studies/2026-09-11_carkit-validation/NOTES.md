@@ -32,21 +32,25 @@ CARKIT unit:
 
 **Range model**
 
-- **Two sessions with the same reflector disagree by 4.4 dB, so the absolute
-  check is open.** With the reflector carried towards the radar, the measured
-  SNR per receiver channel is 0.7 dB above the model with datasheet values
-  and no hardware losses: 33.9 against 33.2 dB for a 10 dBsm target at 100 m.
+- **The model agrees with the carried reflector to 0.7 dB.** With the
+  reflector carried towards the radar, under Infineon's firmware, the
+  measured SNR per receiver channel is 33.9 dB for a 10 dBsm target at 100 m,
+  against 33.2 dB from the model with datasheet values and no hardware losses.
   That model uses the CTRX8188F datasheet's TX power and its typical noise
   figure at the RX gain used (+3 dB in all captures but one: 9.7 dB at 10 MHz
   IF), the FARAD-IV antenna's directivity (about 15 dBi) and the processing's
-  window losses. With the reflector on a tripod, and our firmware instead of
-  Infineon's, it is 4.3–4.5 dB weaker at 16 and 34 m than when carried at
-  15–27 m, which puts the measurement 4–5 dB below the model. The receiver
-  noise at the ADC is the same in both sessions to 0.12 dB, which rules out a
-  change of gain behind the receiver's first stages, but not a loss in front
-  of them. The reflector's azimuth is ruled out; the radar's elevation
-  pointing, the reflector's aim, the TX power as each firmware programs it
-  and anything lossy in front of the antenna are not.
+  window losses.
+- **With our firmware, the same reflector on a tripod came out 4.4 dB lower,
+  for reasons not yet known.** At 16 and 34 m it was 4.3–4.5 dB weaker than
+  when carried at 15–27 m, 4–5 dB below the model. The receiver noise at the
+  ADC is the same in both sessions to 0.12 dB, which rules out a change of
+  gain behind the receiver's first stages, but not a loss in front of them.
+  The reflector's azimuth is ruled out. The open candidates are all losses,
+  and a loss is easier to come by than a gain: the radar's elevation pointing
+  (a tilt of 6–7° would also explain the extra loss at short range), the
+  reflector's aim, a film on the cover, and the TX power as our firmware
+  programs it. Until the last is ruled out, the model's agreement is shown
+  only for Infineon's firmware.
 - **A first analysis of the carried session found +4 dB.** Most of that came
   from assuming 10 dBsm for a reflector that measures 11.3 dBsm (1.3 dB), from
   taking the noise at the far end of the range spectrum, where the receiver is
@@ -120,12 +124,12 @@ long range.
 
 **Conclusions**
 
-- The absolute comparison is open. One session puts CARKIT 0.7–1.2 dB above
-  the model without hardware losses, the other, with the same reflector and
-  the same receiver noise, 4–5 dB below. Until the 4.4 dB between them is
-  explained, these measurements place CARKIT only within −5 to +1 dB of the
-  model. The losses themselves have to come from their sources (data sheets;
-  the cover's loss stays unknown unless a figure turns up); these
+- The model with datasheet values agrees with the carried reflector, under
+  Infineon's firmware, to 0.7 dB, the measurement above the model; with the
+  hardware loss terms sourced so far it is 0.7–2.8 dB above. With our firmware the same reflector on a tripod came out 4.4 dB
+  lower; until that is explained, the agreement is not shown for the firmware
+  Psi will use. The losses themselves have to come from their sources (data
+  sheets; the cover's loss stays unknown unless a figure turns up); these
   measurements are not precise enough to calibrate them.
 - Between 1 and 5 MHz IF the receiver is noisier than at higher IF, by up to
   about 1 dB, and a target's SNR there is correspondingly lower. Long-range
@@ -160,7 +164,7 @@ branches `carkit-validation-study` and `phase-noise`.
 | | Walk | Outdoor captures | Window, 2026-08-27 | Window, 2026-09-30 |
 |---|---|---|---|---|
 | Date | 2026-09-11 | 2026-09-22 | 2026-08-27 | 2026-09-30 |
-| Aurix firmware | Infineon's CARKIT application, recorded with Viktor's own host tool (inferred from the format) | Same (inferred) | Infineon's CARKIT application, recorded with RadarGUI | Ours (`remove-lannik-embedded-276-g66e0e0dc-dirty`) |
+| Aurix firmware | Infineon's CARKIT application: Infineon's configuration format (`config.bin`, saved 2026-09-09), recorded before our firmware supported CARKIT ([Firmware](#firmware)) | Infineon's CARKIT application: imported from a legacy CARKIT recording, per its sidecars | Infineon's CARKIT application, recorded with RadarGUI | Ours (`remove-lannik-embedded-276-g66e0e0dc-dirty`; one capture `...-220-gde2d009b`) |
 | MMIC RAM firmware | Not recorded | Not recorded | Not recorded | Infineon's `8188_release_1.0.0_rc3` (revision 2836676, from Strata 3.6.0) |
 | Scene | Hallesaker; reflector carried out to about 50 m and back | Outdoors; reflector at nominal 5 and 10 m | Office window; the same far returns as on 2026-09-30 | Office window over the E6 towards an urban area; static returns to about 500 m, traffic |
 | Mounting | Radar on a tripod; reflector hand-carried | Viktor held the radar, Haik held the reflector (all tripods were in use) | Not recorded | Viktor held the radar out through the open window (the bracket was away) |
@@ -247,21 +251,35 @@ The per-chirp error arises in the MMIC's synthesizer in both setups. The Aurix
 software can affect it only through layers 2 and 3, or, in principle, through
 what the board does during the ramps.
 
-When we switched firmware is not recorded directly:
+When we switched firmware is not recorded directly, but every capture lies
+clearly on one side of the switch:
 
 - 2026-08-27 is a RadarGUI recording.
-- The walk and outdoor captures are in Infineon's CARKIT data format, with its
-  configuration structure (modes, waveforms, DDMA indices, lock frequency),
-  written by Viktor's own tooling. None of these three records a firmware
-  version.
-- The 2026-09-30 sidecars record ours: an older build at 11:40 and a newer one
-  from 12:53. The board was restarted around 12:32. The field and highway
-  captures of 2026-10-01 use the newer build; the window captures of
-  2026-10-02 another one, built from a release branch with uncommitted
-  changes.
+- The walk is in Infineon's CARKIT format, with its configuration
+  (`provenance/config.bin`, saved 2026-09-09); its source records no
+  firmware version. Our firmware got CARKIT board support only on 2026-09-22
+  (l2-sp #2521, merged 09:14 CEST).
+- The outdoor captures' sidecars say they were imported from a legacy CARKIT
+  recording (`transport: legacy_carkit_file_import`), with Infineon's
+  configuration (`legacy-config.bin`) and its packet layout. Their ramp
+  timing, 5.54 µs pre-payload with 60 ns flyback and wait, is one our tooling
+  has never produced: from its first version for CARKIT (l2-sp #2550,
+  2026-09-22 09:14) it fixes 4.0 µs, 2.0 µs and at least 3 µs. Their files
+  were written at 10:36 CEST that day; our firmware could first stream ADC
+  data from CARKIT with #2566, merged at 13:58.
+- From 2026-09-30 the sidecars record our builds (`fw_version`, git describe
+  of l2-sp): at 11:40 de2d009b of 2026-09-24, a branch commit that is no
+  longer on any remote branch; from 12:53 master commit 66e0e0dc of
+  2026-09-30 with uncommitted changes, which the field and highway captures
+  of 2026-10-01 also use; on 2026-10-02 6b9c8871 of that day, from the
+  `psi/*` SPU branches, also with uncommitted changes. The board was
+  restarted around 12:32 on 2026-09-30.
 
-So the switch came between 2026-09-22 and 2026-09-30, if the outdoor
-recordings are as old as their folder name. Viktor can confirm.
+So the switch came between the afternoon of 2026-09-22 and 2026-09-30
+11:40 UTC, and no capture falls in between: the walk and the outdoor captures
+used Infineon's firmware, everything from 2026-09-30 ours. Whether Infineon's
+firmware can be put back on the unit is not known, so a comparison of the two
+on one setup may not be possible.
 
 ### Walk
 
@@ -742,9 +760,11 @@ decisive; the tilt scan in measurement 1 settles it.
 
 The walk's averaging and selection conventions move its value by at most
 2 dB ([Method](#method)), and its short-range points have a 0.6 dB spread, so
-they do not explain it either. A session with both firmwares on the same
-fixed setup, with the radar tilted in steps, settles the first and last
-candidates (see the open questions).
+they do not explain it either. Measurement 1 in the open questions addresses
+the candidates with our firmware alone, since Infineon's may not be
+restorable: the walk's geometry repeated with careful pointing, an elevation
+tilt scan, and, if the equipment is at hand, CARKIT's radiated power measured
+directly.
 
 ### RX differences
 
@@ -1448,6 +1468,8 @@ and the measurements that would close them.
      calibration.
    - Our firmware's run-start `Execute_Calibration` (sub-function 0x2d) sets
      bit 5, which the user manual marks as reserved.
+   - Whether Infineon's firmware can be put back on CARKIT, and whether our
+     firmware can read the MMIC's TX power monitor (measurement 1).
 4. **Still open from 2026-10-01** (asked, not answered):
    - What `long-8TX-0dB` of 2026-09-30 was: another firmware build
      (2026-09-24), TX1 only, no scene beyond 10 m.
@@ -1459,9 +1481,9 @@ and the measurements that would close them.
      is in neither; the firmware version ends in `-dirty`).
    - Where the ramp timing constants in `waveform.go` come from, and whether
      Viktor's version makes them configurable.
-   - When we switched to our firmware; whether the walk and outdoor captures
-     used Infineon's application with Viktor's host tool; which firmware the
-     report's lab measurements used.
+   - Which firmware the report's lab measurements used, and on which day our
+     firmware was put on the unit (between 2026-09-22 and 2026-09-30,
+     [Firmware](#firmware)).
 5. **Slack:** a figure for the housing cover's loss, if anyone has one.
 
 Answered since 2026-10-01: 10 dB backoff gives 10.0 dB, and the calibrated
@@ -1472,17 +1494,20 @@ whose cover cannot easily be removed; the radar on the bridge was about 7 m
 above the road (deck height from public sources, ±0.5 m); Infineon confirmed
 that the datasheet's noise modes are the RX gain steps (ultra-low-noise at
 +3 dB, low-noise at 0 dB, the default) and that its typical values are for a
-nominal part at room temperature ([Loss terms](#loss-terms)).
+nominal part at room temperature ([Loss terms](#loss-terms)); the walk and
+the outdoor captures used Infineon's firmware, everything from 2026-09-30 ours
+([Firmware](#firmware)).
 
 ### Open questions
 
-1. **Why the two reflector sessions differ by 4.4 dB**
-   ([The reflector on a tripod](#the-reflector-on-a-tripod)). Candidates: the
-   radar's elevation pointing (which would also explain the extra loss at
-   short range), the reflector's aim or state, the TX power as each firmware
-   programs it, a loss in front of the antenna. Until it is settled, the measurements place
-   CARKIT within −5 to +1 dB of the model. Viktor's answer on elevation may
-   narrow it; measurement 1 decides it.
+1. **Why the reflector on a tripod, with our firmware, came out 4.4 dB below
+   the carried reflector with Infineon's**
+   ([The reflector on a tripod](#the-reflector-on-a-tripod)). Candidates, all
+   losses: the radar's elevation pointing (which would also explain the extra
+   loss at short range), the reflector's aim or state, a loss in front of the
+   antenna, the TX power as our firmware programs it. Until the last is ruled
+   out, the model's agreement is shown only for Infineon's firmware. Viktor's
+   answer on elevation may narrow it; measurement 1 decides it.
 2. **Which part of the chirp timing sets δf** (flyback, wait, or another
    synthesizer setting), and why Infineon's δf spectrum rises towards PRF/2.
    Measurement 2.
@@ -1501,26 +1526,33 @@ nominal part at room temperature ([Loss terms](#loss-terms)).
 
 ### Measurements to close them, in order of priority
 
-1. **Reflector and firmware session** (questions 1 and 5). One fixed radar
-   mount, levelled, and a marked spot at 10–20 m on open ground with nothing
-   moving nearby; heights, distances (tape or laser), photos and the capture
-   order logged next to the data.
+1. **Our firmware against the carried reflector** (questions 1 and 5), with
+   our firmware alone, since Infineon's may not be restorable. One radar
+   mount, levelled, at a known height, and marked spots at 15–35 m on open
+   ground with nothing moving nearby; heights, distances (tape or laser),
+   photos, the cover's state and the capture order logged next to the data.
+   - The walk's reflector aimed at the radar, on a mount and then held as in
+     the walk, at a few of those distances. If our firmware reproduces the
+     walk's level (33.3 dB ADC-count² scaled to 16 m at 15–27 m), the
+     firmware is ruled out and the tripod session's setup is to blame.
+   - A tilt scan of the radar in elevation, about −10 to +10° in 2° steps
+     with the reflector fixed: finds the radar's boresight and checks the
+     FARAD-IV elevation pattern.
    - The chamber reflector (Microwave Factory, 10 dBsm specified) and both
      home-made ones in turn on the same mount, each at a few roll and tilt
      settings, with the empty mount captured for coherent subtraction.
-   - Without touching radar or reflector: the same captures with Infineon's
-     firmware and with ours, TX1, waveforms as close as the two allow. This
-     measures any TX power difference directly.
-   - A tilt scan of the radar in elevation, about −10 to +10° in 2° steps with
-     the reflector fixed: finds the radar's boresight and checks the
-     FARAD-IV elevation pattern.
+   - If a spectrum analyser with a 77 GHz harmonic mixer is at hand,
+     CARKIT's radiated power measured directly, which tests the TX side
+     whatever the firmware (the same set-up as measurement 5). Whether our
+     firmware can read the MMIC's TX power monitor is not checked yet.
 2. **Chirp-timing test** (question 2). The window scene from a fixed mount,
    TX1, the medium waveform, alternating captures of ten CPIs in one session.
-   With Infineon's application, lengthen the flyback to the datasheet's 1 µs,
-   then also the wait. With ours, a flyback and wait below about 1 µs need the
-   constants in `waveform.go` changed; shortening the PRI alone keeps both
-   beyond 1 µs and should leave δf at about 3.5 kHz. Either way this decides
-   what the Psi waveform must respect.
+   With ours, a flyback and wait below about 1 µs need the minima in
+   `waveform.go` changed; shortening the PRI alone keeps both beyond 1 µs and
+   should leave δf at about 3.5 kHz. If Infineon's application can still be
+   run, lengthening its flyback to the datasheet's 1 µs, then also its wait,
+   tests the same from the other side. Either way this decides what the Psi
+   waveform must respect.
 3. **Two slopes at higher IF** (question 3). The field method with the
    reflector at 60–150 m, or the long and medium waveforms at one distance:
    fixed mounts, several placements, nobody moving in the scene between the
