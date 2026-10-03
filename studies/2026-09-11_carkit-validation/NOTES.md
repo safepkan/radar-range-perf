@@ -45,19 +45,19 @@ our own:
   a fixed mount;
 - traffic on a motorway seen from a bridge, to 1.2 km (ours).
 
-**In short.** With Infineon's firmware, a carried corner reflector comes out
-about 1 dB above the model with datasheet values where the receiver's noise is
-flat, as it is for long-range targets, and 0.7 dB above it at the reflector's
-own low beat frequencies, where the receiver is noisier than the model assumes.
-So the model shows no sign of being optimistic. With our firmware the same
-reflector on a tripod came out 4.4 dB lower, for reasons not yet known, so the
-absolute check is still open for the firmware Psi will use. The receiver's
-extra noise at low IF (1–5 MHz), up to about 1 dB, is not in the models; at the
-IFs of long-range targets a flat noise figure fits. The LO's per-chirp
-frequency error is at the level the datasheet's CW phase noise predicts with
-our firmware's chirp timing, and 4–9 times larger with Infineon's, so the time
-between chirps is a design parameter for Psi. Range scale, TX backoff and the
-coherent eight-TX beam behave as configured.
+**In short.** A carried corner reflector comes out about 1 dB above the model
+with datasheet values where the receiver's noise is flat, as it is for
+long-range targets, and 0.7 dB above it at the reflector's own low beat
+frequencies, where the receiver is noisier than the model assumes. So the model
+shows no sign of being optimistic. The same reflector on a tripod, in a later
+session, came out 4.4 dB lower, for reasons not yet known but most likely in
+the setup; until that is explained, the absolute check is still open. The
+receiver's extra noise at low IF (1–5 MHz), up to about 1 dB, is not in the
+models; at the IFs of long-range targets a flat noise figure fits. The LO's
+per-chirp frequency error is at the level the datasheet's CW phase noise
+predicts with our firmware's chirp timing, and 4–9 times larger with
+Infineon's, so the time between chirps is a design parameter for Psi. Range
+scale, TX backoff and the coherent eight-TX beam behave as configured.
 
 ### Sensitivity and receiver
 
@@ -85,17 +85,20 @@ coherent eight-TX beam behave as configured.
   datasheet's spread of TX power between units (±1.5 dB) and smaller than the
   4.4 dB between the two reflector sessions, so these measurements cannot check
   them.
-- **With our firmware, the same reflector on a tripod came out 4.4 dB lower,
-  for reasons not yet known.** At 16 and 34 m it was 4.3–4.5 dB weaker than
-  when carried at 15–27 m, and 3.8–4.8 dB below the model. The receiver noise
-  at the ADC is the same in both sessions to 0.12 dB, which rules out a change
-  of gain behind the receiver's first stages, but not a loss in front of them
-  or a lower TX power. The reflector's azimuth is ruled out. The open
-  candidates are the radar's elevation pointing (a tilt of 6–7° would also
-  explain the extra loss at short range), the reflector's aim or state, a film
-  on the cover, and the TX power, as our firmware programs it or as it varies
-  between the sessions' RF bands and temperatures. Until the TX power is ruled
-  out, the model's agreement is shown only for Infineon's firmware.
+- **The same reflector on a tripod came out 4.4 dB lower, for reasons not yet
+  known.** At 16 and 34 m it was 4.3–4.5 dB weaker than when carried at
+  15–27 m, and 3.8–4.8 dB below the model. The receiver noise at the ADC is the
+  same in both sessions to 0.12 dB, which rules out a change of gain behind the
+  receiver's first stages, but not a loss in front of them or a lower TX power.
+  The reflector's azimuth is ruled out. The likely candidates are in the setup:
+  the radar's elevation pointing (a tilt of 6–7° would also explain the extra
+  loss at short range), the reflector's aim or state, and a film on the cover.
+  The two sessions also ran different firmware, Infineon's when carried and
+  ours on the tripod. Firmware matters only through how it configures the MMIC,
+  and nothing in our configuration or in the data points to lower sensitivity:
+  ours programs the maximum TX power and calibrates it at every run. The TX
+  power itself has not been measured, though, and may also differ between the
+  sessions' RF bands and temperatures.
 - **The receiver's background rises by about 1.2 dB from 20 MHz IF down to
   1 MHz, and between 1 and 5 MHz that rise is noise, not the IF gain's
   shape.** It belongs to the receiver: it is the same with the transmitter
@@ -216,8 +219,8 @@ Details: [The per-chirp frequency error](#the-per-chirp-frequency-error).
 ### Still open
 
 1. The 4.4 dB between the two reflector sessions, and with it the absolute
-   check with our firmware (measurement 1: the carried reflector's geometry
-   repeated with our firmware, an elevation tilt scan, the chamber reflector,
+   check (measurement 1: the carried reflector's geometry repeated with the
+   radar on a levelled mount, an elevation tilt scan, the chamber reflector,
    and the radiated power if the equipment is at hand).
 2. Which part of the chirp timing sets δf (measurement 2).
 3. The receiver's IF response above 5 MHz (measurement 3).
@@ -941,7 +944,8 @@ What could cause 4.4 dB:
   and 3.3 dB at 10, 15 and 20° off the axis, and no triple-bounce return at
   all for a radar in the plane of one plate. Plates glued onto absorber may
   have moved since the walk.
-- **TX power as each firmware programs it: possible.** Ours programs the
+- **TX power as configured: possible, but nothing points to it.** Firmware
+  matters only through the MMIC configuration it programs. Ours programs the
   maximum and calibrates it at every run ([Firmware](#firmware)); every chirp
   segment selects that calibrated power setting (`TX1_PA_POWER_SEL` 0 in
   CONFIG1, user manual Table 121). Infineon's settings are not recorded.
@@ -971,10 +975,9 @@ decisive; the tilt scan in measurement 1 settles it.
 The walk's averaging and selection conventions move its value by at most 2 dB
 ([The carried reflector](#the-carried-reflector)), and its short-range points
 have a 0.6 dB spread, so they do not explain it either. Measurement 1 in the
-open questions addresses the candidates with our firmware alone, since
-Infineon's may not be restorable: the walk's geometry repeated with careful
-pointing, an elevation tilt scan, and, if the equipment is at hand, CARKIT's
-radiated power measured directly.
+open questions addresses the candidates: the walk's geometry repeated with
+careful pointing, an elevation tilt scan, the chamber reflector and, if the
+equipment is at hand, CARKIT's radiated power measured directly.
 
 ## The receiver background
 
@@ -1758,15 +1761,14 @@ the outdoor captures used Infineon's firmware, everything from 2026-09-30 ours
 
 ### Open questions
 
-1. **Why the reflector on a tripod, with our firmware, came out 4.4 dB below
-   the carried reflector with Infineon's**
-   ([The reflector on a tripod](#the-reflector-on-a-tripod)). Candidates, all
-   losses: the radar's elevation pointing (which would also explain the extra
-   loss at short range), the reflector's aim or state, a loss in front of the
-   antenna, the TX power as our firmware programs it or as it varies between
-   the sessions' RF bands and temperatures. Until the TX power is ruled out,
-   the model's agreement is shown only for Infineon's firmware. Viktor's
-   answer on elevation may narrow it; measurement 1 decides it.
+1. **Why the reflector on a tripod came out 4.4 dB below the carried
+   reflector** ([The reflector on a tripod](#the-reflector-on-a-tripod)).
+   Candidates, all losses: the radar's elevation pointing (which would also
+   explain the extra loss at short range), the reflector's aim or state, a loss
+   in front of the antenna, and the TX power, as configured or as it varies
+   between the sessions' RF bands and temperatures. The sessions also ran
+   different firmware, but nothing points to that affecting sensitivity.
+   Viktor's answer on elevation may narrow it; measurement 1 decides it.
 2. **Which part of the chirp timing sets δf** (flyback, wait, or another
    synthesizer setting), and why Infineon's δf spectrum rises towards PRF/2.
    Measurement 2.
@@ -1794,15 +1796,16 @@ the outdoor captures used Infineon's firmware, everything from 2026-09-30 ours
 
 ### Measurements to close them, in order of priority
 
-1. **Our firmware against the carried reflector** (questions 1 and 5), with
-   our firmware alone, since Infineon's may not be restorable. One radar
-   mount, levelled, at a known height, and marked spots at 15–35 m on open
-   ground with nothing moving nearby; heights, distances (tape or laser),
-   photos, the cover's state and the capture order logged next to the data.
+1. **The reflector comparison repeated with the setup under control**
+   (questions 1 and 5). One radar mount, levelled, at a known height, and
+   marked spots at 15–35 m on open ground with nothing moving nearby; heights,
+   distances (tape or laser), photos, the cover's state and the capture order
+   logged next to the data.
    - The walk's reflector aimed at the radar, on a mount and then held as in
-     the walk, at a few of those distances. If our firmware reproduces the
-     walk's level (33.3 dB ADC-count² scaled to 16 m at 15–27 m), the
-     firmware is ruled out and the tripod session's setup is to blame.
+     the walk, at a few of those distances. If this reproduces the walk's level
+     (33.3 dB ADC-count² scaled to 16 m at 15–27 m), the tripod session's setup
+     was the cause; if it reproduces the tripod session's, the cause lies with
+     the radar or the reflector, which the steps below separate.
    - A tilt scan of the radar in elevation, about −10 to +10° in 2° steps
      with the reflector fixed: finds the radar's boresight and checks the
      FARAD-IV elevation pattern.

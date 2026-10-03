@@ -40,15 +40,15 @@ all of its working figures headlessly and runs its study-local tests, e.g.
   eight TX, eight RX, FARAD-IV antenna) against our range and phase-noise
   models, from a corner reflector carried and on a tripod, a hand-held reflector
   at 5 and 10 m, the office-window scene with Infineon's firmware and ours, and
-  traffic seen from a motorway bridge. The carried reflector, with Infineon's
-  firmware, is about 1 dB above the model with datasheet values and no hardware
-  losses where the receiver's noise is flat, and 0.7 dB at its own low beat
-  frequencies, where extra receiver noise that the model leaves out costs about
-  0.5 dB. With our firmware the same reflector on a tripod came out 4.4 dB
-  lower, unexplained, so the absolute check is open for our firmware. With our
-  firmware's chirp timing the per-chirp frequency error is 3.1–3.6 kHz rms, at
-  the CTRX8188F CW phase-noise table's level; with Infineon's it is 14–30 kHz.
-  Results, open questions and planned measurements are in
+  traffic seen from a motorway bridge. The carried reflector is about 1 dB above
+  the model with datasheet values and no hardware losses where the receiver's
+  noise is flat, and 0.7 dB at its own low beat frequencies, where extra
+  receiver noise that the model leaves out costs about 0.5 dB. The same
+  reflector on a tripod, in a later session, came out 4.4 dB lower, most likely
+  because of the setup but not yet explained, so the absolute check is open.
+  With our firmware's chirp timing the per-chirp frequency error is 3.1–3.6 kHz
+  rms, at the CTRX8188F CW phase-noise table's level; with Infineon's it is
+  14–30 kHz. Results, open questions and planned measurements are in
   [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the scripts process the
   raw data (not in the repo) via `make study_260911_carkit_validation`.
 - `2026-09-02_lannik-psi/` — Lannik Psi antenna-concept study, 2026-09-02 to
