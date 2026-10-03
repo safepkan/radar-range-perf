@@ -833,11 +833,10 @@ What could cause 4.4 dB:
 
 A loss is easy to come by and a gain is not: the walk's level at 15–27 m is
 steady (0.6 dB rms over 14 CPIs at different ranges), and a reflector held by
-hand cannot return more than its aligned RCS, apart from what the carrier's
-own return adds in the same cell ([RX differences](#rx-differences)). So the
-tripod session most
-likely lost 4.4 dB to something that does not change with range between 16
-and 34 m. Of the candidates, only the elevation pointing would also explain
+hand cannot return more than its aligned RCS (the carrier's own return adds
+less than 0.1 dB; [Reflector](#reflector)). So the tripod session most likely
+lost 4.4 dB to something that does not change with range between 16 and
+34 m. Of the candidates, only the elevation pointing would also explain
 the extra 2–3 dB at 3.8 and 7.3 m, where a small height difference adds to the
 angle. A one-off fit of the FARAD-IV preset's elevation pattern, anchored to
 the walk's level, gives a tilt of 6–7.5° and a height offset of 12–16 cm with
@@ -860,10 +859,12 @@ The strongest-to-weakest RX power span at the target cell has a median of
 9 dB outbound and 11 dB inbound, up to 28 dB. In CPI 100, RX8 is 28 dB below
 the strongest channel at the common cell but 16 dB below over a surrounding
 patch ([rx_null_example.png](generated/walk/dynamics/rx_null_example.png)).
-These are spatial and temporal nulls from a composite reflector-plus-person
-return, not fixed calibration differences. They also explain why Viktor's
-coherent RX sum (41.6 dB, about 39 dB after the same noise and RCS corrections)
-gains only about 5 dB over the per-RX level rather than 9 dB. This is a rough
+The spans change from CPI to CPI, so they are not fixed calibration
+differences. Nulls this deep need a second return of comparable strength from
+another direction; the carrier's own is far too weak ([Reflector](#reflector)),
+so their cause is not known. They also explain why Viktor's coherent RX sum
+(41.6 dB, about 39 dB after the same noise and RCS corrections) gains only
+about 5 dB over the per-RX level rather than 9 dB. This is a rough
 estimate, not computed here.
 
 ### CPI length
@@ -917,6 +918,22 @@ model becomes +0.5 dB. That is within the stated uncertainty, and the
 correction is not applied yet. A side-by-side comparison at 10 m or more would
 settle both this and how much the two home-made reflectors differ (see the
 open questions).
+
+**The carrier's own return is negligible.** On the walk the person carrying
+the reflector is in its range cell, and the trunk moves with the reflector, so
+its return shares the reflector's Doppler cell too. Averaged over aspect, a
+person measures −6.1 to −7.4 dBsm at 76–81 GHz, −1 to +1 dBsm at the
+strongest aspect
+([Schubert et al., IRS 2013](https://mwt-www.e-technik.uni-ulm.de/downloads/papers/2013/2013_IRS_Human-RCS-Measurements_Schubert_.pdf)),
+and −8.1 dBsm at 76 GHz, with front and back about 5 dB above the side
+([Yamada, R&D Review of Toyota CRDL 39(4)](https://www.tytlabs.co.jp/en/english/review/rev394epdf/e394_046yamada.pdf)).
+The walk agrees: the power within 2 m/s of the reflector's Doppler but outside
+±0.5 m/s, mostly the swinging legs, is 0.9 % of the reflector's inbound
+(about −9 dBsm) and at about the same absolute level outbound
+([CPI length](#cpi-length)). So the trunk, part of a body of about −7 dBsm, is
+at least 18 dB below the reflector's 11.3 dBsm. With a relative phase that
+changes between CPIs, it moves a CPI's level by about ±1 dB, in line with the
+walk's 0.6 dB rms at 15–27 m, and the averaged level by less than 0.1 dB.
 
 ## The receiver background
 
