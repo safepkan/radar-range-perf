@@ -162,6 +162,7 @@ def main() -> None:
             "slope_hz_per_s": capture.slope_hz_per_s,
             "sampled_bandwidth_hz": capture.sampled_bandwidth_hz,
             "sampled_sweep_center_hz": center_hz,
+            "rx_gain_db": capture.rx_gain_db,
         },
         "processing": {
             "windows": "periodic Blackman, range and Doppler",

@@ -1,17 +1,19 @@
 """Radar-equation model of the CARKIT TX1 walk and its measured comparison.
 
 TX1 only, eight RX compared per channel (no coherent RX combination), CTRX8188F
-datasheet TX power and noise figure, the boresight gains of CARKIT's antenna
-(the FARAD-IV preset), the walk waveform and Blackman windows with fourfold
-padding (no residual straddle, no CFAR loss).
-The reflector is modeled as a nonfluctuating 10 dBsm target at boresight.
+datasheet TX power and the typical noise figure at the walk's RX gain (+3 dB,
+9.7 dB at 10 MHz IF), the boresight gains of CARKIT's antenna (the FARAD-IV
+preset), the walk waveform and Blackman windows with fourfold padding (no
+residual straddle, no CFAR loss). The reflector is modeled as a nonfluctuating
+10 dBsm target at boresight.
 
 That reference model has no hardware losses. The CARKIT terms (see the notes,
-"Loss terms") change it: the noise figure at the RX gain the walk used, the
-residual straddle of the padded FFTs, the antenna's loss from directivity to
-realized gain up to its datasheet bound, and, at the walk's own ranges, the
-atmosphere and the per-chirp frequency error. The loss of CARKIT's housing
-cover is not known and is left out.
+"Loss terms") change it: the noise figure's rise towards the walk's beat
+frequencies (the datasheet's 1 MHz row), the residual straddle of the padded
+FFTs, the antenna's loss from directivity to realized gain up to its datasheet
+bound, and, at the walk's own ranges, the atmosphere and the per-chirp
+frequency error. The loss of CARKIT's housing cover is not known and is left
+out.
 
 Prints the link budgets and, if walk_reference_snr.py has been run, the measured
 reference scaled to 100 m and 10 dBsm; writes generated/walk/model/summary.json.
@@ -23,11 +25,12 @@ import json
 import math
 from typing import Any
 
-from carkit_common import write_summary
+from carkit_common import noise_figure_db, write_summary
 from walk_common import (
     GENERATED_DIR,
     REFERENCE_RANGE_M,
     REFERENCE_RCS_DBSM,
+    RX_GAIN_DB,
     WALKING_RCS_DBSM,
 )
 from radarperf import (
@@ -44,11 +47,11 @@ from radarperf import (
     frontend,
 )
 
-# CTRX8188F target datasheet rev. 0.20, Table 30: typical total RX SSB noise
-# figure at RX gain step +3 dB (the "ultra low noise operation mode" rows) at
-# 1 and 10 MHz IF. The walk used RX gain code 0, +3 dB (user manual Table 120),
-# and its 15-51 m lie at 1.0-3.3 MHz IF, between the two rows.
-NOISE_FIGURE_GAIN_PLUS3_DB = (9.9, 9.7)
+# The datasheet's typical noise figure at the walk's RX gain, at 10 MHz IF (the
+# reference model) and at 1 MHz IF. The walk's 15-51 m lie at 1.0-3.3 MHz IF,
+# between the two rows.
+NOISE_FIGURE_DB = noise_figure_db(RX_GAIN_DB)
+NOISE_FIGURE_1_MHZ_DB = noise_figure_db(RX_GAIN_DB, at_1_mhz=True)
 # SENCITY FARAD-IV data sheet: radiation efficiency >= 90 % and reflection
 # coefficient <= -10 dB, so realized gain is at most this far below directivity.
 ANTENNA_LOSS_BOUND_DB = -10.0 * math.log10(0.9) - 10.0 * math.log10(1.0 - 0.1)
@@ -78,16 +81,17 @@ def carkit_walk(
 ) -> Radar:
     """TX1 with eight noncoherently compared RX channels, as in the walk.
 
-    The defaults give the reference model: the datasheet's headline noise
-    figure, no system losses and no straddle loss. ``antenna_loss_db`` applies
-    on transmit and receive; ``computed_straddle`` uses the toolbox's mean
-    straddle loss for the fourfold padding instead of zero.
+    The defaults give the reference model: the datasheet's typical noise
+    figure at the walk's RX gain and 10 MHz IF, no system losses and no
+    straddle loss. ``antenna_loss_db`` applies on transmit and receive;
+    ``computed_straddle`` uses the toolbox's mean straddle loss for the
+    fourfold padding instead of zero.
     """
     waveform = walk_waveform()
-    if noise_figure_db is None:
-        ctrx = frontend.ctrx8188f(n_tx=1)
-    else:
-        ctrx = frontend.ctrx8188f(n_tx=1, noise_figure_db=noise_figure_db)
+    ctrx = frontend.ctrx8188f(
+        n_tx=1,
+        noise_figure_db=NOISE_FIGURE_DB if noise_figure_db is None else noise_figure_db,
+    )
     straddle_db = None if computed_straddle else 0.0
     return Radar(
         frontend=ctrx,
@@ -132,16 +136,15 @@ def carkit_terms() -> dict[str, Any]:
     walk's own ranges and are too small to enter the bracket.
     """
     reference = _snr_db(carkit_walk())
-    nf_worse, nf_better = NOISE_FIGURE_GAIN_PLUS3_DB
     straddle = carkit_walk(computed_straddle=True)
     waveform = straddle.waveform
     atmosphere = Atmosphere.itu_p676(waveform.center_frequency_hz)
     coherence = SystemLosses(chirp_frequency_error_rms_hz=WALK_CHIRP_FREQUENCY_ERROR_HZ)
     near, far = (Geometry(range_m=r) for r in WALK_RANGES_M)
     effects = {
-        "noise_figure_at_rx_gain_plus3": [
-            _snr_db(carkit_walk(noise_figure_db=nf)) - reference
-            for nf in (nf_worse, nf_better)
+        "noise_figure_towards_1_mhz_if": [
+            _snr_db(carkit_walk(noise_figure_db=NOISE_FIGURE_1_MHZ_DB)) - reference,
+            0.0,
         ],
         "straddle_fourfold_padding": _snr_db(straddle) - reference,
         "antenna_directivity_to_realized_gain": [
@@ -155,12 +158,17 @@ def carkit_terms() -> dict[str, Any]:
             -float(coherence.coherence_loss_db(g.range_m)) for g in (near, far)
         ],
     }
-    low = _snr_db(carkit_walk(nf_worse, ANTENNA_LOSS_BOUND_DB, computed_straddle=True))
-    high = _snr_db(carkit_walk(nf_better, computed_straddle=True))
+    low = _snr_db(
+        carkit_walk(
+            NOISE_FIGURE_1_MHZ_DB, ANTENNA_LOSS_BOUND_DB, computed_straddle=True
+        )
+    )
+    high = _snr_db(straddle)
     return {
         "reference_model_db": reference,
         "inputs": {
-            "noise_figure_gain_plus3_db": list(NOISE_FIGURE_GAIN_PLUS3_DB),
+            "rx_gain_db": RX_GAIN_DB,
+            "noise_figure_db_10_mhz_1_mhz": [NOISE_FIGURE_DB, NOISE_FIGURE_1_MHZ_DB],
             "antenna_loss_bound_db_per_pass": ANTENNA_LOSS_BOUND_DB,
             "atmosphere_db_per_km": atmosphere.specific_attenuation_db_per_km,
             "chirp_frequency_error_rms_hz": WALK_CHIRP_FREQUENCY_ERROR_HZ,

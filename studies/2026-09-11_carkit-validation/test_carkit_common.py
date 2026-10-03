@@ -268,3 +268,18 @@ def test_track_range_scale_through_doppler_aliasing() -> None:
     assert rms < 0.1
     wrong, _, _ = track_range_scale(times, ranges, -doppler, prf, wavelength, +1)
     assert abs(wrong - scale) > 0.1
+
+
+def test_rx_gain_codes_and_noise_figures() -> None:
+    """Gain code 0 is +3 dB and code 1 is 0 dB, the two steps with typical noise
+    figures in the datasheet (Table 30): 9.7/9.9 dB and 10.2/10.5 dB at
+    10/1 MHz IF."""
+    import pytest
+
+    from carkit_common import RX_GAIN_STEPS_DB, noise_figure_db
+
+    assert RX_GAIN_STEPS_DB[0] == 3.0 and RX_GAIN_STEPS_DB[1] == 0.0
+    assert noise_figure_db(3.0) == 9.7 and noise_figure_db(3.0, at_1_mhz=True) == 9.9
+    assert noise_figure_db(0.0) == 10.2 and noise_figure_db(0.0, at_1_mhz=True) == 10.5
+    with pytest.raises(ValueError):
+        noise_figure_db(-6.0)

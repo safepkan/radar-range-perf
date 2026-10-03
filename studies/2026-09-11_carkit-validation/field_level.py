@@ -15,8 +15,9 @@ powers, is the comparison: same reflector, same receiver noise density (both
 computed here), Infineon's firmware. Each placement's azimuth comes from the
 per-RX phases (field_common.azimuth_deg), with the FARAD-IV preset's two-way
 pattern loss there. The model is walk_model.py's reference model (datasheet TX
-power and noise figure, FARAD-IV directivity, no hardware losses) with the
-field waveform and windows and the walking reflector's 11.27 dBsm; the measured
+power, the typical noise figure at the capture's RX gain, FARAD-IV
+directivity, no hardware losses) with the field waveform and windows and the
+walking reflector's 11.27 dBsm; the measured
 SNR uses the TX-off background at the reflector's beat frequency (local) or at
 18-24 MHz. Writes generated/field/level/summary.json and levels.png.
 """

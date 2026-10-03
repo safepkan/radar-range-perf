@@ -12,7 +12,8 @@
     "chirp_period_s": 1.596000038261991e-05,
     "slope_hz_per_s": 9841918809813.977,
     "sampled_bandwidth_hz": 100781248.0,
-    "sampled_sweep_center_hz": 76374237094.94145
+    "sampled_sweep_center_hz": 76374237094.94145,
+    "rx_gain_db": 3.0
   },
   "processing": {
     "windows": "periodic Blackman, range and Doppler",

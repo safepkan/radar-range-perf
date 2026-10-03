@@ -45,6 +45,16 @@ RESPONSE_FFT_SIZE = 2**20
 # treated as interfered (interference_flags).
 INTERFERENCE_BAND_HZ = (2e6, 20e6)
 INTERFERENCE_THRESHOLD_DB = 1.0
+# CTRX8188F RX gain steps [dB] by gain code: GAIN_SEL in Configure_RX() and
+# RX_GAINSET_SEL per ramp segment (user manual rev. 0.20, Tables 46 and 120),
+# also Infineon's CARKIT gainSelection.
+RX_GAIN_STEPS_DB = (3.0, 0.0, -3.0, -6.0, -12.0, -18.0)
+# CTRX8188F typical total RX SSB noise figure [dB] at 1 and 10 MHz IF by RX gain
+# step: target datasheet rev. 0.20, Table 30, the "ultra low noise operation
+# mode" rows at +3 dB and the "low noise" rows at 0 dB. Infineon confirmed by
+# email on 2026-10-02 that these modes are the gain steps, with no separate
+# setting; typical means a nominal part at nominal supply and room temperature.
+NOISE_FIGURE_TYPICAL_DB = {3.0: (9.9, 9.7), 0.0: (10.5, 10.2)}
 
 
 def db(value: npt.ArrayLike) -> FloatArray:
@@ -303,6 +313,19 @@ def cross_channel_cross(first: ComplexArray, second: ComplexArray) -> FloatArray
     mixed = first.sum(axis=-1) * np.conj(second.sum(axis=-1))
     own = np.sum(first * np.conj(second), axis=-1)
     return np.asarray(((mixed - own) / (n * (n - 1))).real)
+
+
+def noise_figure_db(rx_gain_db: float, at_1_mhz: bool = False) -> float:
+    """The datasheet's typical noise figure for an RX gain step.
+
+    At 10 MHz IF, the toolbox preset's convention, unless ``at_1_mhz``. The
+    datasheet specifies only the +3 and 0 dB steps; for negative steps it
+    gives a worst-case bound, not a typical value.
+    """
+    if rx_gain_db not in NOISE_FIGURE_TYPICAL_DB:
+        raise ValueError(f"no typical noise figure for RX gain {rx_gain_db} dB")
+    at_1, at_10 = NOISE_FIGURE_TYPICAL_DB[rx_gain_db]
+    return at_1 if at_1_mhz else at_10
 
 
 def interference_flags(

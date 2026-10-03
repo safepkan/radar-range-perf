@@ -53,9 +53,9 @@
       "two_way_pattern_db": 0.04499999999999815,
       "snr_local_db": 78.70647490324495,
       "snr_high_if_db": 77.3862785274884,
-      "model_snr_db": 87.80296980015055,
-      "residual_local_db": -9.096494896905597,
-      "residual_high_if_db": -10.416691272662149
+      "model_snr_db": 88.30296980015055,
+      "residual_local_db": -9.596494896905597,
+      "residual_high_if_db": -10.916691272662149
     },
     {
       "case": "short-5m",
@@ -84,9 +84,9 @@
       "two_way_pattern_db": 0.04499999999999815,
       "snr_local_db": 80.08253596046518,
       "snr_high_if_db": 80.99027946647263,
-      "model_snr_db": 87.7976743331758,
-      "residual_local_db": -7.715138372710626,
-      "residual_high_if_db": -6.807394866703177
+      "model_snr_db": 88.29767433317579,
+      "residual_local_db": -8.215138372710612,
+      "residual_high_if_db": -7.307394866703163
     },
     {
       "case": "medium-10m",
@@ -115,9 +115,9 @@
       "two_way_pattern_db": 0.0434376144622739,
       "snr_local_db": 67.87872725823115,
       "snr_high_if_db": 68.72331993798329,
-      "model_snr_db": 76.22015486027333,
-      "residual_local_db": -8.341427602042174,
-      "residual_high_if_db": -7.496834922290034
+      "model_snr_db": 76.72015486027331,
+      "residual_local_db": -8.84142760204216,
+      "residual_high_if_db": -7.99683492229002
     },
     {
       "case": "short-10m",
@@ -146,9 +146,9 @@
       "two_way_pattern_db": 0.0434376144622739,
       "snr_local_db": 68.9324446105598,
       "snr_high_if_db": 70.13085731657918,
-      "model_snr_db": 76.258715984378,
-      "residual_local_db": -7.3262713738182015,
-      "residual_high_if_db": -6.127858667798819
+      "model_snr_db": 76.758715984378,
+      "residual_local_db": -7.8262713738182015,
+      "residual_high_if_db": -6.627858667798819
     },
     {
       "case": "medium-20m",
@@ -177,9 +177,9 @@
       "two_way_pattern_db": 0.04499999999999815,
       "snr_local_db": 58.312103691564715,
       "snr_high_if_db": 59.51348406890977,
-      "model_snr_db": 62.62488680143961,
-      "residual_local_db": -4.312783109874893,
-      "residual_high_if_db": -3.1114027325298395
+      "model_snr_db": 63.12488680143961,
+      "residual_local_db": -4.812783109874893,
+      "residual_high_if_db": -3.6114027325298395
     },
     {
       "case": "short-20m",
@@ -208,9 +208,9 @@
       "two_way_pattern_db": 0.04499999999999815,
       "snr_local_db": 58.94361416415816,
       "snr_high_if_db": 59.81626924307291,
-      "model_snr_db": 62.60397328499596,
-      "residual_local_db": -3.6603591208377964,
-      "residual_high_if_db": -2.7877040419230497
+      "model_snr_db": 63.10397328499596,
+      "residual_local_db": -4.160359120837796,
+      "residual_high_if_db": -3.2877040419230497
     },
     {
       "case": "medium-40m",
@@ -239,9 +239,9 @@
       "two_way_pattern_db": -0.09459705540093566,
       "snr_local_db": 45.931952565706,
       "snr_high_if_db": 46.77651021225547,
-      "model_snr_db": 49.533028063786624,
-      "residual_local_db": -3.6010754980806254,
-      "residual_high_if_db": -2.7565178515311572
+      "model_snr_db": 50.033028063786624,
+      "residual_local_db": -4.101075498080625,
+      "residual_high_if_db": -3.2565178515311572
     },
     {
       "case": "short-40m",
@@ -270,9 +270,9 @@
       "two_way_pattern_db": -0.09136206189143437,
       "snr_local_db": 46.194133022233906,
       "snr_high_if_db": 46.68275461875064,
-      "model_snr_db": 49.538197118704716,
-      "residual_local_db": -3.3440640964708095,
-      "residual_high_if_db": -2.855442499954073
+      "model_snr_db": 50.03819711870472,
+      "residual_local_db": -3.8440640964708166,
+      "residual_high_if_db": -3.35544249995408
     },
     {
       "case": "medium-60m",
@@ -301,9 +301,9 @@
       "two_way_pattern_db": 0.07751424463138079,
       "snr_local_db": 40.678931771418334,
       "snr_high_if_db": 41.33191194889518,
-      "model_snr_db": 42.10061314517891,
-      "residual_local_db": -1.4216813737605776,
-      "residual_high_if_db": -0.7687011962837289
+      "model_snr_db": 42.60061314517891,
+      "residual_local_db": -1.9216813737605776,
+      "residual_high_if_db": -1.268701196283729
     },
     {
       "case": "short-60m",
@@ -332,9 +332,9 @@
       "two_way_pattern_db": 0.07474884695390571,
       "snr_local_db": 39.193851805893246,
       "snr_high_if_db": 39.50507816229296,
-      "model_snr_db": 42.114031846009446,
-      "residual_local_db": -2.9201800401162004,
-      "residual_high_if_db": -2.6089536837164857
+      "model_snr_db": 42.614031846009446,
+      "residual_local_db": -3.4201800401162004,
+      "residual_high_if_db": -3.1089536837164857
     },
     {
       "case": "medium-100m",
@@ -363,9 +363,9 @@
       "two_way_pattern_db": -0.46456545788189274,
       "snr_local_db": 33.87959834434719,
       "snr_high_if_db": 34.271704896530366,
-      "model_snr_db": 32.56438694238553,
-      "residual_local_db": 1.3152114019616548,
-      "residual_high_if_db": 1.707317954144834
+      "model_snr_db": 33.06438694238553,
+      "residual_local_db": 0.8152114019616548,
+      "residual_high_if_db": 1.207317954144834
     },
     {
       "case": "short-100m",
@@ -394,9 +394,9 @@
       "two_way_pattern_db": -0.45415608360534776,
       "snr_local_db": 33.5898354096489,
       "snr_high_if_db": 33.69600390793214,
-      "model_snr_db": 32.592975453731015,
-      "residual_local_db": 0.9968599559178841,
-      "residual_high_if_db": 1.103028454201123
+      "model_snr_db": 33.092975453731015,
+      "residual_local_db": 0.4968599559178841,
+      "residual_high_if_db": 0.603028454201123
     }
   ],
   "field_minus_walk_15_27_m_db": {

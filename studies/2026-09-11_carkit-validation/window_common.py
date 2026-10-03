@@ -127,6 +127,7 @@ class Capture:
     tx_channels: tuple[int, ...]
     coherent_tx: bool
     tx_backoff_db: float
+    rx_gain_db: float
     rx_setting: str
     # Slow-time lines of a static return, in cycles per chirp: DDMA slots and
     # their count (one slot at zero without DDMA), and the carrier step between
@@ -282,6 +283,7 @@ def _load_own(case: str, data: Path | None) -> Capture:
         tx_channels=tx_channels,
         coherent_tx=bool(settings.get("coherent", False)),
         tx_backoff_db=_number(actual, "tx_backoff_db"),
+        rx_gain_db=_number(actual, "rx_gain_db"),
         rx_setting=f"gain {_number(actual, 'rx_gain_db'):g} dB; high-pass not recorded",
         ddma_slots=(0,),
         ddma_length=1,
@@ -353,6 +355,9 @@ def _load_infineon(case: str, data: Path | None) -> Capture:
         ),
         coherent_tx=False,
         tx_backoff_db=_number(mode_config, "backoff_dB"),
+        rx_gain_db=carkit_common.RX_GAIN_STEPS_DB[
+            int(first["rx_config"]["gainSelection"])
+        ],
         rx_setting=(
             f"high-pass code {first['rx_config']['hpSelection']}, gain code "
             f"{first['rx_config']['gainSelection']}"

@@ -14,19 +14,19 @@
       21267
     ]
   },
-  "model_db": 32.67136677394247,
+  "model_db": 33.17136677394247,
   "comparison": {
     "inbound, target-free (headline)": {
       "measured_db": 33.862998560544824,
-      "residual_db": 1.1916317866023576
+      "residual_db": 0.6916317866023576
     },
     "selected, target-free": {
       "measured_db": 34.0947732982948,
-      "residual_db": 1.4234065243523304
+      "residual_db": 0.9234065243523304
     },
     "inbound, far-quarter noise": {
       "measured_db": 35.08937553046707,
-      "residual_db": 2.418008756524607
+      "residual_db": 1.918008756524607
     }
   },
   "breakdown_from_report": [

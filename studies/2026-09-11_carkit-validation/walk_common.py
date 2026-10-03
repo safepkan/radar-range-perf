@@ -58,6 +58,10 @@ CONTROL_EXCLUSION_M = 8.0
 
 REFERENCE_RANGE_M = 100.0
 REFERENCE_RCS_DBSM = 10.0
+# RX gain of the walk: gain code 0 for all receivers of the recorded mode
+# (provenance/configuration.json), checked by load_capture. walk_model.py uses
+# it without the raw data.
+RX_GAIN_DB = 3.0
 # Walking reflector relative to the nominal 10 dBsm lab reference (Slack,
 # 2026-09-28). Results are scaled back to 10 dBsm, the RCS used by the model.
 WALKING_RCS_DBSM = 11.27
@@ -90,6 +94,7 @@ class Capture:
     start_frequency_hz: float
     sampled_bandwidth_hz: float
     pre_payload_s: float
+    rx_gain_db: float
 
     @property
     def n_frames(self) -> int:
@@ -177,6 +182,7 @@ def load_capture(data: Path | None = None, *, verify: bool = False) -> Capture:
 
     return Capture(
         root=root,
+        rx_gain_db=active_rx_gain_db(root),
         json_paths=json_paths,
         binary_paths=tuple(binary_paths),
         shape=(shape[0], shape[1], shape[2]),
@@ -187,6 +193,25 @@ def load_capture(data: Path | None = None, *, verify: bool = False) -> Capture:
         sampled_bandwidth_hz=_number(waveform, "adc_bandwidth_hz"),
         pre_payload_s=_number(waveform, "pre_payload_us") * 1e-6,
     )
+
+
+def active_rx_gain_db(root: Path) -> float:
+    """RX gain of the recorded mode, from Infineon's configuration.
+
+    ``provenance/configuration.json`` holds every mode's receiver settings;
+    ``operation.current_mode`` is the one recorded. All receivers must share
+    one gain code, which carkit_common.RX_GAIN_STEPS_DB turns into dB.
+    """
+    configuration = json.loads((root / "provenance" / "configuration.json").read_text())
+    operation = configuration["operation"]
+    mode = operation["modes"][int(operation["current_mode"])]
+    codes = {int(receiver["gain"]) for receiver in mode["receivers"]}
+    if len(codes) != 1:
+        raise ValueError(f"RX gain codes differ between receivers: {sorted(codes)}")
+    gain = carkit_common.RX_GAIN_STEPS_DB[codes.pop()]
+    if gain != RX_GAIN_DB:
+        raise ValueError(f"recorded RX gain {gain} dB, expected {RX_GAIN_DB} dB")
+    return gain
 
 
 def window(length: int) -> FloatArray:

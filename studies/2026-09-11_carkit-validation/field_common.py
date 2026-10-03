@@ -41,6 +41,7 @@ from carkit_common import (
     FloatArray,
     db,
     interference_flags,
+    noise_figure_db,
 )
 from radarperf import (
     WINDOW_LOSS_BLACKMAN_HARRIS_DB,
@@ -296,9 +297,9 @@ def zero_doppler_amplitudes(
 
 def reference_radar(capture: Capture) -> Radar:
     """walk_model's reference model with a capture's waveform and windows: TX1,
-    datasheet TX power and noise figure, FARAD-IV directivity, no hardware
-    losses, noncoherent RX, Blackman-Harris/Hann windows, no straddle or CFAR
-    loss."""
+    datasheet TX power, the typical noise figure at the capture's RX gain
+    (10 MHz IF), FARAD-IV directivity, no hardware losses, noncoherent RX,
+    Blackman-Harris/Hann windows, no straddle or CFAR loss."""
     waveform = FmcwWaveform(
         center_frequency_hz=capture.center_frequency_hz,
         bandwidth_hz=capture.sampled_bandwidth_hz,
@@ -308,7 +309,9 @@ def reference_radar(capture: Capture) -> Radar:
         chirp_repetition_time_s=capture.chirp_period_s,
     )
     return Radar(
-        frontend=frontend.ctrx8188f(n_tx=1),
+        frontend=frontend.ctrx8188f(
+            n_tx=1, noise_figure_db=noise_figure_db(capture.rx_gain_db)
+        ),
         antenna=antenna.sencity_farad_iv(),
         waveform=waveform,
         processing=StandardProcessing(
