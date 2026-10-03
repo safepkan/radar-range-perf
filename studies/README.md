@@ -40,12 +40,14 @@ all of its working figures headlessly and runs its study-local tests, e.g.
   (CTRX8188F, eight TX, eight RX, FARAD-IV antenna) against our range and
   phase-noise models, from a corner reflector carried and on a tripod, a
   hand-held reflector at 5 and 10 m, the office-window scene with Infineon's
-  firmware and ours, and traffic seen from a motorway bridge. Two reflector
-  sessions disagree by 4.4 dB (1.2–1.7 dB above and 3–4 dB below the model
-  without hardware losses), so the absolute check is open. The receiver's
-  low-IF background excess is noise between 1 and 5 MHz. With our firmware's
-  chirp timing the per-chirp frequency error is 3.1–3.6 kHz rms, at the
-  CTRX8188F CW phase-noise table's level; with Infineon's it is 14–30 kHz.
+  firmware and ours, and traffic seen from a motorway bridge. The carried
+  reflector, with Infineon's firmware, is 0.7 dB above the model with
+  datasheet values and no hardware losses; with our firmware the same
+  reflector on a tripod came out 4.4 dB lower, unexplained, so the absolute
+  check is open for our firmware. The receiver's low-IF background excess is
+  noise between 1 and 5 MHz. With our firmware's chirp timing the per-chirp
+  frequency error is 3.1–3.6 kHz rms, at the CTRX8188F CW phase-noise table's
+  level; with Infineon's it is 14–30 kHz.
   Results, open questions and planned measurements are in
   [`NOTES.md`](2026-09-11_carkit-validation/NOTES.md); the scripts process the
   raw data (not in the repo) via `make study_260911_carkit_validation`.
