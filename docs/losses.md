@@ -101,7 +101,7 @@ derating terms cover temperature and part spread.
 | Term | Where | Default | Sourced values | Source |
 |---|---|---|---|---|
 | TX and RX feed | `SystemLosses.tx_feed_loss_db`, `rx_feed_loss_db` | 0 | none yet; from the MMIC reference plane to the antenna port | |
-| Antenna efficiency and mismatch | `SystemLosses.tx_antenna_loss_db`, `rx_antenna_loss_db` | 0 | SENCITY FARAD-IV and THIS-II: radiation efficiency ≥ 90 % (≤ 0.46 dB) and reflection coefficient ≤ −10 dB (mismatch ≤ 0.46 dB), so realized gain is at most 0.92 dB below the stated directivity, mounted on a PCB without a radome | [2], [3] |
+| Antenna efficiency and mismatch | `SystemLosses.tx_antenna_loss_db`, `rx_antenna_loss_db` | 0 | SENCITY FARAD-IV and THIS-II: radiation efficiency ≥ 90 % (≤ 0.46 dB) and reflection coefficient ≤ −10 dB (mismatch ≤ 0.46 dB), so realized gain is at most 0.92 dB below the stated directivity, mounted on a PCB without a radome; 0.46 dB if the efficiency includes mismatch (below) | [2], [3] |
 | Aperture taper | antenna model | | `aperture_efficiency` and array weights already reduce the directivity; do not count it again | |
 | Channel amplitude and phase errors | not a field | 0 | random phase errors of rms σ reduce coherent gain by exp(−σ²), i.e. 10 log10(e) σ² dB: 0.13 dB at 10°, 0.53 dB at 20°. CTRX8188F: RX channel-to-channel phase drift ≤ 3.5°, TX phase setting accuracy ≤ 4° | [7]; [1] Tables 24, 30 |
 | Angular straddle | `StandardProcessing.beamforming_loss_db`, or a multi-beam antenna model | 0 | | do not use both |
@@ -110,6 +110,19 @@ Channel errors apply to coherent TX or RX combining; put them in
 `beamforming_loss_db` or `other_loss_db`. The SENCITY presets and the
 analytical aperture and array models are directivities, so they need the
 antenna loss.
+
+The SENCITY data sheets do not define radiation efficiency. IEEE Std 145 [14]
+defines it as the radiated power over the power the antenna accepts, which
+leaves mismatch out; the 0.92 dB bound adds the two. HUBER+SUHNER's own papers
+on the same metallized-plastic waveguide technology use the term for total
+efficiency, which includes mismatch: one letter gives its 90 % as radiation
+efficiency in the abstract and as total efficiency in the text [16]. Read that
+way, realized gain is at most 0.46 dB below directivity. The papers' 76–81 GHz
+prototypes reach total efficiencies of up to 94 % (0.27 dB) for eight-horn
+linear arrays, measured from a WR-12 adapter at the antenna's PCB interface
+[15], and above 90 % (0.46 dB) for a slotted array [16]. They are not the
+SENCITY products, so they show what the technology reaches, not what a given
+antenna does.
 
 ### Radome and installation
 
@@ -431,3 +444,16 @@ For each study or one-off calculation, state:
     with the U.S. Standard Atmosphere 1976.
 13. Infineon, email reply to our questions on the CTRX8188F noise modes and the
     conditions of [1] Table 30, 2026-10-02 (not public).
+14. IEEE Std 145-2013, *IEEE Standard for Definitions of Terms for Antennas*:
+    radiation efficiency, realized gain.
+15. A. Garcia-Tejero, M. Burgos-Garcia and F. Merli, "Broadband metallized
+    plastic waveguide antenna with robust isolation interface at 77 GHz",
+    *IEEE Antennas and Wireless Propagation Letters*, vol. 23, no. 10,
+    pp. 2875–2879, 2024, doi:10.1109/LAWP.2024.3412424. Prototypes made at
+    HUBER+SUHNER; accepted version at <https://oa.upm.es/85665/>.
+16. A. Garcia-Tejero, F. Rodríguez Varela, R. Torres-Sánchez, M. Burgos-Garcia
+    and F. Merli, "Wideband untilted narrow wall slotted partially staggered
+    waveguide array based on metallized molded plastic at E-band", *IEEE
+    Antennas and Wireless Propagation Letters*, vol. 23, no. 3, pp. 915–919,
+    2024, doi:10.1109/LAWP.2023.3337495. Accepted version at
+    <https://oa.upm.es/85664/>.
