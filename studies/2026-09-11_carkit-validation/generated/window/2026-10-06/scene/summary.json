@@ -1,0 +1,1400 @@
+{
+  "far_doppler_hz": 1000.0,
+  "background_reference_mhz": [
+    18.0,
+    24.0
+  ],
+  "levels": {
+    "medium-PRI50": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.0036688678659313467,
+      "min_change_db": -0.500657340994298,
+      "max_change_db": 4.371715885534227,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": 0.0017258687572478948
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": -0.0018356209600671747
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 4.371715885534227
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 0.8749401551340439
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 0.6177488088261445
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -0.500657340994298
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": -0.07710450388143464
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": 0.005611866974614799
+        }
+      ]
+    },
+    "medium-PRI30": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": -0.005521372477546471,
+      "min_change_db": -0.7093053773226785,
+      "max_change_db": 6.053927870433425,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.006873956269252801
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": -0.004168788685840141
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 6.053927870433425
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 1.6388177636822148
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 0.37616014917165863
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -0.6788979957031707
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": -0.0709276748407568
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": -0.7093053773226785
+        }
+      ]
+    },
+    "medium-PRI25": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.4142789882970259,
+      "min_change_db": -1.094435981615181,
+      "max_change_db": 5.602584746710017,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.021979096977126744
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": 0.45460793520138054
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 5.602584746710017
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 0.6595564297092427
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 0.7439928293295033
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -1.094435981615181
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.3739500413926713
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": -0.5543172506591247
+        }
+      ]
+    },
+    "medium-PRI25-ramp20ns": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.32211431573945415,
+      "min_change_db": -1.582491948720934,
+      "max_change_db": 2.4796045507894746,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.15426202148782409
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": 0.2635708480560357
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 2.4796045507894746
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 0.6942262225930351
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 0.7732908561533396
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -1.1233272294381038
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.3806577834228726
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": -1.582491948720934
+        }
+      ]
+    },
+    "medium-PRI25-flyback20ns": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.168720230240063,
+      "min_change_db": -1.3536513903117857,
+      "max_change_db": 5.561451192315127,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.2367204977881059
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": 0.09267575250991023
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 5.561451192315127
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 1.4990698263170588
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 1.1577310967403847
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -1.3536513903117857
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.24476470797021577
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": 0.02285931418899878
+        }
+      ]
+    },
+    "medium-PRI25-ramp20ns-flyback20ns": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.027178381512688254,
+      "min_change_db": -0.743627841303212,
+      "max_change_db": 4.631848659022758,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.3131839590801846
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": -0.15392989309650673
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 4.631848659022758
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 1.1473881700794388
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 1.2440324770308404
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -0.743627841303212
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.20828665612188324
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": -0.4381078040006905
+        }
+      ]
+    },
+    "medium-ramp6000ns": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.0495824149406654,
+      "min_change_db": -1.5283734791085308,
+      "max_change_db": 4.121161636877606,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.42306417411795394
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": -0.1381169758714691
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 4.121161636877606
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": -0.11341588116562651
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 0.2125807110469573
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -1.5283734791085308
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.40755569432782224
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": 0.3763682610452115
+        }
+      ]
+    },
+    "medium-ramp4000ns": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": 0.12032669997739864,
+      "min_change_db": -1.9561572798269786,
+      "max_change_db": 5.432487000401464,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.4090387034580303
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": 0.2230452617299683
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 5.432487000401464
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": 0.017608138224828984
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 1.1817993745113018
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -1.9561572798269786
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.37115334741665507
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": -0.20218801899979155
+        }
+      ]
+    },
+    "medium-ramp2000ns": {
+      "reference": "medium-PRI100",
+      "matched": 8,
+      "median_change_db": -0.12291483175032569,
+      "min_change_db": -1.8530751773476375,
+      "max_change_db": 3.821464877241654,
+      "per_return": [
+        {
+          "range_m": 26.961726941699347,
+          "change_db": -0.36446745192436936
+        },
+        {
+          "range_m": 33.38865022431372,
+          "change_db": -0.06385782497510739
+        },
+        {
+          "range_m": 51.57214048732026,
+          "change_db": 3.821464877241654
+        },
+        {
+          "range_m": 79.78790124026143,
+          "change_db": -0.181971838525544
+        },
+        {
+          "range_m": 93.7390273903268,
+          "change_db": 0.8674060525575271
+        },
+        {
+          "range_m": 102.9875267482353,
+          "change_db": -1.8530751773476375
+        },
+        {
+          "range_m": 128.6952198786928,
+          "change_db": 0.44274083902068284
+        },
+        {
+          "range_m": 230.42871281568625,
+          "change_db": -0.8898321215631455
+        }
+      ]
+    }
+  },
+  "cases": {
+    "medium-PRI100": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:09:39.486843Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 99.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -351.0,
+        "max_counts": 216.0,
+        "mean_rx_rms_counts": 69.14008841407495,
+        "offset_range_counts": [
+          -84.75437583923339,
+          -51.18317985534668
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.815774654871092,
+      "total_over_independent_1_10_mhz_db": 0.35803162861498095,
+      "background_shape_db": {
+        "0.7": 1.2210694599163752,
+        "1": 1.3427254169518221,
+        "2": 1.1437030521385552,
+        "3.3": 3.5806794690357933,
+        "6.6": 0.8383156605161659,
+        "13": 0.15043922075412297
+      },
+      "noise_floor_db_counts2": -30.664993349585586,
+      "strongest_static_returns": [
+        {
+          "range_m": 26.961726941699347,
+          "snr_per_chirp_db": 36.514440917045135
+        },
+        {
+          "range_m": 102.9875267482353,
+          "snr_per_chirp_db": 23.579179422080628
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 22.555636240532838
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.267441829550446
+        },
+        {
+          "range_m": 93.7390273903268,
+          "snr_per_chirp_db": 19.019556375125205
+        },
+        {
+          "range_m": 33.38865022431372,
+          "snr_per_chirp_db": 17.266820038861482
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 12.583777455117334
+        },
+        {
+          "range_m": 79.78790124026143,
+          "snr_per_chirp_db": 11.422763223766514
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          26.961726941699347,
+          102.9875267482353,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.06761383570318516,
+        "common_max_abs_hz": 0.09767343089733094,
+        "spread_among_returns_median_hz": 0.08705794569941194
+      }
+    },
+    "medium-PRI50": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:10:39.907708Z",
+      "cpis": 9,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 49.99999999999999,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 33.72,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [
+        "CPIs [8] of 10 missing"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -325.0,
+        "max_counts": 172.0,
+        "mean_rx_rms_counts": 67.33053745572866,
+        "offset_range_counts": [
+          -84.56477144029405,
+          -50.79916212293837
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.74213463432514,
+      "total_over_independent_1_10_mhz_db": 0.4433760895338672,
+      "background_shape_db": {
+        "0.7": 1.5232196338698216,
+        "1": 1.5768443606155493,
+        "2": 1.3826671165591762,
+        "3.3": 4.837930642364945,
+        "6.6": 0.9034824211171291,
+        "13": 0.2912422447099985
+      },
+      "noise_floor_db_counts2": -30.45192759024357,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.118481168104573,
+          "snr_per_chirp_db": 36.543831639503004
+        },
+        {
+          "range_m": 103.14428097464052,
+          "snr_per_chirp_db": 22.59403390595242
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 22.442735997313736
+        },
+        {
+          "range_m": 93.7390273903268,
+          "snr_per_chirp_db": 19.161472446736894
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.05266058715388
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 17.960087307422008
+        },
+        {
+          "range_m": 33.545404450718955,
+          "snr_per_chirp_db": 15.885593225980806
+        },
+        {
+          "range_m": 77.75009629699346,
+          "snr_per_chirp_db": 12.180288596057549
+        },
+        {
+          "range_m": 67.5610715806536,
+          "snr_per_chirp_db": 10.560896153758426
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.118481168104573,
+          103.14428097464052,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.20307766401778746,
+        "common_max_abs_hz": 0.4178419977819056,
+        "spread_among_returns_median_hz": 0.11816613319979415
+      }
+    },
+    "medium-PRI30": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:11:21.636595Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 29.999999999999996,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 13.72,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -352.0,
+        "max_counts": 191.0,
+        "mean_rx_rms_counts": 66.82565234735844,
+        "offset_range_counts": [
+          -84.29774665832521,
+          -50.58785705566406
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.657443207235563,
+      "total_over_independent_1_10_mhz_db": 0.3477997228317129,
+      "background_shape_db": {
+        "0.7": 1.1582861505993023,
+        "1": 1.1971372862824943,
+        "2": 0.9408481956031594,
+        "3.3": 2.7973482776612784,
+        "6.6": 0.6835282215912493,
+        "13": 0.0612872291136064
+      },
+      "noise_floor_db_counts2": -30.58540771343403,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.118481168104573,
+          "snr_per_chirp_db": 36.82993896579938
+        },
+        {
+          "range_m": 103.30103520104575,
+          "snr_per_chirp_db": 22.91752161678508
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 21.728355009183606
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 19.59982700546762
+        },
+        {
+          "range_m": 93.7390273903268,
+          "snr_per_chirp_db": 19.421612152623943
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.137592304428146
+        },
+        {
+          "range_m": 33.545404450718955,
+          "snr_per_chirp_db": 19.137030065695004
+        },
+        {
+          "range_m": 79.16088433464051,
+          "snr_per_chirp_db": 13.060873486438297
+        },
+        {
+          "range_m": 67.87458003346406,
+          "snr_per_chirp_db": 12.199219560820893
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.118481168104573,
+          103.30103520104575,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.2608236709495805,
+        "common_max_abs_hz": 0.4466621882189267,
+        "spread_among_returns_median_hz": 0.2156216119399174
+      }
+    },
+    "medium-PRI25": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:12:02.914687Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 9.22,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -299.0,
+        "max_counts": 169.0,
+        "mean_rx_rms_counts": 66.90223839155283,
+        "offset_range_counts": [
+          -84.28176727294922,
+          -50.67119026184082
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.818925739950696,
+      "total_over_independent_1_10_mhz_db": 0.41929745414135944,
+      "background_shape_db": {
+        "0.7": 1.2770981846415381,
+        "1": 1.3584121295868279,
+        "2": 1.1164169950277163,
+        "3.3": 3.5371528083170176,
+        "6.6": 0.865953707183234,
+        "13": 0.1504635465039108
+      },
+      "noise_floor_db_counts2": -30.66249275589087,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.118481168104573,
+          "snr_per_chirp_db": 36.85198013740128
+        },
+        {
+          "range_m": 103.45778942745098,
+          "snr_per_chirp_db": 22.48692632691735
+        },
+        {
+          "range_m": 230.27195858928104,
+          "snr_per_chirp_db": 21.95013965972922
+        },
+        {
+          "range_m": 93.89578161673202,
+          "snr_per_chirp_db": 19.76821257003267
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.65116942795595
+        },
+        {
+          "range_m": 33.545404450718955,
+          "snr_per_chirp_db": 19.352254889631535
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 19.11238785103985
+        },
+        {
+          "range_m": 67.5610715806536,
+          "snr_per_chirp_db": 12.265010383961902
+        },
+        {
+          "range_m": 79.78790124026143,
+          "snr_per_chirp_db": 12.052935579690566
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.118481168104573,
+          103.45778942745098,
+          230.27195858928104
+        ],
+        "common_rms_hz": 0.5223702805507959,
+        "common_max_abs_hz": 0.8801511096042915,
+        "spread_among_returns_median_hz": 0.1226014748319466
+      }
+    },
+    "medium-PRI25-ramp20ns": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:13:46.255111Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 0.02,
+      "payload_us": 10.24,
+      "flyback_us": 2.0,
+      "wait_us": 13.200000000000001,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -878.0,
+        "max_counts": 1170.0,
+        "mean_rx_rms_counts": 75.55156037461107,
+        "offset_range_counts": [
+          -85.44148368835448,
+          -51.492493057250975
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.857115329704946,
+      "total_over_independent_1_10_mhz_db": 0.3724026417313482,
+      "background_shape_db": {
+        "0.7": 1.2705547769116947,
+        "1": 1.3173033059351518,
+        "2": 1.2398165177057798,
+        "3.3": 5.732311347540858,
+        "6.6": 0.820811301060715,
+        "13": 0.21244229386747904
+      },
+      "noise_floor_db_counts2": -30.638886671127388,
+      "strongest_static_returns": [
+        {
+          "range_m": 26.491464262483657,
+          "snr_per_chirp_db": 35.79367750624977
+        },
+        {
+          "range_m": 103.6145436538562,
+          "snr_per_chirp_db": 22.506707059061426
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 20.981175449756808
+        },
+        {
+          "range_m": 94.05253584313725,
+          "snr_per_chirp_db": 19.84478595013136
+        },
+        {
+          "range_m": 128.85197410509804,
+          "snr_per_chirp_db": 19.67846864916571
+        },
+        {
+          "range_m": 33.38865022431372,
+          "snr_per_chirp_db": 15.50124914013205
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 14.672952473390236
+        },
+        {
+          "range_m": 67.87458003346406,
+          "snr_per_chirp_db": 13.545069389969717
+        },
+        {
+          "range_m": 80.25816391947713,
+          "snr_per_chirp_db": 12.175343101063875
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          26.491464262483657,
+          103.6145436538562,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.6322556679900468,
+        "common_max_abs_hz": 1.4426439207538164,
+        "spread_among_returns_median_hz": 0.25903255263085956
+      }
+    },
+    "medium-PRI25-flyback20ns": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:14:51.035851Z",
+      "cpis": 9,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 0.02,
+      "wait_us": 11.200000000000001,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [
+        "CPIs [8] of 10 missing"
+      ],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -275.0,
+        "max_counts": 165.0,
+        "mean_rx_rms_counts": 65.64411291591328,
+        "offset_range_counts": [
+          -83.44832060072159,
+          -50.40069961547852
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.7086789748411,
+      "total_over_independent_1_10_mhz_db": 0.31884331609271577,
+      "background_shape_db": {
+        "0.7": 1.2697638528974906,
+        "1": 1.3467793190554929,
+        "2": 1.9160367828553788,
+        "3.3": 4.550895617134888,
+        "6.6": 0.7447959471149304,
+        "13": 0.18812248076988425
+      },
+      "noise_floor_db_counts2": -30.522772095369127,
+      "strongest_static_returns": [
+        {
+          "range_m": 26.961726941699347,
+          "snr_per_chirp_db": 35.308222249809866
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 22.396502563182352
+        },
+        {
+          "range_m": 103.6145436538562,
+          "snr_per_chirp_db": 22.03718543249742
+        },
+        {
+          "range_m": 93.89578161673202,
+          "snr_per_chirp_db": 19.997600310513626
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.387524688683314
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 19.05260250722303
+        },
+        {
+          "range_m": 33.545404450718955,
+          "snr_per_chirp_db": 16.70043147411447
+        },
+        {
+          "range_m": 79.47439278745098,
+          "snr_per_chirp_db": 12.90145081425748
+        },
+        {
+          "range_m": 67.71782580705883,
+          "snr_per_chirp_db": 12.593721894281584
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          26.961726941699347,
+          103.6145436538562,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.23914883340558343,
+        "common_max_abs_hz": 0.4775133945195274,
+        "spread_among_returns_median_hz": 0.19678307182642263
+      }
+    },
+    "medium-PRI25-ramp20ns-flyback20ns": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:16:32.974243Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 0.02,
+      "payload_us": 10.24,
+      "flyback_us": 0.02,
+      "wait_us": 15.18,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -864.0,
+        "max_counts": 1159.0,
+        "mean_rx_rms_counts": 75.01782224648156,
+        "offset_range_counts": [
+          -84.82707633972169,
+          -50.969494628906254
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.77518343242754,
+      "total_over_independent_1_10_mhz_db": 0.5974639819660972,
+      "background_shape_db": {
+        "0.7": 1.255325416666082,
+        "1": 1.3966820397891482,
+        "2": 1.1576063239559886,
+        "3.3": 5.602203438369344,
+        "6.6": 1.0464576635153904,
+        "13": 0.28416514100573664
+      },
+      "noise_floor_db_counts2": -30.442223582696663,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.118481168104573,
+          "snr_per_chirp_db": 36.45573825636373
+        },
+        {
+          "range_m": 103.30103520104575,
+          "snr_per_chirp_db": 22.157743660524353
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 22.049297478235545
+        },
+        {
+          "range_m": 93.89578161673202,
+          "snr_per_chirp_db": 19.59443636982244
+        },
+        {
+          "range_m": 128.85197410509804,
+          "snr_per_chirp_db": 19.218837560320186
+        },
+        {
+          "range_m": 51.88564894013072,
+          "snr_per_chirp_db": 16.070995541007033
+        },
+        {
+          "range_m": 33.545404450718955,
+          "snr_per_chirp_db": 14.806184910230995
+        },
+        {
+          "range_m": 79.31763856104574,
+          "snr_per_chirp_db": 12.321970122851045
+        },
+        {
+          "range_m": 67.5610715806536,
+          "snr_per_chirp_db": 11.373819352907113
+        },
+        {
+          "range_m": 112.07927187973857,
+          "snr_per_chirp_db": 10.480482859879528
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.118481168104573,
+          103.30103520104575,
+          230.42871281568625
+        ],
+        "common_rms_hz": 3.3677022380908666,
+        "common_max_abs_hz": 6.23742764409715,
+        "spread_among_returns_median_hz": 0.3015814204512698
+      }
+    },
+    "medium-ramp6000ns": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:20:41.207097Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 6.0,
+      "payload_us": 10.24,
+      "flyback_us": 1.0,
+      "wait_us": 8.22,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -313.0,
+        "max_counts": 165.0,
+        "mean_rx_rms_counts": 64.58172390297135,
+        "offset_range_counts": [
+          -83.10436325073243,
+          -50.09527778625489
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.90187564655777,
+      "total_over_independent_1_10_mhz_db": 0.3638174567623107,
+      "background_shape_db": {
+        "0.7": 1.2559359393261715,
+        "1": 1.3245292499004222,
+        "2": 1.2186393470925125,
+        "3.3": 6.008499229239092,
+        "6.6": 0.708121065717684,
+        "13": 0.12792715660533815
+      },
+      "noise_floor_db_counts2": -30.749996497588565,
+      "strongest_static_returns": [
+        {
+          "range_m": 26.961726941699347,
+          "snr_per_chirp_db": 36.230568437926316
+        },
+        {
+          "range_m": 230.27195858928104,
+          "snr_per_chirp_db": 23.004815834349582
+        },
+        {
+          "range_m": 103.45778942745098,
+          "snr_per_chirp_db": 22.303912043090616
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.768782368678234
+        },
+        {
+          "range_m": 33.231895997908495,
+          "snr_per_chirp_db": 17.67495044041312
+        },
+        {
+          "range_m": 51.72889471372549,
+          "snr_per_chirp_db": 17.471123428150364
+        },
+        {
+          "range_m": 68.03133425986928,
+          "snr_per_chirp_db": 13.792689572852733
+        },
+        {
+          "range_m": 78.69062165542485,
+          "snr_per_chirp_db": 11.596611538102037
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          26.961726941699347,
+          103.45778942745098,
+          230.27195858928104
+        ],
+        "common_rms_hz": 0.20411487195426226,
+        "common_max_abs_hz": 0.44301463653105994,
+        "spread_among_returns_median_hz": 0.17031945631111423
+      }
+    },
+    "medium-ramp4000ns": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:20:55.155310Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 4.0,
+      "payload_us": 10.24,
+      "flyback_us": 1.0,
+      "wait_us": 10.22,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -293.0,
+        "max_counts": 162.0,
+        "mean_rx_rms_counts": 64.98861159335287,
+        "offset_range_counts": [
+          -83.30757522583008,
+          -50.1988410949707
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.876369935657348,
+      "total_over_independent_1_10_mhz_db": 0.5466949570460979,
+      "background_shape_db": {
+        "0.7": 1.22295214098148,
+        "1": 1.309096844875988,
+        "2": 1.5114770318116477,
+        "3.3": 4.731411073248072,
+        "6.6": 1.184441137958789,
+        "13": 0.34979314231667047
+      },
+      "noise_floor_db_counts2": -30.52143009423056,
+      "strongest_static_returns": [
+        {
+          "range_m": 26.80497271529412,
+          "snr_per_chirp_db": 35.37325450597646
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 22.35906482061114
+        },
+        {
+          "range_m": 103.6145436538562,
+          "snr_per_chirp_db": 21.23788605714173
+        },
+        {
+          "range_m": 94.05253584313725,
+          "snr_per_chirp_db": 19.824875102444043
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.590699848344922
+        },
+        {
+          "range_m": 33.38865022431372,
+          "snr_per_chirp_db": 16.370165231383265
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 15.377047380087625
+        },
+        {
+          "range_m": 77.75009629699346,
+          "snr_per_chirp_db": 11.620081294494804
+        },
+        {
+          "range_m": 67.71782580705883,
+          "snr_per_chirp_db": 11.284178682992556
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          26.80497271529412,
+          103.6145436538562,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.2872346024390017,
+        "common_max_abs_hz": 0.41516635274647995,
+        "spread_among_returns_median_hz": 0.21443095679228125
+      }
+    },
+    "medium-ramp2000ns": {
+      "recording": "2026-10-06",
+      "firmware": "release/mifu2025-rc1_20260930-62-g1115e763",
+      "first_timestamp": "2026-10-06T13:21:08.581954Z",
+      "cpis": 10,
+      "shape_chirp_sample_rx": [
+        512,
+        512,
+        8
+      ],
+      "chirp_period_us": 25.5,
+      "slope_mhz_per_us": 11.6729736328125,
+      "sampled_bandwidth_mhz": 119.53125,
+      "start_frequency_ghz": 76.9402359008789,
+      "pre_payload_us": 2.0,
+      "payload_us": 10.24,
+      "flyback_us": 1.0,
+      "wait_us": 12.22,
+      "max_unambiguous_range_m": 321.0326556779085,
+      "tx_channels": [
+        1
+      ],
+      "coherent_tx": false,
+      "ddma_slots": [
+        0
+      ],
+      "ddma_length": 1,
+      "frequency_step_hz": 0.0,
+      "tx_backoff_db": 0.0,
+      "rx_setting": "gain 3 dB; high-pass not recorded",
+      "notes": [],
+      "adc": {
+        "full_scale_counts": 2048,
+        "min_counts": -311.0,
+        "max_counts": 174.0,
+        "mean_rx_rms_counts": 65.07887655161312,
+        "offset_range_counts": [
+          -83.12334671020508,
+          -49.683448410034174
+        ]
+      },
+      "interference_cpis": [],
+      "independent_background_db_counts2": -30.807148029471904,
+      "total_over_independent_1_10_mhz_db": 0.4082338283928024,
+      "background_shape_db": {
+        "0.7": 1.193286971855624,
+        "1": 1.288238381628073,
+        "2": 1.2540229280843818,
+        "3.3": 7.242481218944903,
+        "6.6": 0.7039935782043045,
+        "13": 0.15753850754924414
+      },
+      "noise_floor_db_counts2": -30.650831060068732,
+      "strongest_static_returns": [
+        {
+          "range_m": 27.118481168104573,
+          "snr_per_chirp_db": 36.4674579572508
+        },
+        {
+          "range_m": 103.6145436538562,
+          "snr_per_chirp_db": 21.813841959610393
+        },
+        {
+          "range_m": 230.42871281568625,
+          "snr_per_chirp_db": 21.609368986629956
+        },
+        {
+          "range_m": 94.05253584313725,
+          "snr_per_chirp_db": 19.983355580479593
+        },
+        {
+          "range_m": 128.6952198786928,
+          "snr_per_chirp_db": 19.741982726340524
+        },
+        {
+          "range_m": 33.545404450718955,
+          "snr_per_chirp_db": 18.046445509779346
+        },
+        {
+          "range_m": 51.57214048732026,
+          "snr_per_chirp_db": 16.599728152841468
+        },
+        {
+          "range_m": 67.71782580705883,
+          "snr_per_chirp_db": 12.693764739573785
+        },
+        {
+          "range_m": 78.84737588183006,
+          "snr_per_chirp_db": 11.366729516053752
+        }
+      ],
+      "drift": {
+        "returns_m": [
+          27.118481168104573,
+          103.6145436538562,
+          230.42871281568625
+        ],
+        "common_rms_hz": 0.3901158378977478,
+        "common_max_abs_hz": 0.7377520371431778,
+        "spread_among_returns_median_hz": 0.1704200648581775
+      }
+    }
+  }
+}

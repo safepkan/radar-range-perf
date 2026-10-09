@@ -1,0 +1,701 @@
+{
+  "low_doppler_hz": 500.0,
+  "settled_ratio": 1.1,
+  "coherence_range_m": 1000.0,
+  "capture_spread": {
+    "relative_std": 0.025978275955919426,
+    "groups": [
+      [
+        "medium-PRI25",
+        "medium-PRI25-flyback20ns",
+        "medium-ramp4000ns"
+      ],
+      [
+        "medium-PRI25-ramp20ns",
+        "medium-PRI25-ramp20ns-flyback20ns"
+      ]
+    ]
+  },
+  "fit": {
+    "floor_hz": 3284.9478425247903,
+    "floor_p5_p95_hz": [
+      3150.4465322444,
+      3423.659858032038
+    ],
+    "excess_at_zero_hz2": 7186131564.626167,
+    "tau_fast_us": 3.4350233391189784,
+    "tau_fast_p5_p95_us": [
+      2.717897898683522,
+      4.359996368949852
+    ],
+    "tau_pre_us": 1.6784536644968429,
+    "tau_pre_p5_p95_us": [
+      1.482962238716113,
+      1.8906790409902343
+    ],
+    "reduced_chi2": 0.7104365592841514
+  },
+  "infineon_timing": [
+    {
+      "name": "window 2026-08-27, mode 1",
+      "pre_payload_us": 3.54,
+      "fast_settling_us": 0.12,
+      "measured_df_rms_hz": 29784.14282839026,
+      "measured_p5_p95_hz": [
+        29466.900427244862,
+        30117.82465624965
+      ],
+      "predicted_df_rms_hz": 29204.167380093688,
+      "predicted_p5_p95_hz": [
+        19463.49762031703,
+        43049.927915145105
+      ]
+    },
+    {
+      "name": "window 2026-08-27, mode 0",
+      "pre_payload_us": 4.199999999999999,
+      "fast_settling_us": 0.12,
+      "measured_df_rms_hz": 21664.584175606393,
+      "measured_p5_p95_hz": [
+        20756.385831000043,
+        22383.60390686268
+      ],
+      "predicted_df_rms_hz": 24064.559360685293,
+      "predicted_p5_p95_hz": [
+        16439.168275757696,
+        34490.192992710894
+      ]
+    },
+    {
+      "name": "outdoor reflector, 4 captures",
+      "pre_payload_us": 5.540000074688578,
+      "fast_settling_us": 0.12,
+      "measured_df_rms_hz": 15460.768410868695,
+      "measured_range_hz": [
+        13785.33678352344,
+        16939.396963929776
+      ],
+      "predicted_df_rms_hz": 16326.992099346984,
+      "predicted_p5_p95_hz": [
+        11741.026293168905,
+        22292.894802655414
+      ]
+    }
+  ],
+  "settled": [
+    {
+      "pre_payload_us": 2.0,
+      "fast_settling_us": 23.59957735472885,
+      "fast_settling_p5_p95_us": [
+        21.018293075389717,
+        26.09621880513766
+      ],
+      "pri_us": 35.87957735472885
+    },
+    {
+      "pre_payload_us": 4.0,
+      "fast_settling_us": 19.506496429377588,
+      "fast_settling_p5_p95_us": [
+        17.347940046546874,
+        21.479852853391066
+      ],
+      "pri_us": 33.78649642937759
+    },
+    {
+      "pre_payload_us": 6.0,
+      "fast_settling_us": 15.41341550402632,
+      "fast_settling_p5_p95_us": [
+        13.668609378349823,
+        16.906697267761402
+      ],
+      "pri_us": 31.693415504026323
+    }
+  ],
+  "predictions": [
+    {
+      "timing": "Infineon mode 0, 1 us flyback",
+      "pre_payload_us": 4.199999999999999,
+      "fast_settling_us": 1.06,
+      "df_rms_hz": 21048.69005376348,
+      "df_rms_p5_p95_hz": [
+        14911.391325747078,
+        29142.507607218093
+      ]
+    },
+    {
+      "timing": "Infineon mode 0, 10 us wait",
+      "pre_payload_us": 4.199999999999999,
+      "fast_settling_us": 10.06,
+      "df_rms_hz": 6500.6309491479415,
+      "df_rms_p5_p95_hz": [
+        6080.163350518044,
+        6664.955046343331
+      ]
+    },
+    {
+      "timing": "Infineon mode 0, 20 us wait",
+      "pre_payload_us": 4.199999999999999,
+      "fast_settling_us": 20.060000000000002,
+      "df_rms_hz": 3535.9654511931544,
+      "df_rms_p5_p95_hz": [
+        3390.2659056030916,
+        3680.1870096653643
+      ]
+    },
+    {
+      "timing": "Infineon mode 0, 40 us wait",
+      "pre_payload_us": 4.199999999999999,
+      "fast_settling_us": 40.06000000000001,
+      "df_rms_hz": 3285.719298520723,
+      "df_rms_p5_p95_hz": [
+        3152.636216368173,
+        3424.7302455778204
+      ]
+    },
+    {
+      "timing": "PRI 25.5 us, 12 us pre-payload",
+      "pre_payload_us": 12.0,
+      "fast_settling_us": 3.2199999999999998,
+      "df_rms_hz": 3605.6967227243613,
+      "df_rms_p5_p95_hz": [
+        3477.1802124064316,
+        3720.4852138467418
+      ]
+    }
+  ],
+  "spectrum_cases": [
+    "medium-PRI100",
+    "medium-PRI25-ramp20ns",
+    "medium-ramp2000ns",
+    "medium-PRI25",
+    "medium-ramp6000ns"
+  ],
+  "cases": {
+    "medium-PRI100": {
+      "first_timestamp": "2026-10-06T13:09:39.486843Z",
+      "cpis": 10,
+      "chirp_period_us": 99.99999999999999,
+      "pre_payload_us": 4.0,
+      "flyback_us": 2.0,
+      "wait_us": 83.71999999999998,
+      "fast_settling_us": 85.71999999999998,
+      "clean_returns": 9,
+      "pairs": 33,
+      "df_rms_hz": 3350.4450823527727,
+      "df_rms_p5_p95_hz": [
+        3201.0971744800595,
+        3513.7706263871733
+      ],
+      "gamma": 0.22651869575262404,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 19,
+          "df_rms_hz": 3424.4549155010927
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 14,
+          "df_rms_hz": 3313.352430147527
+        }
+      ],
+      "pair_mean_df_rms_hz": 3459.929833158878,
+      "spectrum_df_rms_hz": 3459.9298331588784,
+      "spectrum_tilt_db": -0.09041188901590605,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2697.3069827920576,
+        "76-77_maximum_hz": 4793.900474889316,
+        "77-81_typical_hz": 3358.77047996116,
+        "77-81_maximum_hz": 5897.699876706908
+      },
+      "coherence_loss_1km_db": 0.08565794299822824,
+      "drift_common_rms_hz": 0.06761383570318516,
+      "fit_df_rms_hz": 3284.9478439912095
+    },
+    "medium-PRI50": {
+      "first_timestamp": "2026-10-06T13:10:39.907708Z",
+      "cpis": 9,
+      "chirp_period_us": 49.99999999999999,
+      "pre_payload_us": 4.0,
+      "flyback_us": 2.0,
+      "wait_us": 33.72,
+      "fast_settling_us": 35.72,
+      "clean_returns": 9,
+      "pairs": 34,
+      "df_rms_hz": 3232.190206164517,
+      "df_rms_p5_p95_hz": [
+        3125.4726166122055,
+        3328.1497238281418
+      ],
+      "gamma": 0.24763902261393167,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 1,
+          "df_rms_hz": 3858.034289292833
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 19,
+          "df_rms_hz": 3319.7771659553605
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 14,
+          "df_rms_hz": 3181.5937609709426
+        }
+      ],
+      "pair_mean_df_rms_hz": 3404.928802000964,
+      "spectrum_df_rms_hz": 3404.928802000964,
+      "spectrum_tilt_db": 0.15308220070613673,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2776.4312610639463,
+        "76-77_maximum_hz": 4934.17021388957,
+        "77-81_typical_hz": 3457.3558646733522,
+        "77-81_maximum_hz": 6070.457893474703
+      },
+      "coherence_loss_1km_db": 0.07971801083936615,
+      "drift_common_rms_hz": 0.20307766401778746,
+      "fit_df_rms_hz": 3288.021250780805
+    },
+    "medium-PRI30": {
+      "first_timestamp": "2026-10-06T13:11:21.636595Z",
+      "cpis": 10,
+      "chirp_period_us": 29.999999999999996,
+      "pre_payload_us": 4.0,
+      "flyback_us": 2.0,
+      "wait_us": 13.72,
+      "fast_settling_us": 15.720000000000002,
+      "clean_returns": 10,
+      "pairs": 43,
+      "df_rms_hz": 4199.100414629117,
+      "df_rms_p5_p95_hz": [
+        4053.715841118252,
+        4355.228988642986
+      ],
+      "gamma": 0.013583793454542041,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 1,
+          "df_rms_hz": 3959.9003774523853
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 25,
+          "df_rms_hz": 4238.647164650164
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 17,
+          "df_rms_hz": 4179.6637510789105
+        }
+      ],
+      "pair_mean_df_rms_hz": 4306.099154239047,
+      "spectrum_df_rms_hz": 4306.0991542390475,
+      "spectrum_tilt_db": 1.066457033269261,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2802.276508417155,
+        "76-77_maximum_hz": 4980.281477382684,
+        "77-81_typical_hz": 3489.451896119202,
+        "77-81_maximum_hz": 6126.864031412821
+      },
+      "coherence_loss_1km_db": 0.13454735168406787,
+      "drift_common_rms_hz": 0.2608236709495805,
+      "fit_df_rms_hz": 4196.950551914475
+    },
+    "medium-PRI25": {
+      "first_timestamp": "2026-10-06T13:12:02.914687Z",
+      "cpis": 10,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 4.0,
+      "flyback_us": 2.0,
+      "wait_us": 9.22,
+      "fast_settling_us": 11.219999999999999,
+      "clean_returns": 10,
+      "pairs": 43,
+      "df_rms_hz": 5887.0670306807,
+      "df_rms_p5_p95_hz": [
+        5695.127451875858,
+        6095.11225276438
+      ],
+      "gamma": 0.029891731427464683,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 1,
+          "df_rms_hz": 5474.991341173361
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 25,
+          "df_rms_hz": 5848.597757851305
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 17,
+          "df_rms_hz": 5923.760021526159
+        }
+      ],
+      "pair_mean_df_rms_hz": 5887.067030680699,
+      "spectrum_df_rms_hz": 5887.067030680698,
+      "spectrum_tilt_db": 2.5902856311115268,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2809.1138095449946,
+        "76-77_maximum_hz": 4992.568911142457,
+        "77-81_typical_hz": 3498.077842571818,
+        "77-81_maximum_hz": 6142.391698431072
+      },
+      "coherence_loss_1km_db": 0.26446036621922125,
+      "drift_common_rms_hz": 0.5223702805507959,
+      "fit_df_rms_hz": 6006.736294829123
+    },
+    "medium-PRI25-ramp20ns": {
+      "first_timestamp": "2026-10-06T13:13:46.255111Z",
+      "cpis": 10,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 0.02,
+      "flyback_us": 2.0,
+      "wait_us": 13.200000000000001,
+      "fast_settling_us": 15.2,
+      "clean_returns": 9,
+      "pairs": 34,
+      "df_rms_hz": 9769.186280429762,
+      "df_rms_p5_p95_hz": [
+        9540.386917147787,
+        9982.999960768375
+      ],
+      "gamma": 0.09612583989259714,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 19,
+          "df_rms_hz": 9539.859963136456
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 15,
+          "df_rms_hz": 9991.374800071948
+        }
+      ],
+      "pair_mean_df_rms_hz": 9769.186280429762,
+      "spectrum_df_rms_hz": 9769.18628042976,
+      "spectrum_tilt_db": 3.526235379069073,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2806.7102789547084,
+        "76-77_maximum_hz": 4988.493507270128,
+        "77-81_typical_hz": 3495.036439469797,
+        "77-81_maximum_hz": 6137.2068580399
+      },
+      "coherence_loss_1km_db": 0.728248192263891,
+      "drift_common_rms_hz": 0.6322556679900468,
+      "fit_df_rms_hz": 9788.736341592372
+    },
+    "medium-PRI25-flyback20ns": {
+      "first_timestamp": "2026-10-06T13:14:51.035851Z",
+      "cpis": 9,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 4.0,
+      "flyback_us": 0.02,
+      "wait_us": 11.200000000000001,
+      "fast_settling_us": 11.22,
+      "clean_returns": 11,
+      "pairs": 52,
+      "df_rms_hz": 5861.322862261853,
+      "df_rms_p5_p95_hz": [
+        5759.54513388786,
+        5968.526191569295
+      ],
+      "gamma": 0.06384566693848111,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 2,
+          "df_rms_hz": 5415.3524610643335
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 31,
+          "df_rms_hz": 5826.426196787864
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 19,
+          "df_rms_hz": 5905.777463232808
+        }
+      ],
+      "pair_mean_df_rms_hz": 5861.322862261852,
+      "spectrum_df_rms_hz": 5861.322862261853,
+      "spectrum_tilt_db": 2.759295031213618,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2811.332252202445,
+        "76-77_maximum_hz": 4996.330322303977,
+        "77-81_typical_hz": 3500.8850270494577,
+        "77-81_maximum_hz": 6147.177035982006
+      },
+      "coherence_loss_1km_db": 0.2621524509928572,
+      "drift_common_rms_hz": 0.23914883340558343,
+      "fit_df_rms_hz": 6006.736294829123
+    },
+    "medium-PRI25-ramp20ns-flyback20ns": {
+      "first_timestamp": "2026-10-06T13:16:32.974243Z",
+      "cpis": 10,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 0.02,
+      "flyback_us": 0.02,
+      "wait_us": 15.18,
+      "fast_settling_us": 15.2,
+      "clean_returns": 11,
+      "pairs": 52,
+      "df_rms_hz": 9996.035009189443,
+      "df_rms_p5_p95_hz": [
+        9708.466553545713,
+        10310.797830416444
+      ],
+      "gamma": 0.08116680711253085,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 1,
+          "df_rms_hz": 10017.911273208221
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 25,
+          "df_rms_hz": 9755.695291350854
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 26,
+          "df_rms_hz": 10158.022443254507
+        }
+      ],
+      "pair_mean_df_rms_hz": 9996.035009189442,
+      "spectrum_df_rms_hz": 9996.035009189443,
+      "spectrum_tilt_db": 3.458784447705765,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2806.866269010234,
+        "76-77_maximum_hz": 4988.758007995935,
+        "77-81_typical_hz": 3495.233828045733,
+        "77-81_maximum_hz": 6137.54336422396
+      },
+      "coherence_loss_1km_db": 0.7624619412170828,
+      "drift_common_rms_hz": 3.3677022380908666,
+      "fit_df_rms_hz": 9788.736341592372
+    },
+    "medium-ramp6000ns": {
+      "first_timestamp": "2026-10-06T13:20:41.207097Z",
+      "cpis": 10,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 6.0,
+      "flyback_us": 1.0,
+      "wait_us": 8.22,
+      "fast_settling_us": 9.22,
+      "clean_returns": 8,
+      "pairs": 28,
+      "df_rms_hz": 5108.417674152187,
+      "df_rms_p5_p95_hz": [
+        4909.765374110829,
+        5274.241934009213
+      ],
+      "gamma": 0.13993905400060497,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 1,
+          "df_rms_hz": 6601.848898011346
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 14,
+          "df_rms_hz": 5058.439591349996
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 13,
+          "df_rms_hz": 5131.560262765666
+        }
+      ],
+      "pair_mean_df_rms_hz": 5108.417674152187,
+      "spectrum_df_rms_hz": 5108.417674152188,
+      "spectrum_tilt_db": 1.7624303977491198,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2812.591098690236,
+        "76-77_maximum_hz": 4998.464652212288,
+        "77-81_typical_hz": 3502.4779483761818,
+        "77-81_maximum_hz": 6149.892356397579
+      },
+      "coherence_loss_1km_db": 0.1991294210593298,
+      "drift_common_rms_hz": 0.20411487195426226,
+      "fit_df_rms_hz": 4953.9239146848095
+    },
+    "medium-ramp4000ns": {
+      "first_timestamp": "2026-10-06T13:20:55.155310Z",
+      "cpis": 10,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 4.0,
+      "flyback_us": 1.0,
+      "wait_us": 10.22,
+      "fast_settling_us": 11.22,
+      "clean_returns": 11,
+      "pairs": 53,
+      "df_rms_hz": 6180.554712314316,
+      "df_rms_p5_p95_hz": [
+        6035.064628893089,
+        6306.051529858539
+      ],
+      "gamma": 0.050891734937969245,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            10.0,
+            60.0
+          ],
+          "pairs": 2,
+          "df_rms_hz": 6042.553193435425
+        },
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 32,
+          "df_rms_hz": 6158.8549094402215
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 19,
+          "df_rms_hz": 6199.578104718866
+        }
+      ],
+      "pair_mean_df_rms_hz": 6180.554712314315,
+      "spectrum_df_rms_hz": 6180.554712314315,
+      "spectrum_tilt_db": 2.7093997292282457,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2811.261218032059,
+        "76-77_maximum_hz": 4996.20988490308,
+        "77-81_typical_hz": 3500.795141614813,
+        "77-81_maximum_hz": 6147.02381375729
+      },
+      "coherence_loss_1km_db": 0.2914858949902596,
+      "drift_common_rms_hz": 0.2872346024390017,
+      "fit_df_rms_hz": 6006.736294829123
+    },
+    "medium-ramp2000ns": {
+      "first_timestamp": "2026-10-06T13:21:08.581954Z",
+      "cpis": 10,
+      "chirp_period_us": 25.5,
+      "pre_payload_us": 2.0,
+      "flyback_us": 1.0,
+      "wait_us": 12.22,
+      "fast_settling_us": 13.22,
+      "clean_returns": 9,
+      "pairs": 34,
+      "df_rms_hz": 7422.927204011809,
+      "df_rms_p5_p95_hz": [
+        7215.374855341114,
+        7628.998104272104
+      ],
+      "gamma": 0.09845406024981045,
+      "by_farther_return": [
+        {
+          "farther_return_m": [
+            60.0,
+            130.0
+          ],
+          "pairs": 19,
+          "df_rms_hz": 7252.144643618763
+        },
+        {
+          "farther_return_m": [
+            200.0,
+            290.0
+          ],
+          "pairs": 15,
+          "df_rms_hz": 7572.152569799863
+        }
+      ],
+      "pair_mean_df_rms_hz": 7422.927204011809,
+      "spectrum_df_rms_hz": 7422.927204011809,
+      "spectrum_tilt_db": 3.162907674696484,
+      "cw_prediction_rms_hz": {
+        "76-77_typical_hz": 2806.7102789547084,
+        "76-77_maximum_hz": 4988.493507270128,
+        "77-81_typical_hz": 3495.036439469797,
+        "77-81_maximum_hz": 6137.2068580399
+      },
+      "coherence_loss_1km_db": 0.4204487217375201,
+      "drift_common_rms_hz": 0.3901158378977478,
+      "fit_df_rms_hz": 7569.971020569683
+    }
+  }
+}

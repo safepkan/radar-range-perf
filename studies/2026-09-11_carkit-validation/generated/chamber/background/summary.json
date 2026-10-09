@@ -1,0 +1,507 @@
+{
+  "high_pass": {
+    "measured_corner_khz": 294.23265560073895,
+    "nominal_corner_khz": 300.0
+  },
+  "remote_doppler_guard_hz": 60.0,
+  "receiver_noise": {
+    "db_counts2_per_hz": {
+      "chamber 02-single-tx": {
+        "0.1-0.15": -62.35683229774196,
+        "0.15-0.2": -60.788097826603874,
+        "0.2-0.3": -59.154885214573795,
+        "0.3-0.5": -57.44664194979539,
+        "0.5-0.8": -56.68572960238095,
+        "0.8-1.2": -56.68240522431779,
+        "1.8-2.2": -57.01079864334609,
+        "3-3.6": -57.243816596586825,
+        "4-7": -57.465672048913845,
+        "7-10": -57.65885692152894,
+        "10-12": -57.76337172055139
+      },
+      "chamber 01-ddma": {
+        "0.1-0.15": -62.25953326564869,
+        "0.15-0.2": -60.535816656080144,
+        "0.2-0.3": -59.08816066207733,
+        "0.3-0.5": -57.39278058335333,
+        "0.5-0.8": -56.64725433418343,
+        "0.8-1.2": -56.543216534999814,
+        "1.8-2.2": -56.87960842866492,
+        "3-3.6": -57.12254341070501,
+        "4-7": -57.323530361293706,
+        "7-10": -57.477701170312166,
+        "10-12": -57.6036520467478
+      },
+      "chamber 03-coherent": {
+        "0.1-0.15": -62.1008877984344,
+        "0.15-0.2": -60.14586122768601,
+        "0.2-0.3": -59.01039273507923,
+        "0.3-0.5": -57.32548144285492,
+        "0.5-0.8": -56.56332410994021,
+        "0.8-1.2": -56.492189928065855,
+        "1.8-2.2": -56.783255883459574,
+        "3-3.6": -57.01381652104921,
+        "4-7": -57.242653301639564,
+        "7-10": -57.43591115584189,
+        "10-12": -57.52951440440768
+      },
+      "window long-1TX-0dB (+3 dB)": {
+        "0.1-0.15": -60.951434567027576,
+        "0.15-0.2": -59.04771859470834,
+        "0.2-0.3": -56.94772854656014,
+        "0.3-0.5": -55.05197825621727,
+        "0.5-0.8": -53.98507759999041,
+        "0.8-1.2": -53.881780123360414,
+        "1.8-2.2": -54.06098142612875,
+        "3-3.6": -54.149785051560045,
+        "4-7": -54.51165312447415,
+        "7-10": -54.79344259295411,
+        "10-12": -54.88674984486234
+      },
+      "window long-8TX-0dB (+3 dB)": {
+        "0.1-0.15": -60.695093179836725,
+        "0.15-0.2": -58.82163216646104,
+        "0.2-0.3": -56.679720612742415,
+        "0.3-0.5": -54.542668720288,
+        "0.5-0.8": -53.8120158688303,
+        "0.8-1.2": -53.7714271505922,
+        "1.8-2.2": -54.16839396603196,
+        "3-3.6": -54.261418637158634,
+        "4-7": -54.548554642428506,
+        "7-10": -54.735413805288445,
+        "10-12": -54.851760678904284
+      },
+      "window medium-1TX-0dB (+3 dB)": {
+        "0.1-0.15": null,
+        "0.15-0.2": -58.64606534113599,
+        "0.2-0.3": -56.68820375949223,
+        "0.3-0.5": -55.186900108101106,
+        "0.5-0.8": -54.35194326376447,
+        "0.8-1.2": -54.1609500355898,
+        "1.8-2.2": -54.40676069673525,
+        "3-3.6": -54.67497436226472,
+        "4-7": -54.779139659963185,
+        "7-10": -54.8725938698727,
+        "10-12": -55.18124836772026
+      },
+      "field notx (+3 dB, TX off)": {
+        "0.1-0.15": null,
+        "0.15-0.2": -58.717584035811974,
+        "0.2-0.3": -56.72871439941876,
+        "0.3-0.5": -55.19172584916963,
+        "0.5-0.8": -54.319806692684125,
+        "0.8-1.2": -54.22004752119855,
+        "1.8-2.2": -54.411255224580245,
+        "3-3.6": -54.66898427183733,
+        "4-7": -54.92023840868484,
+        "7-10": -55.10128175783868,
+        "10-12": -55.2118146772084
+      }
+    },
+    "chamber_minus_plus3db_captures_db": {
+      "band_mhz": [
+        0.3,
+        12.0
+      ],
+      "mean": -2.586631318030332,
+      "range": [
+        -2.8050260158816442,
+        -2.332163209410922
+      ]
+    }
+  },
+  "cases": {
+    "02-single-tx": {
+      "remote_doppler_cells": 241,
+      "reflector_range_m": 2.4566326419444446,
+      "reflector_beat_khz": 180.05371093750003,
+      "reflector_per_chirp_db_counts2": 27.191976157965414,
+      "high_pass_at_reflector_db": {
+        "measured_corner": -11.29428640912803,
+        "nominal_corner": -11.540917524256804
+      },
+      "offset_bands": [
+        {
+          "offset_mhz": [
+            0.3,
+            0.5
+          ],
+          "common_over_independent_db": 0.017040553686754834,
+          "skirt_at_adc_dbc_per_hz": -111.1256046084707,
+          "skirt_measured_corner_dbc_per_hz": -120.42974270163688,
+          "skirt_nominal_corner_dbc_per_hz": -120.60624804786546,
+          "alignment_with_reflector": 0.5066880485567486,
+          "coherent_rx_gain_db": 8.59051676301413
+        },
+        {
+          "offset_mhz": [
+            0.5,
+            1.0
+          ],
+          "common_over_independent_db": 0.005212367037032095,
+          "skirt_at_adc_dbc_per_hz": -116.1045843770013,
+          "skirt_measured_corner_dbc_per_hz": -126.56639675680768,
+          "skirt_nominal_corner_dbc_per_hz": -126.78165955156345,
+          "alignment_with_reflector": 0.3455658707848912,
+          "coherent_rx_gain_db": 8.805694694660286
+        },
+        {
+          "offset_mhz": [
+            1.0,
+            2.0
+          ],
+          "common_over_independent_db": 0.009796920078620985,
+          "skirt_at_adc_dbc_per_hz": -113.57437573005326,
+          "skirt_measured_corner_dbc_per_hz": -124.60576757886895,
+          "skirt_nominal_corner_dbc_per_hz": -124.84215349695486,
+          "alignment_with_reflector": 0.14456471902386497,
+          "coherent_rx_gain_db": 8.880455467763504
+        },
+        {
+          "offset_mhz": [
+            2.0,
+            4.0
+          ],
+          "common_over_independent_db": 0.014084655795478795,
+          "skirt_at_adc_dbc_per_hz": -112.29304993712945,
+          "skirt_measured_corner_dbc_per_hz": -123.51328925728893,
+          "skirt_nominal_corner_dbc_per_hz": -123.75700203284192,
+          "alignment_with_reflector": 0.18732710983031692,
+          "coherent_rx_gain_db": 8.898579439525136
+        },
+        {
+          "offset_mhz": [
+            4.0,
+            7.0
+          ],
+          "common_over_independent_db": 0.026167407875121285,
+          "skirt_at_adc_dbc_per_hz": -109.88480566783801,
+          "skirt_measured_corner_dbc_per_hz": -121.15583500642506,
+          "skirt_nominal_corner_dbc_per_hz": -121.40154672814548,
+          "alignment_with_reflector": 0.19777929899455543,
+          "coherent_rx_gain_db": 8.86008235380774
+        },
+        {
+          "offset_mhz": [
+            7.0,
+            10.0
+          ],
+          "common_over_independent_db": 0.024911008368235343,
+          "skirt_at_adc_dbc_per_hz": -110.21017671038877,
+          "skirt_measured_corner_dbc_per_hz": -121.49448641076296,
+          "skirt_nominal_corner_dbc_per_hz": -121.74072281538201,
+          "alignment_with_reflector": 0.20999695367105436,
+          "coherent_rx_gain_db": 8.829734852998088
+        },
+        {
+          "offset_mhz": [
+            10.0,
+            12.0
+          ],
+          "common_over_independent_db": 0.024087908254294632,
+          "skirt_at_adc_dbc_per_hz": -110.49266325758799,
+          "skirt_measured_corner_dbc_per_hz": -121.78093088266192,
+          "skirt_nominal_corner_dbc_per_hz": -122.02732381904492,
+          "alignment_with_reflector": 0.17320935312932872,
+          "coherent_rx_gain_db": 8.850927321896028
+        }
+      ],
+      "common_over_independent_2_12_mhz_db": 0.022730799165394444,
+      "coherent_rx_gain_2_12_mhz_db": 8.859145240168663
+    },
+    "01-ddma": {
+      "remote_doppler_cells": 136,
+      "reflector_range_m": 2.4566326419444446,
+      "reflector_beat_khz": 180.05371093750003,
+      "reflector_per_chirp_db_counts2": 37.05992208648917,
+      "high_pass_at_reflector_db": {
+        "measured_corner": -11.29428640912803,
+        "nominal_corner": -11.540917524256804
+      },
+      "offset_bands": [
+        {
+          "offset_mhz": [
+            0.3,
+            0.5
+          ],
+          "common_over_independent_db": 0.6155453267036606,
+          "skirt_at_adc_dbc_per_hz": -104.91138854642541,
+          "skirt_measured_corner_dbc_per_hz": -114.2155266395916,
+          "skirt_nominal_corner_dbc_per_hz": -114.39203198582018,
+          "alignment_with_reflector": 0.9140952861098106,
+          "coherent_rx_gain_db": 6.254911709416534
+        },
+        {
+          "offset_mhz": [
+            0.5,
+            1.0
+          ],
+          "common_over_independent_db": 0.35677016148596863,
+          "skirt_at_adc_dbc_per_hz": -107.27087222877736,
+          "skirt_measured_corner_dbc_per_hz": -117.73268460858374,
+          "skirt_nominal_corner_dbc_per_hz": -117.94794740333951,
+          "alignment_with_reflector": 0.8449962717875976,
+          "coherent_rx_gain_db": 7.167162751713908
+        },
+        {
+          "offset_mhz": [
+            1.0,
+            2.0
+          ],
+          "common_over_independent_db": 0.20350704426684985,
+          "skirt_at_adc_dbc_per_hz": -109.98919047005816,
+          "skirt_measured_corner_dbc_per_hz": -121.02058231887385,
+          "skirt_nominal_corner_dbc_per_hz": -121.25696823695976,
+          "alignment_with_reflector": 0.7369465994212647,
+          "coherent_rx_gain_db": 7.732057118085688
+        },
+        {
+          "offset_mhz": [
+            2.0,
+            4.0
+          ],
+          "common_over_independent_db": 0.17744894499887565,
+          "skirt_at_adc_dbc_per_hz": -110.95126104989012,
+          "skirt_measured_corner_dbc_per_hz": -122.1715003700496,
+          "skirt_nominal_corner_dbc_per_hz": -122.41521314560259,
+          "alignment_with_reflector": 0.7003314482125277,
+          "coherent_rx_gain_db": 7.900237715722017
+        },
+        {
+          "offset_mhz": [
+            4.0,
+            7.0
+          ],
+          "common_over_independent_db": 0.16937472809088305,
+          "skirt_at_adc_dbc_per_hz": -111.36034686262848,
+          "skirt_measured_corner_dbc_per_hz": -122.63137620121553,
+          "skirt_nominal_corner_dbc_per_hz": -122.87708792293594,
+          "alignment_with_reflector": 0.6790158736147964,
+          "coherent_rx_gain_db": 7.916489999811651
+        },
+        {
+          "offset_mhz": [
+            7.0,
+            10.0
+          ],
+          "common_over_independent_db": 0.1838077919441048,
+          "skirt_at_adc_dbc_per_hz": -111.18881716577658,
+          "skirt_measured_corner_dbc_per_hz": -122.47312686615078,
+          "skirt_nominal_corner_dbc_per_hz": -122.71936327076983,
+          "alignment_with_reflector": 0.6919647046408048,
+          "coherent_rx_gain_db": 7.835378372706757
+        },
+        {
+          "offset_mhz": [
+            10.0,
+            12.0
+          ],
+          "common_over_independent_db": 0.1978370506589151,
+          "skirt_at_adc_dbc_per_hz": -110.98115549660494,
+          "skirt_measured_corner_dbc_per_hz": -122.26942312167887,
+          "skirt_nominal_corner_dbc_per_hz": -122.51581605806187,
+          "alignment_with_reflector": 0.6904074134525777,
+          "coherent_rx_gain_db": 7.803382622847964
+        }
+      ],
+      "common_over_independent_2_12_mhz_db": 0.18201905422981213,
+      "coherent_rx_gain_2_12_mhz_db": 7.862463869516301
+    },
+    "03-coherent": {
+      "remote_doppler_cells": 241,
+      "reflector_range_m": 2.4670421022916673,
+      "reflector_beat_khz": 180.81665039062503,
+      "reflector_per_chirp_db_counts2": 46.0877399541641,
+      "high_pass_at_reflector_db": {
+        "measured_corner": -11.240906745462567,
+        "nominal_corner": -11.486976515637332
+      },
+      "offset_bands": [
+        {
+          "offset_mhz": [
+            0.3,
+            0.5
+          ],
+          "common_over_independent_db": 4.002000449035393,
+          "skirt_at_adc_dbc_per_hz": -103.95031461436051,
+          "skirt_measured_corner_dbc_per_hz": -113.20107304386123,
+          "skirt_nominal_corner_dbc_per_hz": -113.37701704513582,
+          "alignment_with_reflector": 0.9523857877002124,
+          "coherent_rx_gain_db": 2.740939656116467
+        },
+        {
+          "offset_mhz": [
+            0.5,
+            1.0
+          ],
+          "common_over_independent_db": 2.8562851083808667,
+          "skirt_at_adc_dbc_per_hz": -105.91818490752196,
+          "skirt_measured_corner_dbc_per_hz": -116.32661762366287,
+          "skirt_nominal_corner_dbc_per_hz": -116.54131907346465,
+          "alignment_with_reflector": 0.892852446954254,
+          "coherent_rx_gain_db": 3.73781549364066
+        },
+        {
+          "offset_mhz": [
+            1.0,
+            2.0
+          ],
+          "common_over_independent_db": 2.1317270664847108,
+          "skirt_at_adc_dbc_per_hz": -107.76737752780035,
+          "skirt_measured_corner_dbc_per_hz": -118.74538971295057,
+          "skirt_nominal_corner_dbc_per_hz": -118.98121428608249,
+          "alignment_with_reflector": 0.8065790663286756,
+          "coherent_rx_gain_db": 4.575647918339318
+        },
+        {
+          "offset_mhz": [
+            2.0,
+            4.0
+          ],
+          "common_over_independent_db": 1.8983937759598248,
+          "skirt_at_adc_dbc_per_hz": -108.69744465027955,
+          "skirt_measured_corner_dbc_per_hz": -119.86430430677356,
+          "skirt_nominal_corner_dbc_per_hz": -120.10745573737256,
+          "alignment_with_reflector": 0.7764895212682792,
+          "coherent_rx_gain_db": 4.898853269521461
+        },
+        {
+          "offset_mhz": [
+            4.0,
+            7.0
+          ],
+          "common_over_independent_db": 1.8483967993507093,
+          "skirt_at_adc_dbc_per_hz": -109.10588896647113,
+          "skirt_measured_corner_dbc_per_hz": -120.32353864139272,
+          "skirt_nominal_corner_dbc_per_hz": -120.56868901815913,
+          "alignment_with_reflector": 0.7650982228079491,
+          "coherent_rx_gain_db": 4.978833328271376
+        },
+        {
+          "offset_mhz": [
+            7.0,
+            10.0
+          ],
+          "common_over_independent_db": 1.9544877599539383,
+          "skirt_at_adc_dbc_per_hz": -108.99872528175453,
+          "skirt_measured_corner_dbc_per_hz": -120.22966932757893,
+          "skirt_nominal_corner_dbc_per_hz": -120.47534494115905,
+          "alignment_with_reflector": 0.7584519051236931,
+          "coherent_rx_gain_db": 4.903823707816473
+        },
+        {
+          "offset_mhz": [
+            10.0,
+            12.0
+          ],
+          "common_over_independent_db": 2.006403001802788,
+          "skirt_at_adc_dbc_per_hz": -108.9463117847189,
+          "skirt_measured_corner_dbc_per_hz": -120.18120631278607,
+          "skirt_nominal_corner_dbc_per_hz": -120.42703816398115,
+          "alignment_with_reflector": 0.7632345163074427,
+          "coherent_rx_gain_db": 4.831126757543582
+        }
+      ],
+      "common_over_independent_2_12_mhz_db": 1.9231195554647798,
+      "coherent_rx_gain_2_12_mhz_db": 4.913444723039743
+    }
+  },
+  "cw_table_skirt_dbc_per_hz": {
+    "offset_bands_mhz": [
+      [
+        0.3,
+        0.5
+      ],
+      [
+        0.5,
+        1.0
+      ],
+      [
+        1.0,
+        2.0
+      ],
+      [
+        2.0,
+        4.0
+      ],
+      [
+        4.0,
+        7.0
+      ],
+      [
+        7.0,
+        10.0
+      ],
+      [
+        10.0,
+        12.0
+      ]
+    ],
+    "typical": [
+      -115.62240116629441,
+      -115.68817784080943,
+      -116.27265513228221,
+      -117.1096778221257,
+      -117.6588192037695,
+      -117.59326378519461,
+      -117.61627419261816
+    ],
+    "maximum": [
+      -112.0958890995695,
+      -112.4968928427112,
+      -112.63847820761704,
+      -112.67473577273611,
+      -112.50587771983766,
+      -111.7957293381807,
+      -111.45608102407893
+    ]
+  },
+  "window_near_returns": {
+    "long-8TX-0dB": {
+      "strongest_near_range_m": 1.5373972205128206,
+      "strongest_near_level_db_counts2": 26.681716340056095,
+      "native_bin_m": 1.2299177764102565,
+      "measured_common_lift_db": 2.202117176191244,
+      "predicted_at_range_m": {
+        "0.92": {
+          "beat_khz": 18.310546875,
+          "high_pass_db": -48.273155664231375,
+          "predicted_common_lift_db": 7.549695561159452
+        },
+        "1.54": {
+          "beat_khz": 30.517578125,
+          "high_pass_db": -39.458573207258475,
+          "predicted_common_lift_db": 4.31152705395291
+        },
+        "2.15": {
+          "beat_khz": 42.724609375,
+          "high_pass_db": -33.70174911116933,
+          "predicted_common_lift_db": 2.7187364384131922
+        }
+      }
+    },
+    "long-1TX-0dB": {
+      "strongest_near_range_m": 3.382273885128205,
+      "strongest_near_level_db_counts2": 10.825291360417959,
+      "native_bin_m": 1.2299177764102565,
+      "measured_common_lift_db": 0.03744934571454195,
+      "predicted_at_range_m": {
+        "2.77": {
+          "beat_khz": 54.931640625,
+          "high_pass_db": -29.452320963571967,
+          "predicted_common_lift_db": 0.059035416777535654
+        },
+        "3.38": {
+          "beat_khz": 67.138671875,
+          "high_pass_db": -26.109594175128702,
+          "predicted_common_lift_db": 0.039803079919287505
+        },
+        "4.00": {
+          "beat_khz": 79.345703125,
+          "high_pass_db": -23.376441098216638,
+          "predicted_common_lift_db": 0.028728550501265916
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "definition": {
+    "background": "median / ln 2 of same-range controls",
+    "range_half_width": "one native range bin",
+    "doppler_half_width_mps": 1.0,
+    "scaling": "R^-4 to 100 m; 11.27 -> 10 dBsm",
+    "headline": "linear_rx_mean_then_db_mean_over_cpis",
+    "control_cpis_min_max": [
+      128,
+      139
+    ],
+    "pooled_powers_min_max": [
+      18864,
+      21267
+    ]
+  },
+  "model_db": 33.17136677394247,
+  "comparison": {
+    "inbound, target-free (headline)": {
+      "measured_db": 33.862998560544824,
+      "residual_db": 0.6916317866023576
+    },
+    "selected, target-free": {
+      "measured_db": 34.0947732982948,
+      "residual_db": 0.9234065243523304
+    },
+    "inbound, far-quarter noise": {
+      "measured_db": 35.08937553046707,
+      "residual_db": 1.918008756524607
+    }
+  },
+  "breakdown_from_report": [
+    {
+      "step": "report, 33 selected CPIs",
+      "value_db": 36.57,
+      "change_db": null
+    },
+    {
+      "step": "reproduction, 37 selected CPIs",
+      "value_db": 36.9399121434556,
+      "change_db": 0.36991214345560053
+    },
+    {
+      "step": "magnitude sum -> linear mean of RX power",
+      "value_db": 36.598846182651684,
+      "change_db": -0.3410659608039168
+    },
+    {
+      "step": "far-quarter -> target-free local noise",
+      "value_db": 35.36477329829479,
+      "change_db": -1.234072884356891
+    },
+    {
+      "step": "reflector RCS 10 -> 11.27 dBsm",
+      "value_db": 34.0947732982948,
+      "change_db": -1.269999999999996
+    },
+    {
+      "step": "all 39 inbound CPIs",
+      "value_db": 33.862998560544824,
+      "change_db": -0.23177473774997281
+    }
+  ],
+  "inbound_by_range_band": {
+    "15-27 m": {
+      "count": 14,
+      "mean_db": 32.775603272645206,
+      "median_db": 32.92348380923209,
+      "std_db": 0.6423272376781495
+    },
+    "27-38 m": {
+      "count": 11,
+      "mean_db": 33.73852751259582,
+      "median_db": 33.09680985380622,
+      "std_db": 2.143624955247252
+    },
+    "38-52 m": {
+      "count": 14,
+      "mean_db": 35.048192528975825,
+      "median_db": 34.64468201285439,
+      "std_db": 2.712542752227632
+    }
+  },
+  "target_free": {
+    "inbound": {
+      "count": 39,
+      "linear_rx_mean_then_db_mean_over_cpis": 33.862998560544824,
+      "linear_rx_mean_then_median_over_cpis": 33.27253281074876,
+      "linear_mean_over_rx_and_cpis": 34.489192195435265,
+      "db_mean_over_rx_and_cpis": 32.52586803573882,
+      "per_cpi_std_db": 2.240209645330171,
+      "per_cpi_p10_p90_db": [
+        31.738170179854894,
+        37.491701842359724
+      ],
+      "per_rx_db_mean_over_cpis": [
+        30.767906926264196,
+        33.03036753886561,
+        33.186267067020026,
+        34.091762544648475,
+        34.177808255428,
+        31.9017583230968,
+        32.151553273241646,
+        30.899520357345754
+      ]
+    },
+    "selected": {
+      "count": 37,
+      "linear_rx_mean_then_db_mean_over_cpis": 34.0947732982948,
+      "linear_rx_mean_then_median_over_cpis": 33.35271371821706,
+      "linear_mean_over_rx_and_cpis": 34.64388743564215,
+      "db_mean_over_rx_and_cpis": 32.73336583258242,
+      "per_cpi_std_db": 2.0495532978418387,
+      "per_cpi_p10_p90_db": [
+        31.94726638708148,
+        37.50378774144258
+      ],
+      "per_rx_db_mean_over_cpis": [
+        30.92357269712291,
+        33.315500064777694,
+        33.455090246328005,
+        34.28952221796989,
+        34.334294424292125,
+        31.987265899380343,
+        32.54180642029466,
+        31.01987469049368
+      ]
+    },
+    "outbound": {
+      "count": 45,
+      "linear_rx_mean_then_db_mean_over_cpis": 21.410920958748267,
+      "linear_rx_mean_then_median_over_cpis": 21.489618316369338,
+      "linear_mean_over_rx_and_cpis": 23.430064139146232,
+      "db_mean_over_rx_and_cpis": 20.22085204431624,
+      "per_cpi_std_db": 4.275903391982654,
+      "per_cpi_p10_p90_db": [
+        16.24907616221863,
+        26.629218558101847
+      ],
+      "per_rx_db_mean_over_cpis": [
+        20.172187375545036,
+        21.86709208710251,
+        21.838681932744997,
+        21.321679471089574,
+        19.346521187710618,
+        19.048331803192273,
+        18.651588763150126,
+        19.520733733994792
+      ]
+    }
+  },
+  "far_quarter": {
+    "inbound": {
+      "count": 39,
+      "linear_rx_mean_then_db_mean_over_cpis": 35.08937553046707,
+      "linear_rx_mean_then_median_over_cpis": 34.59751744535204,
+      "linear_mean_over_rx_and_cpis": 35.66842350410703,
+      "db_mean_over_rx_and_cpis": 33.76312018261366,
+      "per_cpi_std_db": 2.1697538416830193,
+      "per_cpi_p10_p90_db": [
+        33.05619868123631,
+        38.6290625580565
+      ],
+      "per_rx_db_mean_over_cpis": [
+        32.04977705843611,
+        34.105674429564665,
+        34.38410306150694,
+        35.2751322015348,
+        35.28155871694475,
+        33.34195206791226,
+        33.69038087536598,
+        31.976383049643754
+      ]
+    },
+    "selected": {
+      "count": 37,
+      "linear_rx_mean_then_db_mean_over_cpis": 35.32884618265168,
+      "linear_rx_mean_then_median_over_cpis": 34.610297602429355,
+      "linear_mean_over_rx_and_cpis": 35.824646176332585,
+      "db_mean_over_rx_and_cpis": 33.97787031400424,
+      "per_cpi_std_db": 1.949335788457538,
+      "per_cpi_p10_p90_db": [
+        33.20287663948834,
+        38.643491855637095
+      ],
+      "per_rx_db_mean_over_cpis": [
+        32.219316346269714,
+        34.3943892201398,
+        34.65065155815546,
+        35.48215187897265,
+        35.4462777223006,
+        33.43163528588797,
+        34.09252058243271,
+        32.10601991787503
+      ]
+    },
+    "outbound": {
+      "count": 45,
+      "linear_rx_mean_then_db_mean_over_cpis": 22.560998118703882,
+      "linear_rx_mean_then_median_over_cpis": 22.50993007373858,
+      "linear_mean_over_rx_and_cpis": 24.53117585860367,
+      "db_mean_over_rx_and_cpis": 21.39256351678487,
+      "per_cpi_std_db": 4.215688134693328,
+      "per_cpi_p10_p90_db": [
+        17.60370634435655,
+        27.604370480020417
+      ],
+      "per_rx_db_mean_over_cpis": [
+        21.44412333338889,
+        22.906667855493332,
+        22.892067922494025,
+        22.444496453335713,
+        20.314512805337127,
+        20.51069997068413,
+        20.081058537764573,
+        20.546881255781173
+      ]
+    }
+  },
+  "background_estimator_sensitivity_inbound_db": {
+    "median_over_ln2": 33.862998560544824,
+    "upper_10_percent_trimmed": 33.85154140277664,
+    "arithmetic_mean": 33.76104840256186
+  }
+}

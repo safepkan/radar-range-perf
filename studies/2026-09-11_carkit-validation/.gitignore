@@ -1,0 +1,32 @@
+# Arrays passed between pipeline steps; regenerate with the make target.
+/generated/**/*.npz
+
+# Figures linked from the notes. The raw data are not in the repo, so they
+# cannot be regenerated from a checkout; track them so the links work here and
+# on GitHub. Keep this list in sync with the figure links in the notes.
+!/generated/walk/background/background.png
+!/generated/walk/dynamics/cpi_length.png
+!/generated/walk/dynamics/rx_null_example.png
+!/generated/walk/pedestal/pedestal_scaling.png
+!/generated/walk/long_range/long_range.png
+!/generated/outdoor/scene/scene.png
+!/generated/outdoor/scene/maps.png
+!/generated/outdoor/phase/phase_amplitude.png
+!/generated/outdoor/phase/delay_scaling.png
+!/generated/outdoor/model/model.png
+!/generated/window/scene/scene.png
+!/generated/window/scene/background.png
+!/generated/window/phase/phase.png
+!/generated/window/range_scale/range_scale.png
+!/generated/window/2026-10-06/timing/timing.png
+!/generated/field/if/if_test.png
+!/generated/field/level/levels.png
+!/generated/field/runs/runs.png
+!/generated/highway/range_time.png
+!/generated/chamber/background/background.png
+!/generated/chamber/channels/channels.png
+!/generated/chamber/2026-10-09/tx1/tx1.png
+!/generated/chamber/2026-10-09/background/background.png
+!/generated/chamber/2026-10-09/channels/channels.png
+!/generated/report/levels.png
+!/generated/report/timing.png

@@ -21,7 +21,10 @@ contain multiple scripts and supporting files:
 
 Scripts write working figures under their local `generated/` directory. Copy
 the reviewed files delivered outside the repo into `deliverables/` to archive
-them with the code and assumptions that produced them.
+them with the code and assumptions that produced them. When a study's raw
+inputs are not in the repo, it may also track small data summaries (JSON/CSV)
+and the figures its notes link to in `generated/`, so that its numbers and
+figures stay reviewable and downstream steps can run without the raw data.
 
 Run a study from the repo root with the project venv, e.g.:
 
@@ -33,6 +36,15 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
+- `2026-09-11_carkit-validation/` — validation of our range model and of the
+  LO's phase noise against measurements with CARKIT, Infineon's evaluation
+  radar for the CTRX8188F, 2026-09-11 to 2026-10-09, concluded. With a
+  reference reflector on a fixed mount in a measurement chamber, the radar
+  comes out within 1 dB of the model with datasheet values. The per-chirp
+  frequency error is at the CW phase-noise table's level when the synthesizer
+  gets enough time between chirps, and grows with less. Start with its
+  [README](2026-09-11_carkit-validation/README.md), the report; the raw data
+  are on the shared drive.
 - `2026-09-02_lannik-psi/` — Lannik Psi antenna-concept study, 2026-09-02 to
   2026-10-01, concluded. It took the June config-3 estimate to a TX aperture
   concept, two RX prototype layouts, interlaced half-aperture MIMO to resolve

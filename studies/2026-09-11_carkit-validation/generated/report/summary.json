@@ -1,0 +1,107 @@
+{
+  "levels": {
+    "basis": "measured SNR minus model without hardware losses, noise referred to 5.3 MHz IF, home-made reflector at its corrected RCS",
+    "inputs": {
+      "walk_mean_beat_hz": 2073684.343085327,
+      "referral_to_5_3_mhz_db": {
+        "1.25 MHz": 0.83233344112646,
+        "2.5 MHz": 0.3586353787241183,
+        "walk": 0.48842846557200437
+      },
+      "home_made_rcs_dbsm": 12.124584039861928,
+      "rcs_shift_db": -0.854584039861928,
+      "walk_headline_at_own_if_db": 0.6916317866023576,
+      "antenna_loss_bound_both_passes_db": 1.8302996224270047
+    },
+    "rows": [
+      {
+        "label": "Chamber, 2026-10-09: TX1 at 10 dB backoff",
+        "group": "reference",
+        "values_db": [
+          -0.6455580159143182,
+          -0.37919438041642195
+        ],
+        "range_db": [
+          -0.6455580159143182,
+          -0.37919438041642195
+        ]
+      },
+      {
+        "label": "Chamber, 2026-09-29: backoff outside the chip's range",
+        "group": "reference",
+        "values_db": [
+          -0.7867428200306819,
+          -0.5401117049019177
+        ],
+        "range_db": [
+          -0.7867428200306819,
+          -0.5401117049019177
+        ]
+      },
+      {
+        "label": "Carried towards the radar, 2026-09-11",
+        "group": "home-made",
+        "values_db": [
+          0.32547621231243395,
+          -0.2649895374836331,
+          0.9516698472028753,
+          -1.0116543124935728
+        ],
+        "range_db": [
+          -1.0116543124935728,
+          0.9516698472028753
+        ]
+      },
+      {
+        "label": "On a tripod, 2026-10-01",
+        "group": "home-made",
+        "values_db": [
+          -4.835033708610361,
+          -4.656307781975606,
+          -4.597024159218435,
+          -4.698648136332745
+        ],
+        "range_db": [
+          -4.835033708610361,
+          -4.597024159218435
+        ]
+      },
+      {
+        "label": "Carried towards the radar, 2026-10-01",
+        "group": "home-made",
+        "values_db": [
+          -11.539371643544614,
+          -11.694811628535264,
+          -12.283110240368808
+        ],
+        "range_db": [
+          -12.283110240368808,
+          -11.539371643544614
+        ]
+      },
+      {
+        "label": "Carried away from the radar, 2026-09-11",
+        "group": "home-made",
+        "values_db": [
+          -13.233401387448428,
+          -12.757991754994805,
+          -10.787020469168478
+        ],
+        "range_db": [
+          -13.233401387448428,
+          -10.787020469168478
+        ]
+      }
+    ]
+  },
+  "timing": {
+    "cw_typical_hz": [
+      2697.3069827920576,
+      3502.4779483761818
+    ],
+    "infineon_measured_hz": [
+      13785.33678352344,
+      29784.14282839026
+    ]
+  }
+}

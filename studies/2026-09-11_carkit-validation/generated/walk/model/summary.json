@@ -1,0 +1,66 @@
+{
+  "reference_model_db": 33.17136677394247,
+  "inputs": {
+    "rx_gain_db": 3.0,
+    "noise_figure_db_10_mhz_1_mhz": [
+      9.7,
+      9.9
+    ],
+    "antenna_loss_bound_db_per_pass": 0.9151498112135024,
+    "atmosphere_db_per_km": 0.3473144243232965,
+    "chirp_frequency_error_rms_hz": 19000.0,
+    "walk_ranges_m": [
+      15.0,
+      51.0
+    ]
+  },
+  "effects_db": {
+    "noise_figure_towards_1_mhz_if": [
+      -0.19999999999999574,
+      0.0
+    ],
+    "straddle_fourfold_padding": -0.04544055674350034,
+    "antenna_directivity_to_realized_gain": [
+      0.0,
+      -1.830299622427006
+    ],
+    "atmosphere_at_walk_ranges": [
+      -0.010419432729698894,
+      -0.03542607128097624
+    ],
+    "chirp_coherence_at_walk_ranges": [
+      -0.0006198011154591326,
+      -0.007164900894707575
+    ]
+  },
+  "model_with_terms_db": [
+    31.09562659477196,
+    33.125926217198966
+  ],
+  "measured": {
+    "inbound, target-free (headline)": {
+      "measured_db": 33.862998560544824,
+      "residual_db": 0.6916317866023576,
+      "residual_with_terms_db": [
+        0.7370723433458579,
+        2.7673719657728633
+      ]
+    },
+    "selected, target-free": {
+      "measured_db": 34.0947732982948,
+      "residual_db": 0.9234065243523304,
+      "residual_with_terms_db": [
+        0.9688470810958307,
+        2.999146703522836
+      ]
+    },
+    "inbound, far-quarter noise": {
+      "measured_db": 35.08937553046707,
+      "residual_db": 1.918008756524607,
+      "residual_with_terms_db": [
+        1.9634493132681072,
+        3.9937489356951126
+      ]
+    }
+  }
+}

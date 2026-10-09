@@ -1,0 +1,41 @@
+{
+  "reflector_range_m": 2.4566326419444446,
+  "reflector_beat_khz": 180.05371093750003,
+  "reflector_rcs_dbsm": 10.0,
+  "finite_reflector_db": -1.7726830922866035,
+  "zero_doppler_level_db_counts2": 27.19185216503088,
+  "tx_backoff_db": 20.0,
+  "specified_backoff_range_db": [
+    0.0,
+    15.0
+  ],
+  "rx_gain_db": 0.0,
+  "model_snr_db": 79.95718102043317,
+  "range_sensitivity_db_per_cm": 0.07057025028921679,
+  "comparisons": {
+    "measured corner, noise at 5.3 MHz": {
+      "high_pass_at_reflector_db": -11.29428640912803,
+      "noise_per_cell_db_counts2": -38.91161653395696,
+      "measured_snr_db": 79.17043820040249,
+      "measured_minus_model_db": -0.7867428200306819
+    },
+    "measured corner, noise at 11 MHz": {
+      "high_pass_at_reflector_db": -11.29428640912803,
+      "noise_per_cell_db_counts2": -39.209316205594504,
+      "measured_snr_db": 79.46813787204002,
+      "measured_minus_model_db": -0.4890431483931508
+    },
+    "nominal corner, noise at 5.3 MHz": {
+      "high_pass_at_reflector_db": -11.540917524256804,
+      "noise_per_cell_db_counts2": -38.91161653395696,
+      "measured_snr_db": 79.41706931553125,
+      "measured_minus_model_db": -0.5401117049019177
+    },
+    "nominal corner, noise at 11 MHz": {
+      "high_pass_at_reflector_db": -11.540917524256804,
+      "noise_per_cell_db_counts2": -39.209316205594504,
+      "measured_snr_db": 79.7147689871688,
+      "measured_minus_model_db": -0.24241203326437244
+    }
+  }
+}
