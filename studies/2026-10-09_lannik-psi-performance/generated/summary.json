@@ -1,0 +1,193 @@
+{
+  "noise_figure_db": 9.7,
+  "steps": [
+    {
+      "step": "June config 3, as published",
+      "pd50_m": 994.0,
+      "pd90_m": 614.0
+    },
+    {
+      "step": "Same model, current toolbox",
+      "pd50_m": 1009.4999999999998,
+      "pd90_m": 623.2499999999995,
+      "change_percent": 1.5593561368208997,
+      "equivalent_db": 0.2687975552937866
+    },
+    {
+      "step": "Proposed TX aperture instead of the TX placeholder",
+      "pd50_m": 872.25,
+      "pd90_m": 538.4999999999995,
+      "change_percent": -13.595839524517073,
+      "equivalent_db": -2.538613806380382
+    },
+    {
+      "step": "Large RX subarrays and 64 RX beams instead of the RX placeholder",
+      "pd50_m": 1130.9999999999998,
+      "pd90_m": 698.2499999999995,
+      "change_percent": 29.664660361134978,
+      "equivalent_db": 4.512865072212271
+    },
+    {
+      "step": "False alarms held per range\u2013Doppler cell over all beams",
+      "pd50_m": 1058.2499999999998,
+      "pd90_m": 654.7499999999995,
+      "change_percent": -6.432360742705567,
+      "equivalent_db": -1.154973111176296
+    },
+    {
+      "step": "76.5 GHz instead of 77 GHz",
+      "pd50_m": 1054.4999999999998,
+      "pd90_m": 653.2499999999995,
+      "change_percent": -0.3543586109142405,
+      "equivalent_db": -0.06166772282170632
+    },
+    {
+      "step": "Atmosphere at 1000 m",
+      "pd50_m": 1027.5,
+      "pd90_m": 641.9999999999995,
+      "change_percent": -2.5604551920341168,
+      "equivalent_db": -0.4505901410959313
+    },
+    {
+      "step": "Antenna loss, 1.0 dB each side (RFQ target)",
+      "pd50_m": 917.25,
+      "pd90_m": 573.0,
+      "change_percent": -10.729927007299267,
+      "equivalent_db": -1.9717644048048517
+    },
+    {
+      "step": "Per-chirp frequency error, 3.5 kHz: 2026-10-01 baseline",
+      "pd50_m": 912.75,
+      "pd90_m": 571.5,
+      "change_percent": -0.49059689288634134,
+      "equivalent_db": -0.08543515224881834
+    },
+    {
+      "step": "Receiver at +3 dB gain, noise figure 9.7 dB",
+      "pd50_m": 939.0,
+      "pd90_m": 588.0,
+      "change_percent": 2.8759244042728005,
+      "equivalent_db": 0.4925500257738352
+    },
+    {
+      "step": "Small RX instead, same assumptions",
+      "pd50_m": 789.0,
+      "pd90_m": 493.49999999999955,
+      "change_percent": -15.974440894568687,
+      "equivalent_db": -3.0235435622676237
+    }
+  ],
+  "directions": {
+    "large": {
+      "Boresight": {
+        "pd50_m": 939.0,
+        "pd90_m": 588.0
+      },
+      "6\u00b0 horizontally": {
+        "pd50_m": 765.7499999999995,
+        "pd90_m": 478.49999999999955
+      },
+      "6\u00b0 vertically": {
+        "pd50_m": 645.7499999999995,
+        "pd90_m": 402.75
+      }
+    },
+    "small": {
+      "Boresight": {
+        "pd50_m": 789.0,
+        "pd90_m": 493.49999999999955
+      },
+      "6\u00b0 horizontally": {
+        "pd50_m": 642.75,
+        "pd90_m": 401.25
+      },
+      "6\u00b0 vertically": {
+        "pd50_m": 642.75,
+        "pd90_m": 401.25
+      }
+    }
+  },
+  "sensitivities_large": [
+    {
+      "change": "Baseline",
+      "pd50_m": 939.0,
+      "pd90_m": 588.0,
+      "pd50_change_percent": 0.0,
+      "pd90_change_percent": 0.0,
+      "equivalent_db": 0.0
+    },
+    {
+      "change": "Noise figure at the datasheet maximum, 12.7 dB",
+      "pd50_m": 793.5,
+      "pd90_m": 496.5,
+      "pd50_change_percent": -15.495207667731625,
+      "pd90_change_percent": -15.561224489795922,
+      "equivalent_db": -2.924746447009756
+    },
+    {
+      "change": "Receiver left at the chip's default 0 dB gain, noise figure 10.2 dB",
+      "pd50_m": 912.75,
+      "pd90_m": 571.5,
+      "pd50_change_percent": -2.7955271565495154,
+      "pd90_change_percent": -2.8061224489795866,
+      "equivalent_db": -0.49255002577383455
+    },
+    {
+      "change": "TX power 1 dB lower (temperature)",
+      "pd50_m": 888.0,
+      "pd90_m": 555.7499999999995,
+      "pd50_change_percent": -5.431309904153359,
+      "pd90_change_percent": -5.484693877551095,
+      "equivalent_db": -0.9701050595003968
+    },
+    {
+      "change": "Light rain, 1 mm/h (attenuation only)",
+      "pd50_m": 844.4999999999995,
+      "pd90_m": 548.2499999999995,
+      "pd50_change_percent": -10.063897763578321,
+      "pd90_change_percent": -6.760204081632725,
+      "equivalent_db": -1.8426375343633472
+    },
+    {
+      "change": "Per-chirp frequency error of 21 kHz (too little time between chirps)",
+      "pd50_m": 828.0,
+      "pd90_m": 555.0,
+      "pd50_change_percent": -11.82108626198083,
+      "pd90_change_percent": -5.612244897959185,
+      "equivalent_db": -2.185410219249231
+    },
+    {
+      "change": "Sea-level instead of 1000 m atmosphere",
+      "pd50_m": 926.25,
+      "pd90_m": 582.75,
+      "pd50_change_percent": -1.3578274760383424,
+      "pd90_change_percent": -0.8928571428571397,
+      "equivalent_db": -0.23749485114905428
+    },
+    {
+      "change": "Radome, 0.2 dB one way",
+      "pd50_m": 918.0,
+      "pd90_m": 575.25,
+      "pd50_change_percent": -2.2364217252396124,
+      "pd90_change_percent": -2.168367346938771,
+      "equivalent_db": -0.39291644259473874
+    },
+    {
+      "change": "Radome, 0.5 dB one way",
+      "pd50_m": 888.0,
+      "pd90_m": 555.7499999999995,
+      "pd50_change_percent": -5.431309904153359,
+      "pd90_change_percent": -5.484693877551095,
+      "equivalent_db": -0.9701050595003968
+    },
+    {
+      "change": "Radome, 1.0 dB one way",
+      "pd50_m": 839.25,
+      "pd90_m": 525.0,
+      "pd50_change_percent": -10.623003194888181,
+      "pd90_change_percent": -10.71428571428571,
+      "equivalent_db": -1.9509696938424337
+    }
+  ],
+  "radome_per_0_1_db_percent": -1.1182108626198062
+}

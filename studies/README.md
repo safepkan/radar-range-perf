@@ -36,6 +36,13 @@ all of its working figures headlessly and runs its study-local tests, e.g.
 
 ## Studies
 
+- `2026-10-09_lannik-psi-performance/` — Lannik Psi's expected single-scan
+  range performance after the CARKIT validation, for a broad audience: about
+  940 m on boresight for a 1 m² target at Pd 50% with the large RX variant,
+  790 m with the small one, 5.5 % below the June estimate, with the step-by-step
+  comparison, the sensitivities and what the CARKIT measurements add. Reuses the
+  antenna-concept study's model with the receiver at +3 dB gain. Start with its
+  [README](2026-10-09_lannik-psi-performance/README.md).
 - `2026-09-11_carkit-validation/` — validation of our range model and of the
   LO's phase noise against measurements with CARKIT, Infineon's evaluation
   radar for the CTRX8188F, 2026-09-11 to 2026-10-09, concluded. With a
