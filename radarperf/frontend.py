@@ -141,10 +141,21 @@ def ctrx8188f(**overrides: object) -> GenericFrontend:
     included. The two modes are the RX gain steps 0 dB (the chip's default)
     and +3 dB, with no separate noise-mode setting, as Infineon has confirmed
     (``docs/losses.md``). With the receiver at +3 dB, pass
-    ``noise_figure_db=9.7``. Minimum output power
+    ``noise_figure_db=9.7``; since the chip defaults to 0 dB, the firmware must
+    set +3 dB explicitly. Minimum output power
     is 13.0 dBm and maximum noise figure 13.2 dB (12.7 dB at +3 dB); put such
     cases in :class:`~radarperf.losses.SystemLosses` derating terms (see
-    ``docs/losses.md``). Separate single-return phase-noise diagnostics
+    ``docs/losses.md``). The TX output power reduction is specified for 0-15 dB
+    only.
+
+    On one CARKIT evaluation radar at +3 dB, a 10 dBsm reference reflector in a
+    measurement chamber came out 0.4-0.7 dB below a model with these typical
+    values, the antenna's directivity and no hardware losses
+    (``studies/2026-09-11_carkit-validation``). That unit's receiver noise rose
+    towards low IF by more than the datasheet says, about 0.8 dB from 5.3 down
+    to 1.25 MHz; ``SystemLosses.noise_figure_derating_db`` can carry it for
+    targets at low IF. The IF high-pass (second order, -6 dB at 300 kHz in its
+    lowest setting) is not modelled. Separate single-return phase-noise diagnostics
     use :func:`radarperf.phase_noise.ctrx8188f_phase_noise`; the link budget
     includes only the per-chirp coherence loss
     (``SystemLosses.chirp_frequency_error_rms_hz``).

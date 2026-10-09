@@ -55,8 +55,9 @@ print(budget)
 | TX power | `Frontend.tx_power_w` | datasheet typical | CTRX8188F: 14.5 dBm typical, 13.0 dBm minimum per channel | [1] Table 22 |
 | TX power derating | `SystemLosses.tx_power_derating_db` | 0 | CTRX8188F: up to 1 dB over temperature with closed-loop power control; up to 1.5 dB variation over a ramp in 76–77 GHz; 1.5 dB from typical to minimum | [1] Tables 22, 24 |
 | Noise figure | `Frontend.noise_figure_db` | datasheet typical | CTRX8188F, 10 MHz IF: low-noise mode 10.2 dB typical, 13.2 dB maximum (the preset); ultra-low-noise mode 9.7 dB typical, 12.7 dB maximum. The modes are the RX gain steps 0 dB and +3 dB (below) | [1] Table 30; [13] |
-| NF derating | `SystemLosses.noise_figure_derating_db` | 0 | CTRX8188F: up to 3 dB from typical to maximum; for a negative RX gain step, up to the step's magnitude (a worst-case bound); 0.3 dB (low-noise) or 0.2 dB (ultra-low-noise) higher at 1 MHz IF than at 10 MHz | [1] Table 30; [13] |
+| NF derating | `SystemLosses.noise_figure_derating_db` | 0 | CTRX8188F: up to 3 dB from typical to maximum; for a negative RX gain step, up to the step's magnitude (a worst-case bound); 0.3 dB (low-noise) or 0.2 dB (ultra-low-noise) higher at 1 MHz IF than at 10 MHz. One unit measured: about 0.8 dB from 5.3 down to 1.25 MHz IF, flat above about 5 MHz (below) | [1] Table 30; [13]; [8] |
 | Noise bandwidth | `FmcwWaveform.noise_bandwidth_hz` | the sample rate (ideal anti-alias filter) | none | |
+| RX high-pass filter | not modelled | | CTRX8188F: second order, −6 dB at 300 kHz ± 10 % in its lowest setting; one unit measured as two coincident poles at 294 kHz, which take 12.7 dB off a return at 162 kHz IF | [1] Table 31; [8] |
 | ADC quantisation, IF gain shape | not modelled | | none | |
 
 The CTRX8188F datasheet quotes RF parameters at the waveguide port on the far
@@ -95,6 +96,20 @@ over the whole functional range (junction temperature −40 to 135 °C,
 are for a nominal part at nominal supply voltage and room temperature. So a
 typical value is a starting point for a unit at room temperature, not a bound;
 derating terms cover temperature and part spread.
+
+The CARKIT study [8] checked the typical values on one unit, an evaluation
+radar with the CTRX8188F and the SENCITY FARAD-IV antenna, at +3 dB RX gain.
+With a 10 dBsm reference reflector on a fixed mount in a measurement chamber,
+the radar came out 0.4–0.7 dB below a model with the typical TX power and
+noise figure, the antenna's directivity and no hardware losses, with the noise
+taken where the receiver's noise is flat. Its receiver noise rose towards low
+IF by more than Table 30 says: a fixed reflector captured with two chirp
+slopes gained 0.8 dB of SNR from 1.25 to 5.3 MHz, against 0.2 dB between the
+datasheet's 1 and 10 MHz rows; from about 5 to 14 MHz a flat noise figure at
+the 10 MHz value fitted. Whether the difference is that unit, its temperature
+or the target datasheet's typical values is open. At the 0 dB step its noise
+at the ADC was 2.3–2.9 dB lower than at +3 dB, close to the 2.5 dB that the
+gain and noise-figure steps give.
 
 ### Feed and antenna
 
@@ -197,7 +212,7 @@ horizontal path:
 |---|---|---|---|---|
 | Per-chirp frequency error | `SystemLosses.chirp_frequency_error_rms_hz` | 0 | see the tables below | [8], [1] Table 22 |
 | Phase noise within a chirp | not a field | | CTRX8188F, 76–77 GHz table, offsets 100 kHz–10 MHz: ≤ 0.02 dB (typical) and ≤ 0.06 dB (maximum) at 300 m–1 km; computed with `radarperf.phase_noise` | [1] Table 22 |
-| Phase-noise skirts of strong returns | `radarperf.phase_noise` diagnostics only | | an SINR term near strong clutter | |
+| Phase-noise skirts of strong returns | `radarperf.phase_noise` diagnostics only | | an SINR term near strong clutter. CTRX8188F, one unit: a strong return's skirt 2.3–3.1 dB below the typical CW table's prediction at 1–12 MHz offset | [8] |
 | Chirp nonlinearity | not modelled | | | |
 | Range migration during the CPI | not modelled | | negligible while \|v\| T_CPI is small against the range resolution | |
 | Doppler spread of the target | not modelled | | | |
@@ -206,15 +221,29 @@ A per-chirp RF frequency offset `δf`, constant within a chirp and independent
 from chirp to chirp, gives a beat phase error of rms `σ = 2π δf · 2R/c`. For
 Gaussian errors the Doppler peak keeps `exp(−σ²)` of its power and the rest
 spreads into a pedestal, so the loss is `10 log10(e) σ²` dB, growing as `R²`.
+It is a loss of the Doppler integration over chirps, the same in every
+channel, not a loss in combining channels.
 
-Values of `δf` for the CTRX8188F, all from [8]:
+Values of `δf` for the CTRX8188F, all from [8], with a 10.24 µs sampled ramp
+unless stated:
 
 | Case | δf rms |
 |---|---:|
-| Computed from the CW phase-noise table [1, Table 22], typical; for the waveforms in [8] | 2.7–3.4 kHz |
-| Same, maximum table | 4.8–5.9 kHz |
-| Measured: 2 µs flyback, 83.7 µs wait, 4.0 µs pre-payload | 3.5 kHz |
+| Computed from the CW phase-noise table [1, Table 22], typical; for the waveforms in [8] | 2.7–3.5 kHz |
+| Same, maximum table | 4.8–6.1 kHz |
+| Measured: 36 µs or more of flyback and wait, 4.0 µs pre-payload | 3.1–3.6 kHz |
+| Measured: 25.5 µs chirp period, 11.2 µs of flyback and wait, 4.0 µs pre-payload | 5.9 kHz |
 | Measured: 60 ns flyback, 60 ns wait; pre-payload 5.5, 4.2, 3.5 µs | 14–19, 21, 30 kHz |
+| Measured: 41 µs sampled ramp, 43 µs of flyback and wait | at most 0.56 kHz |
+
+The time between chirps sets the excess over the CW level. In [8]'s timing
+test the excess variance halves with every 2.4 µs that the synthesizer spends
+in fast-settling mode (flyback and wait), or every 1.2 µs of pre-payload, and
+δf comes within 10 % of its floor at about 24, 20 or 15 µs of flyback and
+wait for a pre-payload of 2, 4 or 6 µs. The flyback's own length does not
+matter, and the datasheet's 1 µs flyback ([1] Table 23) is far from enough.
+These figures come from one unit and one ramp length; a longer sampled ramp
+averages the error down, as the last row shows.
 
 The measurements in [8] confirm the `R²` law up to 270 m; beyond that it is an
 extrapolation. Loss from the formula above:
@@ -412,7 +441,8 @@ For each study or one-off calculation, state:
 
 1. Infineon, CTRX8188F Target Datasheet, rev. 0.20, 2025-06-17 (restricted,
    NDA): Section 5 and Figure 5 (RF reference plane), Table 22 (transmitter),
-   Table 24 (TX RF module), Table 30 (receiver).
+   Table 23 (ramp timing), Table 24 (TX RF module), Table 30 (receiver),
+   Table 31 (RX high-pass filter).
 2. HUBER+SUHNER, SENCITY FARAD-IV Radar Antenna 1377.99.0744, preliminary data
    sheet, document PIM-P62799, 2026-01-20.
 3. HUBER+SUHNER, SENCITY THIS-II Radar Antenna 1377.99.0701, preliminary data
@@ -427,9 +457,10 @@ For each study or one-off calculation, state:
    radome emblems", *Microwave Journal*, January 2018.
 7. J. Ruze, "Antenna tolerance theory — a review", *Proc. IEEE*, vol. 54,
    no. 4, 1966.
-8. CARKIT validation study, `studies/2026-09-11_carkit-validation/NOTES.md`
-   (branch `carkit-model-validation`): summary and "The per-chirp frequency
-   error".
+8. CARKIT validation study, `studies/2026-09-11_carkit-validation/`: the
+   report (`README.md`) and, in `NOTES.md`, "Sensitivity against the model",
+   "The receiver background", "The per-chirp frequency error" and "A strong
+   return's phase-noise skirt".
 9. ITU-R P.838-3 (03/2005), *Specific attenuation model for rain for use in
    prediction methods*, equations (1)–(5), Tables 1–5,
    <https://www.itu.int/rec/R-REC-P.838>.

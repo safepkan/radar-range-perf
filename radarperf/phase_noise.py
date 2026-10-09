@@ -442,6 +442,14 @@ def ctrx8188f_phase_noise(
     a measured shared/independent decomposition and not a chirped spectrum.
     Treating the whole table as shared oscillator noise is an assumption.
     Maximum entries are specified points, not a guaranteed interpolated mask.
+
+    On one CARKIT evaluation radar (``studies/2026-09-11_carkit-validation``)
+    the assumption held up: a strong return's skirt at 1-12 MHz offset lay
+    2.3-3.1 dB below the typical table treated as shared and delay-filtered,
+    with both sidebands of the real beat signal counted, and between the
+    typical and maximum tables at 0.3-0.5 MHz. The per-chirp frequency error
+    matched the typical table when the synthesizer had enough time between
+    chirps and grew with less (``docs/losses.md``).
     """
     tables = {
         ("76-77", "typical"): (-79.0, -80.0, -100.0, -116.0, -121.0),

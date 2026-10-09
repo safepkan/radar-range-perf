@@ -1164,5 +1164,10 @@ def sencity_farad_iv() -> AntennaPair:
     ``radarperf/data/sencity_farad_iv.csv``); valid for a PCB mount without
     radome.  The gains are directivities: antenna efficiency and radome loss go
     in :class:`~radarperf.losses.SystemLosses`.
+
+    It is the antenna of Infineon's CARKIT evaluation radar.  A turntable
+    measurement of CARKIT's two-way azimuth response read 0.9, 2.5 and 4.7 dB
+    down at 10, 15 and 20 deg, against 0.8, 2.5 and 4.5 dB on one side of this
+    preset (``studies/2026-09-11_carkit-validation``, NOTES.md, "Reflector").
     """
     return _load_packaged_pair("sencity_farad_iv.csv", "SENCITY FARAD-IV")
