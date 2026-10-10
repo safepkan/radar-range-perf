@@ -203,5 +203,5 @@ the sensitivities).
 | [CARKIT validation study](../2026-09-11_carkit-validation/README.md) | The measurements behind the model's confidence and the design rules |
 | [June configuration comparison](../2026-06-22_config-comparison/) | The June estimate |
 
-From the repository root, `make study_261009_lannik_psi_performance` runs the
+From the repository root, `make study_261010_lannik_psi_performance` runs the
 script in a few seconds.

@@ -1,6 +1,6 @@
 # CARKIT validation: what the measurements tell us
 
-2026-09-11 to 2026-10-09 · concluded · Patrik Andersson (analysis), Viktor Kärnstrand
+2026-09-11 to 2026-10-10 · concluded · Patrik Andersson (analysis), Viktor Kärnstrand
 (measurements)
 
 *Internal. This report quotes figures from Infineon's CTRX8188F target

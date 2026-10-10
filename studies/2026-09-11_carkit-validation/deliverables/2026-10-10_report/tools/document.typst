@@ -1,5 +1,5 @@
-#set document(title: "Lannik Psi: expected range performance", author: "Saferadar Research")
-#set page(paper: "a4", margin: (x: 18mm, top: 19mm, bottom: 18mm), header: align(right, text(size: 8pt, fill: rgb("647783"))[LANNIK PSI / INTERNAL]), footer: context align(right, text(size: 8pt, fill: rgb("647783"))[9 October 2026 · #counter(page).display("1")]))
+#set document(title: "CARKIT validation: what the measurements tell us", author: "Saferadar Research")
+#set page(paper: "a4", margin: (x: 18mm, top: 19mm, bottom: 18mm), header: align(right, text(size: 8pt, fill: rgb("647783"))[CARKIT VALIDATION / INTERNAL]), footer: context align(right, text(size: 8pt, fill: rgb("647783"))[10 October 2026 · #counter(page).display("1")]))
 #set text(font: "DejaVu Sans", size: 9.5pt, fill: rgb("233747"), lang: "en")
 #set par(justify: false, leading: 0.55em)
 #set heading(numbering: none)

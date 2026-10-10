@@ -56,8 +56,8 @@ Besides the captures, these notes use two inputs:
 | [rcs-comparison.png](inputs/rcs-comparison.png), [reflectors-angle-aligned.png](inputs/reflectors-angle-aligned.png) | Viktor's figures of the lab comparison of the walking reflector with the chamber reflector |
 
 What was posted outside the repository is in [deliverables/](deliverables/):
-the walk's results on 2026-09-29, whose paragraph on the Doppler pedestal held
-only for Infineon's chirp timing, and the report on 2026-10-09.
+the walk's results on 2026-09-29, with a README on what later analysis revised
+in them, and the report on 2026-10-10.
 
 ### Capture parameters
 

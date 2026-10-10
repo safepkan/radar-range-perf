@@ -142,9 +142,9 @@ study_260911_carkit_validation:
 
 # Lannik Psi range performance after the CARKIT validation: reuses the antenna
 # study's model with the receiver at +3 dB (a few seconds, no raw data).
-.PHONY: study_261009_lannik_psi_performance
-study_261009_lannik_psi_performance:
-	MPLBACKEND=Agg $(PYTHON) studies/2026-10-09_lannik-psi-performance/psi_performance.py
+.PHONY: study_261010_lannik_psi_performance
+study_261010_lannik_psi_performance:
+	MPLBACKEND=Agg $(PYTHON) studies/2026-10-10_lannik-psi-performance/psi_performance.py
 
 .PHONY: clean
 clean:
