@@ -17,8 +17,9 @@ Conventions
 * ``aspect_deg`` describes the orientation of the *target* as seen by the
   radar and is what aspect-dependent RCS models key off; it is independent of
   where the target sits in the beam.
-* ``radial_velocity_mps`` is positive for *opening* (receding) targets and
-  negative for closing targets, matching the usual Doppler sign convention.
+* ``radial_velocity_mps`` is the range rate: positive for receding targets
+  and negative for approaching ones.  A receding target's Doppler shift is
+  negative, so the two have opposite signs.
 
 Direction cosines ``u`` (azimuth) and ``v`` (elevation) are provided because
 waveguide-antenna patterns are frequently tabulated in uv-space.

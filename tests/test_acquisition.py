@@ -56,7 +56,7 @@ def test_radial_approach_geometry_scalar_and_array() -> None:
     scalar = approach.geometry_at(2.0)
     assert scalar.is_scalar
     assert scalar.range_m == pytest.approx(90.0)
-    assert scalar.radial_velocity_mps == pytest.approx(-5.0)  # closing -> negative
+    assert scalar.radial_velocity_mps == pytest.approx(-5.0)  # approaching -> negative
 
     batch = approach.geometry_at(np.array([0.0, 1.0, 2.0]))
     assert not batch.is_scalar
@@ -148,10 +148,10 @@ def test_acquisition_duration_sets_scan_count() -> None:
     assert acq.time_s[-1] == pytest.approx(5.0)
 
 
-def test_acquisition_auto_rejects_non_closing_target() -> None:
+def test_acquisition_auto_rejects_non_approaching_target() -> None:
     radar = make_radar()
     receding = RadialApproach(initial_range_m=100.0, closing_speed_mps=-1.0)
-    with pytest.raises(ValueError, match="closing trajectory"):
+    with pytest.raises(ValueError, match="approaching trajectory"):
         acquisition_sweep(radar, target.car(), receding, frame_time_s=1.0)
 
 

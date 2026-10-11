@@ -37,6 +37,25 @@
   from a controlled datasheet or measurement. Copy a preset and override fields
   with real numbers for project calculations.
 
+## Documentation and studies
+
+- `docs/` is reference documentation, not only usage notes. When adding or
+  changing a model term, say where it comes from (derivation, assumptions,
+  where it breaks down), not just what it is.
+- Every number in docs, docstrings and studies needs a cited source (document,
+  revision, table), a shown derivation or a stated toolbox computation;
+  otherwise leave it out.
+- Values for a particular part (front-end, antenna) go on its page under
+  `docs/hardware/`. `docs/losses.md` stays a generic catalogue, and a preset's
+  docstring stays short and points to the page.
+- Docs must read on GitHub without running anything. Draw their figures with a
+  script under `examples/` into `docs/figures/<topic>/`, tracked through
+  `docs/.gitignore`; `make smoke` draws them into a temporary directory.
+- `studies/` are dated records of what was done. A concluded study is not
+  edited to follow later model changes, and issued documents under a study's
+  `deliverables/` are immutable. Fold lasting results into `docs/` and the
+  toolbox instead.
+
 ## Commands
 
 - `make setup_venv` — create `venv` and install (`-r requirements.txt`). Pick a

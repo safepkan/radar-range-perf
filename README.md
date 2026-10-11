@@ -55,6 +55,25 @@ print(radar.probability_of_detection(target.car(), Geometry(range_m=120.0)))
 See `examples/basic_link_budget.py` and `examples/pd_vs_range.py` for sweeps,
 coverage and track acquisition.
 
+## Documentation
+
+* [docs/losses.md](docs/losses.md) — every term between the inputs and the
+  detector: where it lives, its default, what sets its value, and a checklist
+  for studies.
+* [docs/false_alarms.md](docs/false_alarms.md) — the Pfa per range–Doppler
+  cell, and how zero padding and beam sets raise the threshold.
+* [docs/phase_noise.md](docs/phase_noise.md) — how LO phase noise affects an
+  FMCW radar, with derivations: the delay filter, the per-chirp frequency
+  error and its Doppler integration loss, chirp timing, skirts.
+* [docs/phase_noise_prediction.md](docs/phase_noise_prediction.md) — predicting
+  a strong return's phase noise in range and Doppler with `phase_noise_fft`.
+* [docs/hardware/](docs/hardware/) — what is known about particular parts:
+  datasheet figures, how to read them, measurements. So far the
+  [CTRX8188F](docs/hardware/ctrx8188f.md) and the
+  [SENCITY antennas](docs/hardware/sencity.md).
+* [studies/](studies/README.md) — dated studies that used the toolbox, kept as
+  records of what was done.
+
 ## How the SNR is computed
 
 The engine uses the energy form of the FMCW radar equation, written as a
@@ -107,8 +126,8 @@ resolution or unambiguous velocity figures.
 
 The processing model centralises the MIMO accounting and lets you choose, *per
 axis*, whether the RX channels and the TX/subband channels are combined
-coherently (beamforming -> coherent gain) or non-coherently (magnitude
-summation -> detector looks). For `N_s` samples, `N_c` chirps, `n_tx`
+coherently (beamforming → coherent gain) or non-coherently (magnitude
+summation → detector looks). For `N_s` samples, `N_c` chirps, `n_tx`
 transmitters and `n_rx` receivers, the per-virtual-channel coherent gain is
 `N_s * N_c` (`N_c / n_tx` for TDM); coherently combined axes multiply it,
 non-coherently combined axes become looks:
@@ -136,7 +155,7 @@ For example, on a 4 TX / 4 RX DDMA part with 6 Doppler subbands:
 
 The first row is the TI DDMA detection path: detect on the magnitude sum over
 all RX x all subbands, then resolve TX and estimate DOA. The two empty guard
-subbands (`n_doppler_subbands=6` for 4 TX) add noise but no signal -- a
+subbands (`n_doppler_subbands=6` for 4 TX) add noise but no signal — a
 **collapsing loss**, reported as `LinkBudget.n_collapsing` and handled exactly
 by the detector. When the TX axis is combined coherently the transmitters are
 resolved first, so the empty subbands are discarded and there is no collapsing.
@@ -173,24 +192,24 @@ To evaluate a radar at its per-cell Pfa with them, pass
 A note on fluctuation: the cells integrated across the array in one CPI share a
 single RCS realisation, so spatial non-coherent integration is correctly
 modelled with Swerling 1 (Rayleigh) or 3 (chi-4), not the independent-per-look
-Swerling 2/4 -- which is why collapsing is supported for cases 0/1/3 and the
+Swerling 2/4 — which is why collapsing is supported for cases 0/1/3 and the
 independent cases 2/4 raise an explanatory error.
 
 ### In-phase (coherent) transmit
 
 As an alternative to orthogonal MIMO, `transmit_coherent=True` models all `n_tx`
-transmitters radiating the same waveform in phase -- a transmit phased array
+transmitters radiating the same waveform in phase — a transmit phased array
 steered at the target. On-target power density is `n_tx**2` over a single
 transmitter (`n_tx` from the summed power, `n_tx` from transmit directivity), so
 for a target in the formed beam the integrated SNR is `+20 log10(n_tx)` over one
 TX.
 
 The comparison with DDM/DDMA MIMO is best made in **post-combination SNR**, not
-in instantaneous on-target power density -- which for orthogonal MIMO isn't even
+in instantaneous on-target power density — which for orthogonal MIMO isn't even
 a single number, since it varies chirp to chirp with the relative TX phases.
 After TX combining the signal power is the same in both (`n_tx**2`): coherent
 transmit builds it up on the target, before the receiver, while MIMO resolves the
-`n_tx` transmitters and recombines them digitally. The noise is what differs --
+`n_tx` transmitters and recombines them digitally. The noise is what differs —
 the MIMO path sums `n_tx` independently noisy per-transmitter estimates (receiver
 noise enters `n_tx` times), whereas coherent transmit incurs receiver noise only
 once. So in a receiver-noise-limited model coherent transmit has a further
@@ -198,7 +217,7 @@ once. So in a receiver-noise-limited model coherent transmit has a further
 SNR versus `n_tx` for the virtual array.
 
 There is no virtual TX aperture in this mode, so covering a wide field of view
-means scanning the transmit beam (more dwell/scan time) -- which this
+means scanning the transmit beam (more dwell/scan time) — which this
 per-direction budget does not amortise for you.
 
 That default assumes the antenna object describes one TX element or subarray.
@@ -219,15 +238,15 @@ were cross-checked against Monte-Carlo simulation. It also accepts an
 ## Architecture
 
 Every ingredient is a `typing.Protocol`, so any object exposing the right
-attributes plugs in -- no subclassing or registration; `mypy` checks the
+attributes plugs in — no subclassing or registration; `mypy` checks the
 structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 `Processing`, `Target` and `Environment` (in `radarperf.protocols`).
 
 * **Front-end** — `GenericFrontend` plus `cascade()` and datasheet-sourced presets
   (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`; see
   [docs/hardware/ctrx8188f.md](docs/hardware/ctrx8188f.md) for the last).
-* **Antenna** — models `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
-  `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full
+* **Antenna** — models `ConstantGainAntenna` → `GaussianBeamAntenna` →
+  `PatternCutAntenna` (separable az/el cuts) → `PatternUVAntenna` (full
   pattern), plus `UniformRectangularApertureAntenna` for an analytical uniform
   rectangular-aperture sinc pattern, `RectangularArrayAntenna` for FFT patterns
   from arbitrary complex aperture excitations and `UniformArrayAntenna` for a
@@ -263,7 +282,7 @@ plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
 `range_elevation_geometry`, `xy_geometry`, `xz_geometry` builders),
 `coverage_range` and `coverage_vs_azimuth`. `acquisition_sweep` extends this to
 multiple scans: a `radarperf.trajectory.Trajectory` (currently `RadialApproach`,
-a target closing straight at the radar) is sampled at the radar's frame /
+a target approaching the radar straight on) is sampled at the radar's frame /
 revisit cadence and the per-scan, cumulative and sliding M-of-N detection
 probabilities are returned together. The frame time defaults to the waveform's
 CPI duration (a staring radar) and is otherwise the scan schedule's revisit
@@ -285,6 +304,8 @@ Each takes an optional `ax` and returns it, so they compose and overlay; see
   from ti.com; Infineon CTRX8188F: controlled-datasheet typical) — verify against
   the exact revision or your own measurements. **RCS presets are illustrative.**
   Copy a preset and override the fields with controlled or measured numbers.
+  [docs/hardware/](docs/hardware/) collects what is known about a part beyond
+  its preset.
 * **Rain clutter is approximate.** Attenuation uses ITU-R P.838-3 and clear-air
   absorption ITU-R P.676-13 (`radarperf.itu`, checked against ITU-published
   values); the volume-clutter reflectivity uses a Marshall-Palmer Z-R relation with a
@@ -320,8 +341,7 @@ Bringing them into the link budget, as a floor that can exceed the thermal noise
 near strong returns, with channel combining, remains future work.
 
 Longer-term extensions: short-range effects (receiver saturation / near-field,
-TX-to-RX leakage, ADC dynamic range, integration of phase-noise / reciprocal-mixing
-skirts into SCR against strong nearby reflectors), eclipsing, ADC quantisation noise,
+TX-to-RX leakage, ADC dynamic range), eclipsing, ADC quantisation noise,
 range/Doppler-cell clutter for ground / guardrail / multipath, waveform validity
 checks (max beat frequency, range / velocity ambiguity, duty cycle, EIRP),
 computing the angular beamforming / straddle loss from the actual array geometry

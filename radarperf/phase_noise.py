@@ -287,8 +287,11 @@ def phase_noise_fft(
     """Expected range or range-Doppler FFT of one weakly phase-modulated tone.
 
     The signed complex-IF convention is fb = slope * delay + doppler_hz,
-    with slow-time phase +2 pi doppler_hz * chirp time. Positive velocity means
-    positive Doppler here. Range is apparent beat-derived range, without
+    with slow-time phase +2 pi doppler_hz * chirp time. The result's
+    ``velocity_mps`` is lambda * doppler_hz / 2 with this sign, not the range
+    rate of :class:`~radarperf.geometry.Geometry`, which is positive for
+    receding targets; which motion gives positive Doppler depends on the
+    mixer's convention. Range is apparent beat-derived range, without
     Doppler correction. No range migration, MIMO, CFAR or channel combining.
 
     Integration bounds are *positive oscillator offsets*, mirrored about the

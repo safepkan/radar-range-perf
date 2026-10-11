@@ -349,9 +349,10 @@ def acquisition_sweep(
 
     The number of scans is taken from ``n_scans`` if given, else from
     ``duration_s`` (scans at ``0, frame, 2*frame, ...`` up to and including
-    ``duration_s``), else chosen automatically as the target closes: scans run
-    until the range first falls below ``min_range_m``.  Automatic selection
-    needs a closing trajectory; supply ``n_scans`` or ``duration_s`` otherwise.
+    ``duration_s``), else chosen automatically as the target approaches: scans
+    run until the range first falls below ``min_range_m``.  Automatic selection
+    needs an approaching trajectory; supply ``n_scans`` or ``duration_s``
+    otherwise.
 
     With ``confirm=(m, n)`` the sliding M-of-N confirmation probability is also
     returned (see :func:`~radarperf.detection.probability_of_acquisition_mofn`).
@@ -423,7 +424,8 @@ def _resolve_scan_count(
     # min_range_m.  Geometry rejects a non-positive range, so a step that
     # overshoots the radar raises -- treat that (None) as having reached the
     # floor.  The range must keep decreasing, or we would never stop; a
-    # non-closing trajectory is rejected at once rather than ground to the cap.
+    # trajectory that is not approaching is rejected at once rather than ground
+    # to the cap.
     def range_at(scan: int) -> Optional[float]:
         try:
             geometry = trajectory.geometry_at(float(scan * frame_time_s))
@@ -442,8 +444,8 @@ def _resolve_scan_count(
             break
         if current >= previous:
             raise ValueError(
-                "automatic scan count needs a closing trajectory (range is not "
-                "decreasing) -- pass n_scans or duration_s instead"
+                "automatic scan count needs an approaching trajectory (range is "
+                "not decreasing) -- pass n_scans or duration_s instead"
             )
         count, previous = count + 1, current
     if count >= max_scans:

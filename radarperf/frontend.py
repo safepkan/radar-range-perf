@@ -13,7 +13,8 @@ Cascaded configurations are produced with :func:`cascade`.
    the exact datasheet revision or your own measurements.  Derating and board
    losses go in :class:`~radarperf.losses.SystemLosses`.  Treat the presets as
    templates: copy one and override the fields, or build a
-   :class:`GenericFrontend` directly.
+   :class:`GenericFrontend` directly.  ``docs/hardware/`` has a page for each
+   part with more to say than its preset's docstring (the CTRX8188F so far).
 """
 
 from __future__ import annotations
@@ -83,7 +84,8 @@ def awr1243(**overrides: object) -> GenericFrontend:
     Public datasheet headline figures (ti.com/product/AWR1243): 12 dBm/ch output
     power; RX noise figure 14 dB (76-77 GHz) / 15 dB (77-81 GHz). The 76-77 GHz
     primary-band value (14 dB) is used here. Phase noise -95 dBc/Hz at 1 MHz
-    (76-77 GHz), not yet modelled.
+    (76-77 GHz): one offset is too little for the phase-noise models
+    (``docs/phase_noise_prediction.md``, "Phase-noise data").
     """
     base = GenericFrontend(
         tx_power_w=dbm_to_watt(12.0),
@@ -99,8 +101,9 @@ def awr2243(**overrides: object) -> GenericFrontend:
     """TI AWR2243 (76-81 GHz, 3 TX / 4 RX).
 
     Public datasheet headline figures (ti.com/product/AWR2243): 13 dBm/ch output
-    power, 12 dB RX noise figure. Phase noise -96 dBc/Hz at 1 MHz (76-77 GHz),
-    not yet modelled.
+    power, 12 dB RX noise figure. Phase noise -96 dBc/Hz at 1 MHz (76-77 GHz):
+    one offset is too little for the phase-noise models
+    (``docs/phase_noise_prediction.md``, "Phase-noise data").
     """
     base = GenericFrontend(
         tx_power_w=dbm_to_watt(13.0),
@@ -117,8 +120,9 @@ def awr2e44p(**overrides: object) -> GenericFrontend:
 
     Public datasheet headline figures (AWR2x44 family datasheet,
     ti.com/lit/ds/symlink/awr2944p.pdf): 13.5 dBm/ch output power, 11 dB RX noise
-    figure. VCO phase noise -96 dBc/Hz at 1 MHz (76-77 GHz, VCO1), not yet
-    modelled.
+    figure. VCO phase noise -96 dBc/Hz at 1 MHz (76-77 GHz, VCO1): one offset
+    is too little for the phase-noise models
+    (``docs/phase_noise_prediction.md``, "Phase-noise data").
     """
     base = GenericFrontend(
         tx_power_w=dbm_to_watt(13.5),

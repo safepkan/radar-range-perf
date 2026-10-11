@@ -7,7 +7,7 @@ right attributes (a one-line generic model, a datasheet-backed class, a wrapper
 around measured data, a lookup table) without subclassing or registering
 anything.  ``mypy`` checks the structural match.
 
-The concrete first-version models live in their own modules
+The concrete models live in their own modules
 (:mod:`radarperf.frontend`, :mod:`radarperf.antenna`, ...).  The
 :class:`~radarperf.engine.Radar` composes objects satisfying these protocols.
 """
