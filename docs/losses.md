@@ -33,6 +33,8 @@ the front-end reference plane. The receive-side losses are passive parts at
 `T0 = 290 K`, so they also emit noise. With the default `T_ant = T0` the
 expression reduces to `F D_nf T0`, so a receive-side loss lowers SNR by exactly
 its value; a colder scene makes it cost slightly more.
+[link_budget.md](link_budget.md) derives the equation and the system
+temperature.
 
 ```python
 from radarperf import Atmosphere, Radar, SystemLosses

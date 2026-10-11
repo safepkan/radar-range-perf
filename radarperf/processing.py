@@ -1,75 +1,47 @@
 """Signal-processing model: integration gain, MIMO bookkeeping and losses.
 
-This component decides how the raw per-sample SNR becomes a per-look detection
+This component decides how the per-sample SNR becomes a per-look detection
 SNR, how many non-coherent looks the detector sees, and how many of those looks
-are noise-only (the collapsing case).
+are noise-only (the collapsing case).  docs/link_budget.md derives the
+bookkeeping summarised here.
 
 Combination per axis
----------------------
-The virtual data cube has three relevant axes beyond range/Doppler: the RX
-channels, and -- for MIMO -- the TX channels (which in DDMA appear as Doppler
-subbands).  Each axis can be combined either *coherently* (beamforming: adds to
-the coherent gain, costs an angular beamforming/straddle loss for off-pointing
-targets) or *non-coherently* (magnitude summation across cells: becomes detector
-looks, direction-insensitive, no beamforming loss).  Setting ``rx_combination``
-and ``tx_combination`` independently covers the practical combinations:
+--------------------
+Beyond range and Doppler, the virtual data cube has the RX channels and, for
+MIMO, the TX channels, which DDMA places in Doppler subbands.  For each axis,
+``rx_combination`` and ``tx_combination`` choose between coherent combination
+(beamforming: the channel count multiplies the coherent gain, and a target
+away from the beam's pointing costs ``beamforming_loss_db``) and non-coherent
+combination (magnitude summation: the channels become detector looks).  The
+practical combinations:
 
-* RX non-coherent + TX/subband non-coherent -- the TI DDMA detection path:
-  detect on the magnitude sum over all RX x all subbands, resolve TX and
-  estimate DOA afterwards.
-* RX coherent + subband non-coherent -- RX beamform within each subband, then
-  sum subbands non-coherently.
-* RX coherent + TX coherent -- full coherent virtual-array beamforming.
+* RX and TX/subband non-coherent -- the TI DDMA detection path: detect on the
+  magnitude sum over all RX x all subbands, resolve TX and estimate DOA
+  afterwards.
+* RX coherent, subband non-coherent -- RX beamforming within each subband,
+  then a non-coherent sum over subbands.
+* RX and TX coherent -- full virtual-array beamforming.
 
 The coherent RX factor is the ideal gain at the formed beam's steering
-direction. To model its directional loss away from that point, wrap the
-per-channel element/subarray pattern in ``UniformArrayAntenna``; its normalized
-array factor is 0 dB at beam center, so the peak ``n_rx`` gain remains here and
-is not double counted.
+direction.  To model its loss away from that point, wrap the per-channel
+element/subarray pattern in ``UniformArrayAntenna``; its array factor is 0 dB
+at the beam centre, so the peak ``n_rx`` gain stays here and is not counted
+twice.
 
-DDMA empty subbands
--------------------
-DDMA usually allocates more Doppler subbands than transmitters (e.g. 6 for 4 TX)
-to leave guard/empty bands.  When the TX/subband axis is summed *non-coherently*,
-those empty subbands contribute noise but no signal: a collapsing loss, reported
-via ``ProcessingBudget.n_collapsing`` and handled exactly by the detector.  When
-the TX axis is combined *coherently* the transmitters are resolved first, so the
-empty subbands are discarded and there is no collapsing.
+Empty DDMA subbands summed non-coherently add noise but no signal:
+``ProcessingBudget.n_collapsing`` reports them, and the detector integrates
+them exactly.  Combined coherently, the transmitters are resolved first and
+the empty subbands discarded.
 
-MIMO SNR bookkeeping
---------------------
-Per virtual channel the coherent range-Doppler gain is ``N_s * chirps_per_tx``
-(``N_c`` for NONE/DDM/DDMA, ``N_c / n_tx`` for TDM).  Coherently combined axes
-multiply the coherent gain (``n_rx`` and/or ``n_tx``); non-coherently combined
-axes become looks.  TDM therefore matches single-TX/``n_rx`` SNR while buying the
-``n_tx`` virtual aperture; DDM/DDMA keep all TX on every chirp and gain ``n_tx``
-in coherent combination at the cost of Doppler ambiguity.
-
-In-phase (coherent) transmit
-----------------------------
-As an alternative to orthogonal MIMO, ``transmit_coherent=True`` models all
-``n_tx`` transmitters radiating the same waveform in phase (a transmit phased
-array steered at the target).  On-target power density is ``n_tx**2`` over a
-single transmitter (``n_tx`` from the summed power, ``n_tx`` from transmit
-directivity), i.e. ``+20 log10(n_tx)`` integrated SNR over one TX.
-
-Against DDM/DDMA MIMO the meaningful comparison is post-combination SNR, not the
-instantaneous on-target power density (which for orthogonal MIMO varies chirp to
-chirp with the relative TX phases).  Both build the signal to the same power
-(``n_tx**2``) after TX combining, but the MIMO path sums ``n_tx`` independently
-noisy per-transmitter estimates (receiver noise enters ``n_tx`` times) while
-coherent transmit incurs receiver noise once -- so in a receiver-noise-limited
-model coherent transmit gains a further ``+10 log10(n_tx)`` over DDM-MIMO
-(``n_tx**2`` transmit contribution versus ``n_tx`` for the virtual array).
-
-There is no virtual TX aperture in this mode; covering a wide field of view
-requires scanning the transmit beam (more dwell/scan time), which this
-per-direction budget does not amortise for you.
-
-When the antenna model already describes the complete coherently fed transmit
-aperture, set ``tx_array_gain_in_antenna=True``. The antenna pattern then
-contains the transmit directivity, so this processing model contributes only
-the ``n_tx`` increase in total radiated power, not another array-gain factor.
+MIMO and in-phase transmit
+--------------------------
+Per virtual channel the coherent gain is ``N_s * chirps_per_tx``: ``N_c /
+n_tx`` chirps for TDM, ``N_c`` otherwise.  TDM therefore matches one
+transmitter in SNR, and DDM/BPM gain ``n_tx`` when the TX axis is combined
+coherently.  ``transmit_coherent=True`` models all transmitters sending in
+phase: ``n_tx**2`` over one transmitter, ``n_tx`` more than DDM.  With
+``tx_array_gain_in_antenna=True`` the antenna pattern carries the transmit
+directivity, and only the ``n_tx`` of total power is added here.
 """
 
 from __future__ import annotations

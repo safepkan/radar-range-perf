@@ -13,20 +13,15 @@ integration gain" form of the FMCW radar equation::
     SNR        = snr_sample * coherent_gain / processing_losses
 
 Signal and noise are referred to the front-end's RF reference plane, where the
-datasheet TX power and noise figure apply.  ``L_system`` collects the named
-hardware, installation and coherence terms of ``SystemLosses`` (TX derating,
-feeds, antenna efficiency, radome, per-chirp phase error); all are zero by
-default.  The noise power per complex sample is ``k T_sys B_n`` with system
-temperature ``T_sys = T_ant / L_rx + T0 (1 - 1/L_rx) + (F - 1) T0`` (``T_ant``
-the antenna noise temperature, default ``T0 = 290 K``; ``L_rx`` the passive
-receive-side loss, at ``T0``; ``F`` the receiver noise factor including any
-derating) and noise bandwidth ``B_n`` (the waveform's effective noise bandwidth,
-defaulting to the ADC sample rate).  With ``T_ant = T0`` and ``B_n = f_s`` this
-reduces to ``k T0 F f_s``.  ``coherent_gain`` / losses come from the processing
-model. Antenna gains are normally per-channel element/subarray gains, with
-coherent array gain in ``coherent_gain``. A complete-aperture antenna pattern
-can instead carry the array directivity when the processing configuration
-explicitly omits that term.
+datasheet TX power and noise figure apply.  ``L_system`` collects the terms of
+``SystemLosses``, all zero by default.  The noise per complex sample is
+``k T_sys B_n``, with ``B_n`` the waveform's effective noise bandwidth (the
+sample rate by default) and ``T_sys`` from the antenna noise temperature, the
+passive receive losses and the noise figure; with the defaults it is
+``k T0 F f_s``.  ``coherent_gain`` and the processing losses come from the
+processing model.  Antenna gains are normally per-channel element/subarray
+gains, with array gain in ``coherent_gain``.  docs/link_budget.md derives
+these terms.
 
 The false-alarm probability is per range-Doppler resolution cell by default:
 ``Radar.false_alarm_budget`` counts the effective tests per cell from the

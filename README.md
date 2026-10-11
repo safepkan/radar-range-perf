@@ -57,6 +57,10 @@ coverage and track acquisition.
 
 ## Documentation
 
+* [docs/link_budget.md](docs/link_budget.md) — how the toolbox gets from its
+  inputs to SNR and Pd, with derivations: the energy form of the range
+  equation, the system temperature, MIMO and channel combination, collapsing,
+  in-phase transmit and detection.
 * [docs/losses.md](docs/losses.md) — every term between the inputs and the
   detector: where it lives, its default, what sets its value, and a checklist
   for studies.
@@ -76,8 +80,8 @@ coverage and track acquisition.
 
 ## How the SNR is computed
 
-The engine uses the energy form of the FMCW radar equation, written as a
-single-sample SNR times a dimensionless integration gain:
+The engine uses the energy form of the FMCW radar equation, a single-sample SNR
+times a dimensionless coherent gain:
 
 ```
 snr_sample = Pt * Gt * Gr * lambda^2 * sigma
@@ -86,21 +90,17 @@ snr_sample = Pt * Gt * Gr * lambda^2 * sigma
 SNR        = snr_sample * coherent_gain / processing_losses
 ```
 
-Signal and noise are referred to the front-end's RF reference plane, where the
-datasheet TX power and noise figure apply. The noise power per complex baseband
-sample is `k * Tsys * Bn`, with system temperature
-`Tsys = Tant / L_rx + T0 * (1 - 1/L_rx) + (F - 1) * T0` (`Tant` the
-antenna/scene noise temperature, default `T0 = 290 K`; `L_rx` the passive
-receive-side loss; `F` the receiver noise factor) and noise bandwidth `Bn` (the
-waveform's effective noise bandwidth, defaulting to the ADC sample rate `fs`).
-With the defaults `Tant = T0`, `L_rx = 1` and `Bn = fs` this reduces to
-`k * T0 * F * fs`. Set `Radar(antenna_noise_temperature_k=...)` and
-`FmcwWaveform(noise_bandwidth_hz=...)` to refine either. The coherent integration gain
-(range-FFT x Doppler-FFT x coherently combined channels) and the named
-processing losses come from the processing model, so the range equation itself
-stays free of FFT-length bookkeeping. Antenna gains are **element** gains;
-coherent array/beamforming gain lives in the integration gain to avoid double
-counting.
+The noise is `k * Tsys * Bn` per complex sample, with the noise bandwidth `Bn`
+equal to the sample rate by default, so the SNR comes out as the received
+energy over the noise density. Signal and noise are referred to the
+front-end's RF reference plane, where the datasheet TX power and noise figure
+apply. The coherent gain (range FFT × Doppler FFT × coherently combined
+channels) and the named processing losses come from the processing model.
+Antenna gains are element gains; array gain lives in the coherent gain. The
+reported SNR is per detector look: channels combined non-coherently reach the
+detector as looks. [docs/link_budget.md](docs/link_budget.md) derives all of
+this: the system temperature, the MIMO bookkeeping, coherent and non-coherent
+combination with DDMA collapsing, in-phase transmit and the detector.
 
 ### Losses
 
@@ -122,44 +122,19 @@ under [docs/hardware/](docs/hardware/).
 unset for range-only budgets; set it when you need CPI duration, velocity
 resolution or unambiguous velocity figures.
 
-### MIMO and channel combination
+### MIMO, channel combination and detection
 
-The processing model centralises the MIMO accounting and lets you choose, *per
-axis*, whether the RX channels and the TX/subband channels are combined
-coherently (beamforming → coherent gain) or non-coherently (magnitude
-summation → detector looks). For `N_s` samples, `N_c` chirps, `n_tx`
-transmitters and `n_rx` receivers, the per-virtual-channel coherent gain is
-`N_s * N_c` (`N_c / n_tx` for TDM); coherently combined axes multiply it,
-non-coherently combined axes become looks:
-
-| Scheme      | coherent gain (full DBF)     |
-|-------------|------------------------------|
-| `NONE`      | `N_s * N_c * n_rx`           |
-| `TDM`       | `N_s * N_c * n_rx`           |
-| `DDM`/`BPM` | `N_s * N_c * n_tx * n_rx`   |
-
-TDM matches a single-TX / `n_rx`-receiver system in SNR while buying the
-`n_tx`-fold virtual aperture; DDM/BPM keep every transmitter on every chirp and
-gain a further `n_tx` in coherent combination at the cost of Doppler ambiguity
-(set `mimo_loss_db` for the orthogonality loss).
-
-`StandardProcessing(rx_combination=..., tx_combination=...)` (each
-`BeamCombination.COHERENT` or `NONCOHERENT`) expresses the practical DDMA paths.
-For example, on a 4 TX / 4 RX DDMA part with 6 Doppler subbands:
-
-| Path                                      | coherent gain        | signal looks | empty cells |
-|-------------------------------------------|----------------------|--------------|-------------|
-| non-coh RX + non-coh subband (detect)     | `N_s N_c`            | 16           | 8           |
-| coherent RX, non-coh subband              | `N_s N_c n_rx`       | 4            | 2           |
-| coherent RX + coherent TX (virtual array) | `N_s N_c n_rx n_tx`  | 1            | 0           |
-
-The first row is the TI DDMA detection path: detect on the magnitude sum over
-all RX x all subbands, then resolve TX and estimate DOA. The two empty guard
-subbands (`n_doppler_subbands=6` for 4 TX) add noise but no signal — a
-**collapsing loss**, reported as `LinkBudget.n_collapsing` and handled exactly
-by the detector. When the TX axis is combined coherently the transmitters are
-resolved first, so the empty subbands are discarded and there is no collapsing.
-`examples/ddma_combinations.py` prints all of these side by side.
+`StandardProcessing` takes the MIMO scheme (`NONE`, `TDM`, `DDM`, `BPM`) and,
+for each of the RX axis and the TX (DDMA subband) axis, whether its channels
+are combined coherently, by beamforming into the coherent gain, or
+non-coherently, as detector looks. TDM buys virtual aperture but not SNR;
+DDM and BPM gain a factor `n_tx`, because every transmitter sends on every
+chirp. Empty DDMA subbands summed non-coherently add noise but no signal; the
+link budget reports them as `n_collapsing` and the detector integrates them
+exactly. `transmit_coherent=True` models all transmitters sending in phase, a
+transmit phased array. `StagedProcessing` takes an explicit list of combining
+stages for other topologies. `examples/ddma_combinations.py` compares the
+paths for a DDMA part.
 
 Range and Doppler window and straddle losses are computed from the windows
 (`range_window`, `doppler_window`, any SciPy window name; Hann by default) and
@@ -173,67 +148,28 @@ common windows.
 
 The false-alarm probability given to `Radar` (`default_pfa`, and the `pfa`
 argument of `Radar.link_budget`, `Radar.probability_of_detection` and the
-sweeps in `radarperf.sweeps`) is per range–Doppler resolution cell: false detections
-per bin of the unpadded FFTs, over all beams formed in that cell. Zero padding and receive beam sets
-add tests per cell, so the engine counts them (`radarperf.false_alarms`) and
-tests each bin at a lower Pfa. Padding therefore lowers straddle loss but
+sweeps in `radarperf.sweeps`) is per range–Doppler resolution cell: false
+detections per bin of the unpadded FFTs, over all beams formed in that cell.
+Zero padding and receive beam sets add tests per cell, so the engine counts
+them (`radarperf.false_alarms`) and tests each bin at a lower Pfa. Padding therefore lowers straddle loss but
 raises the threshold: Hann with fourfold padding saves 0.44 dB of straddle
 and costs 0.18 dB of threshold per axis. The link budget prints the tests per
 axis, the per-test Pfa and the threshold increase. See
 [docs/false_alarms.md](docs/false_alarms.md); `Radar(pfa_reference="test")`
 restores the earlier per-test convention.
 
+`radarperf.detection` models a square-law detector that sums non-coherent
+looks, for Swerling cases 0–4 (5 is treated as 0), checked against Monte Carlo
+simulation. `required_snr_db` inverts the exact Pd, and
+`albersheim_required_snr_db` and `shnidman_required_snr_db` are the usual
+approximations. Looks over channels within one CPI share one RCS draw, so
+model such targets as Swerling 1 or 3, not 2 or 4.
+
 The low-level functions in `radarperf.detection` (`probability_of_detection`,
 `required_snr_db`, `detection_threshold`, `albersheim_required_snr_db`,
 `shnidman_required_snr_db`) take the Pfa per test and apply no correction.
 To evaluate a radar at its per-cell Pfa with them, pass
 `radar.false_alarm_budget().pfa_per_test`.
-
-A note on fluctuation: the cells integrated across the array in one CPI share a
-single RCS realisation, so spatial non-coherent integration is correctly
-modelled with Swerling 1 (Rayleigh) or 3 (chi-4), not the independent-per-look
-Swerling 2/4 — which is why collapsing is supported for cases 0/1/3 and the
-independent cases 2/4 raise an explanatory error.
-
-### In-phase (coherent) transmit
-
-As an alternative to orthogonal MIMO, `transmit_coherent=True` models all `n_tx`
-transmitters radiating the same waveform in phase — a transmit phased array
-steered at the target. On-target power density is `n_tx**2` over a single
-transmitter (`n_tx` from the summed power, `n_tx` from transmit directivity), so
-for a target in the formed beam the integrated SNR is `+20 log10(n_tx)` over one
-TX.
-
-The comparison with DDM/DDMA MIMO is best made in **post-combination SNR**, not
-in instantaneous on-target power density — which for orthogonal MIMO isn't even
-a single number, since it varies chirp to chirp with the relative TX phases.
-After TX combining the signal power is the same in both (`n_tx**2`): coherent
-transmit builds it up on the target, before the receiver, while MIMO resolves the
-`n_tx` transmitters and recombines them digitally. The noise is what differs —
-the MIMO path sums `n_tx` independently noisy per-transmitter estimates (receiver
-noise enters `n_tx` times), whereas coherent transmit incurs receiver noise only
-once. So in a receiver-noise-limited model coherent transmit has a further
-`+10 log10(n_tx)` SNR over DDM-MIMO: an `n_tx**2` transmit contribution to the
-SNR versus `n_tx` for the virtual array.
-
-There is no virtual TX aperture in this mode, so covering a wide field of view
-means scanning the transmit beam (more dwell/scan time) — which this
-per-direction budget does not amortise for you.
-
-That default assumes the antenna object describes one TX element or subarray.
-For a complete coherently fed TX-aperture pattern, set
-`tx_array_gain_in_antenna=True`; the pattern then supplies the actual array
-directivity and processing adds only the `n_tx` increase in total transmitted
-power.
-
-### Detection
-
-`radarperf.detection` implements a square-law detector integrating `n_pulses`
-non-coherent looks, for Swerling cases 0-4 (5 is treated as 0). The closed forms
-were cross-checked against Monte-Carlo simulation. It also accepts an
-`n_collapsing` count of noise-only cells (the DDMA empty-subband case).
-`required_snr_db` inverts the exact Pd; `albersheim_required_snr_db` and
-`shnidman_required_snr_db` provide the usual fast approximations.
 
 ## Architecture
 
