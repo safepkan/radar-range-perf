@@ -11,9 +11,9 @@ realization, and are independent of the link-budget engine.
 
 The per-chirp frequency error delta_f, which sets the link budget's coherence
 loss (``SystemLosses.chirp_frequency_error_rms_hz``), follows from a CW
-spectrum with :func:`chirp_frequency_error_rms_hz`, or from the chirp timing
-with an empirical :class:`ChirpSettling`. See docs/phase_noise.md for the
-derivations and docs/phase_noise_prediction.md for the FFT prediction.
+spectrum with ``chirp_frequency_error_rms_hz``, or from the chirp timing with
+an empirical ``ChirpSettling``. See docs/phase_noise.md for the derivations and
+docs/phase_noise_prediction.md for the FFT prediction.
 """
 
 from __future__ import annotations
@@ -286,13 +286,13 @@ def phase_noise_fft(
 ) -> PhaseNoiseResult:
     """Expected range or range-Doppler FFT of one weakly phase-modulated tone.
 
-    The signed complex-IF convention is fb = slope * delay + doppler_hz,
-    with slow-time phase +2 pi doppler_hz * chirp time. The result's
+    The signed complex-IF convention is fb = slope * delay + doppler_hz, with
+    slow-time phase +2 pi doppler_hz * chirp time. The result's
     ``velocity_mps`` is lambda * doppler_hz / 2 with this sign, not the range
-    rate of :class:`~radarperf.geometry.Geometry`, which is positive for
-    receding targets; which motion gives positive Doppler depends on the
-    mixer's convention. Range is apparent beat-derived range, without
-    Doppler correction. No range migration, MIMO, CFAR or channel combining.
+    rate of ``Geometry``, which is positive for receding targets; which motion
+    gives positive Doppler depends on the mixer's convention. Range is apparent
+    beat-derived range, without Doppler correction. No range migration, MIMO,
+    CFAR or channel combining.
 
     Integration bounds are *positive oscillator offsets*, mirrored about the
     carrier and set to zero outside the band. They must be explicit: a result
@@ -545,10 +545,10 @@ def chirp_frequency_error_psd(
     small-delay limit, the same for every return. With ``range_m``, f² becomes
     the exact 4 sin²(pi f tau) / (2 pi tau)²: the per-chirp phase PSD at that
     range in frequency units, which falls below the limit once f tau is no
-    longer small where |H|² passes. Independent TX/RX residuals follow no
-    delay law and are not included. ``offset_band_hz`` bounds the positive
-    offsets, as in :func:`phase_noise_fft`; H is taken as zero beyond the IF
-    Nyquist frequency. See docs/phase_noise.md.
+    longer small where |H|² passes. Independent TX/RX residuals follow no delay
+    law and are not included. ``offset_band_hz`` bounds the positive offsets,
+    as in ``phase_noise_fft``; H is taken as zero beyond the IF Nyquist
+    frequency. See docs/phase_noise.md.
     """
     density = _PerChirpDensity.build(
         source, waveform, offset_band_hz, range_window, range_m
@@ -580,17 +580,17 @@ def chirp_frequency_error_rms_hz(
     """RMS per-chirp frequency error delta_f [Hz] from the LO's phase noise.
 
     The value for ``SystemLosses.chirp_frequency_error_rms_hz``: the square
-    root of :func:`chirp_frequency_error_psd` integrated over slow time. The
+    root of ``chirp_frequency_error_psd`` integrated over slow time. The
     arguments are the same. Folding keeps the variance, so over the whole
     slow-time band (the default) this is the integral of f² L(f) |H(f)|² over
-    all offsets, and the chirp period is not needed. ``slow_time_band_hz=(a,
-    b)`` integrates only |f_D| from a to b, within PRF/2, as when comparing
-    with a measurement that leaves out slow motion.
+    all offsets, and the chirp period is not needed.
+    ``slow_time_band_hz=(a, b)`` integrates only |f_D| from a to b, within
+    PRF/2, as when comparing with a measurement that leaves out slow motion.
 
     The default ``range_m=None`` gives the small-delay value, which the link
     budget's 2 pi delta_f tau then applies at every range; at long range it
     overstates the CW part (docs/phase_noise.md). The chirp timing can add an
-    excess that a CW spectrum does not predict (:class:`ChirpSettling`).
+    excess that a CW spectrum does not predict (``ChirpSettling``).
     """
     if slow_time_band_hz is not None:
         a, b = slow_time_band_hz
@@ -723,15 +723,14 @@ def ctrx8188f_chirp_settling() -> ChirpSettling:
     A fit to ten chirp timings on one CARKIT evaluation radar
     (``studies/2026-09-11_carkit-validation``, NOTES.md "Window: the chirp
     timing sets the error"): floor 3.28 kHz, excess 84.8 kHz, time constants
-    3.4 us in fast-settling mode and 1.68 us of pre-payload. Measured with
-    a 10.24 us sampled ramp at 11.67 MHz/us, a Blackman-Harris range window,
-    flyback plus wait 9.2-86 us and pre-payload 0.02-6 us, around 77 GHz;
-    the delay law checked to 270 m. Extrapolated to Infineon's 0.12 us of
-    flyback and wait it matched that unit's 14-30 kHz within the fit's
-    factor-of-1.5 uncertainty. The floor lies between the CW table's typical
-    values for the two RF bands (:func:`chirp_frequency_error_rms_hz`). Other
-    units, ramps, windows and DPLL settings are untested
-    (``docs/hardware/ctrx8188f.md``).
+    3.4 us in fast-settling mode and 1.68 us of pre-payload. Measured with a
+    10.24 us sampled ramp at 11.67 MHz/us, a Blackman-Harris range window,
+    flyback plus wait 9.2-86 us and pre-payload 0.02-6 us, around 77 GHz; the
+    delay law checked to 270 m. Extrapolated to Infineon's 0.12 us of flyback
+    and wait it matched that unit's 14-30 kHz within the fit's factor-of-1.5
+    uncertainty. The floor lies between the CW table's typical values for the
+    two RF bands (``chirp_frequency_error_rms_hz``). Other units, ramps,
+    windows and DPLL settings are untested (``docs/hardware/ctrx8188f.md``).
     """
     return ChirpSettling(
         floor_hz=3.285e3,

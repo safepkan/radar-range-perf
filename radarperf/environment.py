@@ -6,18 +6,16 @@ floor at short range).
 
 Gaseous attenuation follows ITU-R P.676-13 and rain attenuation the ITU-R
 P.838-3 power law ``gamma = k * R**alpha`` [dB/km]; both are implemented in
-:mod:`radarperf.itu`.
+``radarperf.itu``.
 
-.. warning::
-
-   The rain *clutter* model uses the Probert-Jones (1962) beam-filling volume,
-   the Marshall-Palmer (1948) relation ``Z = 200 R**1.6`` and Rayleigh
-   reflectivity with ``|K|^2 = 0.93``, the usual value for water at centimetre
-   wavelengths.  At 77 GHz raindrops are not Rayleigh scatterers (Mie regime),
-   so the clutter reflectivity is not validated.  It is wired in so the
-   signal-to-clutter path exists and is overridable; calibrate
-   ``dielectric_factor`` and the Z-R coefficients against data before trusting
-   absolute numbers.
+Warning: the rain *clutter* model uses the Probert-Jones (1962) beam-filling
+volume, the Marshall-Palmer (1948) relation ``Z = 200 R**1.6`` and Rayleigh
+reflectivity with ``|K|^2 = 0.93``, the usual value for water at centimetre
+wavelengths.  At 77 GHz raindrops are not Rayleigh scatterers (Mie regime), so
+the clutter reflectivity is not validated.  It is wired in so the
+signal-to-clutter path exists and is overridable; calibrate
+``dielectric_factor`` and the Z-R coefficients against data before trusting
+absolute numbers.
 """
 
 from __future__ import annotations
@@ -43,7 +41,7 @@ class FreeSpace:
     """No excess loss and no clutter -- the default environment.
 
     Useful for idealised comparisons and hand calculations; at 77 GHz the
-    clear-air loss is not zero (see :class:`Atmosphere`).
+    clear-air loss is not zero (see ``Atmosphere``).
     """
 
     def two_way_loss_db(self, geometry: Geometry, waveform: Waveform) -> FloatOrArray:
@@ -60,12 +58,11 @@ class Atmosphere:
     """Clear-air gaseous attenuation as a constant specific attenuation.
 
     ``specific_attenuation_db_per_km`` is the one-way value; the two-way loss is
-    ``2 * gamma * R``, independent of frequency and altitude.  The default,
-    0.35 dB/km, is ITU-R P.676-13 at 76.5 GHz for its standard sea-level
-    atmosphere (1013.25 hPa, 15 degC, 7.5 g/m^3 water vapour), rounded.  Use
-    :meth:`itu_p676` for other conditions or frequencies, or
-    :meth:`itu_reference` for the ITU-R reference atmosphere at a height;
-    ``docs/losses.md`` tabulates a few.
+    ``2 * gamma * R``, independent of frequency and altitude.  The default, 0.35
+    dB/km, is ITU-R P.676-13 at 76.5 GHz for its standard sea-level atmosphere
+    (1013.25 hPa, 15 degC, 7.5 g/m^3 water vapour), rounded.  Use ``itu_p676``
+    for other conditions or frequencies, or ``itu_reference`` for the ITU-R
+    reference atmosphere at a height; ``docs/losses.md`` tabulates a few.
     """
 
     specific_attenuation_db_per_km: float = 0.35
@@ -100,7 +97,7 @@ class Atmosphere:
         """Build from ITU-R P.676-13 in the ITU-R P.835-7 reference atmosphere.
 
         The conditions at ``height_m`` (geometric, above mean sea level) come
-        from :func:`radarperf.itu.reference_atmosphere`.  The path is taken as
+        from ``radarperf.itu.reference_atmosphere``.  The path is taken as
         horizontal at that height; a slant path would need the attenuation
         integrated over height.
         """

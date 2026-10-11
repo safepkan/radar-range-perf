@@ -1,11 +1,10 @@
 """Physical constants and unit-conversion helpers.
 
-Everything in :mod:`radarperf` is stored internally in SI units (watts,
-metres, hertz, square metres, kelvin, seconds).  Decibels appear only at the
-boundaries -- when a user supplies a gain/loss/power figure or when a result is
-formatted for reading.  The helpers below are the single place those
-conversions live so the rest of the code never sprinkles ``10 ** (x / 10)``
-around.
+Everything in ``radarperf`` is stored internally in SI units (watts, metres,
+hertz, square metres, kelvin, seconds).  Decibels appear only at the boundaries
+-- when a user supplies a gain/loss/power figure or when a result is formatted
+for reading.  The helpers below are the single place those conversions live so
+the rest of the code never sprinkles ``10 ** (x / 10)`` around.
 
 All conversion helpers accept either Python floats or NumPy arrays and return
 the same shape, so they can be used transparently inside vectorised sweeps.

@@ -1,12 +1,12 @@
-"""ITU-R propagation models behind :mod:`radarperf.environment`.
+"""ITU-R propagation models behind ``radarperf.environment``.
 
-* :func:`gaseous_specific_attenuation_db_per_km` -- ITU-R P.676-13 (08/2022),
+* ``gaseous_specific_attenuation_db_per_km`` -- ITU-R P.676-13 (08/2022),
   Annex 1: line-by-line specific attenuation of dry air and water vapour,
   equations (1)-(9) with the spectroscopic data of Tables 1 and 2.
-* :func:`rain_coefficients` -- ITU-R P.838-3 (03/2005): the coefficients ``k``
+* ``rain_coefficients`` -- ITU-R P.838-3 (03/2005): the coefficients ``k``
   and ``alpha`` of the rain power law ``gamma_R = k R**alpha``, equations
   (2)-(5) with the constants of Tables 1-4.
-* :func:`reference_atmosphere` -- ITU-R P.835-7 (08/2024), Annex 1: the ITU-R
+* ``reference_atmosphere`` -- ITU-R P.835-7 (08/2024), Annex 1: the ITU-R
   reference atmosphere's temperature, total pressure and water-vapour density
   versus height, equations (1a), (2a), (3a) and (6), for the lowest 11 km.
 
@@ -283,7 +283,7 @@ def reference_atmosphere(height_m: float) -> AtmosphericConditions:
     exponential profile of equation (6), 7.5 g/m^3 at sea level with a 2 km
     scale height.  Covers 0 to 11 km geopotential height (about 11.02 km
     geometric).  The returned values feed
-    :func:`gaseous_specific_attenuation_db_per_km` directly.
+    ``gaseous_specific_attenuation_db_per_km`` directly.
     """
     height_km = height_m / 1000.0
     geopotential_km = 6356.766 * height_km / (6356.766 + height_km)  # (1a)

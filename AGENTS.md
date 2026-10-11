@@ -23,6 +23,9 @@
 - flake8 config lives in `pyproject.toml` (via `Flake8-pyproject`): line length
   88, ignoring E203/E501/E741/W503.
 - Use the repo venv interpreter for project commands; avoid bare `python`.
+- Docstrings are read as plain text, not rendered: no Sphinx roles (`:class:`,
+  `:func:`, `:meth:`, ...) or directives (`.. note::`). Refer to code as
+  ``` ``Name`` ``` and write notes as ordinary paragraphs.
 - Manage dependencies via `pyproject.toml`; `requirements.txt` is just `-e .[dev]`.
   Pin exact versions, mirroring house practice.
 - Ask before running commands that modify environments outside the repo or that

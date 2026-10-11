@@ -2,19 +2,17 @@
 
 The generic model captures the two parameters that drive the range equation:
 per-channel transmit power and receiver noise figure, plus the channel counts.
-Cascaded configurations are produced with :func:`cascade`.
+Cascaded configurations are produced with ``cascade``.
 
-.. note::
-
-   The TI presets (:func:`awr1243`, :func:`awr2243`, :func:`awr2e44p`) use public
-   datasheet headline figures from ti.com; :func:`ctrx8188f` uses controlled
-   datasheet typical values.  Output power and noise figure still vary with chirp
-   slope, RF band, temperature, EIRP back-off and board losses, so verify against
-   the exact datasheet revision or your own measurements.  Derating and board
-   losses go in :class:`~radarperf.losses.SystemLosses`.  Treat the presets as
-   templates: copy one and override the fields, or build a
-   :class:`GenericFrontend` directly.  ``docs/hardware/`` has a page for each
-   part with more to say than its preset's docstring (the CTRX8188F so far).
+The TI presets (``awr1243``, ``awr2243``, ``awr2e44p``) use public datasheet
+headline figures from ti.com; ``ctrx8188f`` uses controlled datasheet typical
+values.  Output power and noise figure still vary with chirp slope, RF band,
+temperature, EIRP back-off and board losses, so verify against the exact
+datasheet revision or your own measurements.  Derating and board losses go in
+``SystemLosses``.  Treat the presets as templates: copy one and override the
+fields, or build a ``GenericFrontend`` directly.  ``docs/hardware/`` has a page
+for each part with more to say than its preset's docstring (the CTRX8188F so
+far).
 """
 
 from __future__ import annotations
@@ -31,8 +29,8 @@ class GenericFrontend:
     Parameters
     ----------
     tx_power_w:
-        Transmit power *per active TX channel*, in watts.  (Use
-        :func:`~radarperf.units.dbm_to_watt` if you have dBm.)
+        Transmit power *per active TX channel*, in watts.  (Use ``dbm_to_watt``
+        if you have dBm.)
     noise_figure_db:
         Receiver noise figure at the antenna port, in dB.
     n_tx, n_rx:
@@ -62,7 +60,7 @@ def cascade(
     TX and RX channel counts add up; per-channel power and noise figure are
     assumed unchanged (a deliberately optimistic first approximation -- real
     cascades pay distribution and synchronisation losses; put them in
-    :class:`~radarperf.losses.SystemLosses` or ``other_loss_db``).
+    ``SystemLosses`` or ``other_loss_db``).
     """
     if count < 1:
         raise ValueError("count must be >= 1")
@@ -139,20 +137,19 @@ def ctrx8188f(**overrides: object) -> GenericFrontend:
 
     Controlled datasheet typical values (a nominal part at nominal supply and
     room temperature): 14.5 dBm/ch output power; RX noise figure 10.2 dB
-    (low-noise mode @ 10 MHz, the datasheet headline), at the waveguide port
-    of a reference PCB. The two noise modes are the RX gain steps 0 dB (the
-    chip's default) and +3 dB, as Infineon has confirmed. With the receiver at
-    +3 dB, pass ``noise_figure_db=9.7``; the firmware must set that step
-    explicitly. Minimum output power is 13.0 dBm and maximum noise figure
-    13.2 dB (12.7 dB at +3 dB); put such cases in
-    :class:`~radarperf.losses.SystemLosses` derating terms.
+    (low-noise mode @ 10 MHz, the datasheet headline), at the waveguide port of
+    a reference PCB. The two noise modes are the RX gain steps 0 dB (the chip's
+    default) and +3 dB, as Infineon has confirmed. With the receiver at +3 dB,
+    pass ``noise_figure_db=9.7``; the firmware must set that step explicitly.
+    Minimum output power is 13.0 dBm and maximum noise figure 13.2 dB (12.7 dB
+    at +3 dB); put such cases in ``SystemLosses`` derating terms.
 
     One CARKIT evaluation radar came out 0.4-0.7 dB below a model with these
-    typical values, and its receiver noise rose towards low IF by more than
-    the datasheet says. ``docs/hardware/ctrx8188f.md`` collects the datasheet
+    typical values, and its receiver noise rose towards low IF by more than the
+    datasheet says. ``docs/hardware/ctrx8188f.md`` collects the datasheet
     figures, how to read them and these measurements. The phase-noise presets
-    are :func:`radarperf.phase_noise.ctrx8188f_phase_noise` and
-    :func:`radarperf.phase_noise.ctrx8188f_chirp_settling`.
+    are ``radarperf.phase_noise.ctrx8188f_phase_noise`` and
+    ``radarperf.phase_noise.ctrx8188f_chirp_settling``.
     """
     base = GenericFrontend(
         tx_power_w=dbm_to_watt(14.5),

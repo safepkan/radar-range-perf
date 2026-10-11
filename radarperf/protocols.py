@@ -1,15 +1,15 @@
 """Structural interfaces for the pluggable pieces of a radar model.
 
 Every ingredient of the range equation -- front-end, antenna, waveform, signal
-processing, target, environment -- is defined here as a :class:`typing.Protocol`.
+processing, target, environment -- is defined here as a ``typing.Protocol``.
 That is deliberate: it means a user can drop in *anything* that exposes the
 right attributes (a one-line generic model, a datasheet-backed class, a wrapper
 around measured data, a lookup table) without subclassing or registering
 anything.  ``mypy`` checks the structural match.
 
-The concrete models live in their own modules
-(:mod:`radarperf.frontend`, :mod:`radarperf.antenna`, ...).  The
-:class:`~radarperf.engine.Radar` composes objects satisfying these protocols.
+The concrete models live in their own modules (``radarperf.frontend``,
+``radarperf.antenna``, ...).  The ``Radar`` composes objects satisfying these
+protocols.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import numpy.typing as npt
 from .geometry import Geometry
 from .units import FloatOrArray
 
-#: A window for :func:`scipy.signal.get_window` (periodic): a name such as
+#: A window for ``scipy.signal.get_window`` (periodic): a name such as
 #: ``"hann"``, or a tuple with a parameter such as ``("kaiser", 8.0)``.
 WindowSpec = str | tuple[str, float]
 
@@ -57,8 +57,8 @@ class FftAxis:
 class ProcessingBudget:
     """What the signal processing contributes to a single detection look.
 
-    The detection statistics in :mod:`radarperf.detection` model an integration
-    of ``n_noncoherent`` looks, each of which has already been coherently
+    The detection statistics in ``radarperf.detection`` model an integration of
+    ``n_noncoherent`` looks, each of which has already been coherently
     integrated.  This split lets one object describe both fully coherent
     digital beamforming (``n_noncoherent == 1``) and non-coherent beam/scan
     summation (``n_noncoherent > 1``) cleanly.
@@ -81,10 +81,10 @@ class ProcessingBudget:
         itemised, zeros included, so the link budget can show where SNR went
         and which terms were set to zero.
     range_axis, doppler_axis:
-        The range and Doppler FFTs the detector searches, from which the
-        engine counts the effective tests per resolution cell
-        (:mod:`radarperf.false_alarms`).  ``None`` counts one test per cell
-        on that axis.
+        The range and Doppler FFTs the detector searches, from which the engine
+        counts the effective tests per resolution cell
+        (``radarperf.false_alarms``).  ``None`` counts one test per cell on
+        that axis.
     """
 
     coherent_gain_db: float
@@ -129,8 +129,8 @@ class Antenna(Protocol):
     which case coherent array / beamforming gain is accounted for by the
     processing model. A model may instead describe a complete aperture; its
     processing configuration must then omit the corresponding array gain to
-    avoid double counting (for :class:`~radarperf.processing.StandardProcessing`,
-    set ``tx_array_gain_in_antenna=True`` for a complete coherent TX aperture).
+    avoid double counting (for ``StandardProcessing``, set
+    ``tx_array_gain_in_antenna=True`` for a complete coherent TX aperture).
     """
 
     @property
@@ -151,8 +151,8 @@ class Antenna(Protocol):
         """Gain toward ``(azimuth, elevation)`` [dBi].
 
         Must accept scalar or broadcastable-array angles and return a matching
-        shape, so a single :class:`~radarperf.geometry.Geometry` batch can be
-        evaluated in one vectorised pass.
+        shape, so a single ``Geometry`` batch can be evaluated in one
+        vectorised pass.
         """
 
 
@@ -161,8 +161,8 @@ class BeamSet(Protocol):
     """A receive antenna that forms several beams and detects in the best one.
 
     The engine treats every beam as a test in each range-Doppler cell and
-    raises the detection threshold to hold the false-alarm probability per
-    cell (see :mod:`radarperf.false_alarms`).
+    raises the detection threshold to hold the false-alarm probability per cell
+    (see ``radarperf.false_alarms``).
     """
 
     def beam_weights(self) -> npt.NDArray[np.complex128]:

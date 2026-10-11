@@ -1,13 +1,13 @@
 """Geometry of a target relative to the radar.
 
-A :class:`Geometry` is a point in the radar's field of regard: a slant range
-plus a look direction (azimuth/elevation), together with the kinematic and
-aspect information the rest of the toolbox needs.
+A ``Geometry`` is a point in the radar's field of regard: a slant range plus a
+look direction (azimuth/elevation), together with the kinematic and aspect
+information the rest of the toolbox needs.
 
 The fields may be plain floats (a single point) or broadcastable NumPy arrays (a
-batch of points evaluated in one vectorised pass).  :attr:`Geometry.is_scalar`
-reports which.  :meth:`~radarperf.engine.Radar.link_budget` requires a single
-point; the sweep helpers in :mod:`radarperf.sweeps` build array geometries.
+batch of points evaluated in one vectorised pass).  ``Geometry.is_scalar``
+reports which.  ``link_budget`` requires a single point; the sweep helpers in
+``radarperf.sweeps`` build array geometries.
 
 Conventions
 -----------
@@ -79,7 +79,7 @@ class Geometry:
         aspect_deg: FloatOrArray = 0.0,
         radial_velocity_mps: FloatOrArray = 0.0,
     ) -> "Geometry":
-        """Build a :class:`Geometry` from radar-frame Cartesian coordinates.
+        """Build a ``Geometry`` from radar-frame Cartesian coordinates.
 
         The radar sits at the origin looking along +x.  ``y`` is cross-range
         (left positive) and ``z`` is up.  This is convenient for x/y and x/z

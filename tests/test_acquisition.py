@@ -1,7 +1,7 @@
 """Trajectory kinematics and the multi-scan acquisition sweep.
 
 The acquisition sweep evaluates a trajectory over scan times in one vectorised
-pass; these tests pin it to the per-point :meth:`Radar.probability_of_detection`
+pass; these tests pin it to the per-point ``Radar.probability_of_detection``
 and to the detection-module primitives it builds on.
 """
 

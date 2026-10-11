@@ -2,8 +2,8 @@
 
 A small, scriptable toolbox built around the FMCW radar range equation.  Each
 ingredient (front-end, antenna, waveform, processing, target, environment) is a
-pluggable component; the :class:`Radar` engine composes them and computes SNR /
-SINR link budgets, single-scan Pd, range/angle sweeps, coverage and multi-scan
+pluggable component; the ``Radar`` engine composes them and computes SNR / SINR
+link budgets, single-scan Pd, range/angle sweeps, coverage and multi-scan
 acquisition probability.
 
 Example

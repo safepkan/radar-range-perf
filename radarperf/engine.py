@@ -1,9 +1,8 @@
 """The range-equation engine.
 
-:class:`Radar` bundles a front-end, an antenna (a transmit/receive
-:class:`~radarperf.antenna.AntennaPair`), a waveform and a processing chain.
-Given a target, a geometry and an environment it returns a
-:class:`~radarperf.results.LinkBudget` (SNR/SCR/SINR with full breakdown) and,
+``Radar`` bundles a front-end, an antenna (a transmit/receive ``AntennaPair``),
+a waveform and a processing chain.  Given a target, a geometry and an
+environment it returns a ``LinkBudget`` (SNR/SCR/SINR with full breakdown) and,
 on top of that, a single-scan probability of detection.
 
 The SNR is built in the unambiguous "single-sample SNR times dimensionless
@@ -15,30 +14,31 @@ integration gain" form of the FMCW radar equation::
 
 Signal and noise are referred to the front-end's RF reference plane, where the
 datasheet TX power and noise figure apply.  ``L_system`` collects the named
-hardware, installation and coherence terms of :class:`~radarperf.losses.SystemLosses`
-(TX derating, feeds, antenna efficiency, radome, per-chirp phase error); all are
-zero by default.  The noise power per complex sample is ``k T_sys B_n`` with
-system temperature ``T_sys = T_ant / L_rx + T0 (1 - 1/L_rx) + (F - 1) T0``
-(``T_ant`` the antenna noise temperature, default ``T0 = 290 K``; ``L_rx`` the
-passive receive-side loss, at ``T0``; ``F`` the receiver noise factor including
-any derating) and noise bandwidth ``B_n`` (the waveform's effective noise
-bandwidth, defaulting to the ADC sample rate).  With ``T_ant = T0`` and
-``B_n = f_s`` this reduces to ``k T0 F f_s``.
-``coherent_gain`` / losses come from the processing model. Antenna gains are
-normally per-channel element/subarray gains, with coherent array gain in
-``coherent_gain``. A complete-aperture antenna pattern can instead carry the
-array directivity when the processing configuration explicitly omits that term.
+hardware, installation and coherence terms of ``SystemLosses`` (TX derating,
+feeds, antenna efficiency, radome, per-chirp phase error); all are zero by
+default.  The noise power per complex sample is ``k T_sys B_n`` with system
+temperature ``T_sys = T_ant / L_rx + T0 (1 - 1/L_rx) + (F - 1) T0`` (``T_ant``
+the antenna noise temperature, default ``T0 = 290 K``; ``L_rx`` the passive
+receive-side loss, at ``T0``; ``F`` the receiver noise factor including any
+derating) and noise bandwidth ``B_n`` (the waveform's effective noise bandwidth,
+defaulting to the ADC sample rate).  With ``T_ant = T0`` and ``B_n = f_s`` this
+reduces to ``k T0 F f_s``.  ``coherent_gain`` / losses come from the processing
+model. Antenna gains are normally per-channel element/subarray gains, with
+coherent array gain in ``coherent_gain``. A complete-aperture antenna pattern
+can instead carry the array directivity when the processing configuration
+explicitly omits that term.
 
 The false-alarm probability is per range-Doppler resolution cell by default:
-:meth:`Radar.false_alarm_budget` counts the effective tests per cell from the
+``Radar.false_alarm_budget`` counts the effective tests per cell from the
 processing model's FFT axes and any receive beam set, and the detector tests
-each bin at the correspondingly lower per-test Pfa (:mod:`radarperf.false_alarms`).
+each bin at the correspondingly lower per-test Pfa
+(``radarperf.false_alarms``).
 
-The core physics is computed once, vectorised, in :meth:`Radar._budget_terms`.
-It broadcasts over the fields of the supplied :class:`~radarperf.geometry.Geometry`,
-so a single scalar point and a whole sweep grid go through exactly the same
-code.  :meth:`Radar.link_budget` wraps it for a single point (and builds the
-itemised breakdown); :mod:`radarperf.sweeps` calls it once per array geometry.
+The core physics is computed once, vectorised, in ``Radar._budget_terms``.  It
+broadcasts over the fields of the supplied ``Geometry``, so a single scalar
+point and a whole sweep grid go through exactly the same code.
+``Radar.link_budget`` wraps it for a single point (and builds the itemised
+breakdown); ``radarperf.sweeps`` calls it once per array geometry.
 """
 
 from __future__ import annotations
@@ -108,15 +108,15 @@ class Radar:
 
     ``losses`` names the hardware, installation and coherence terms that lie
     outside the front-end datasheet figures, the antenna pattern and the
-    processing model.  They default to zero; see :class:`SystemLosses`.
+    processing model.  They default to zero; see ``SystemLosses``.
 
-    ``default_pfa`` (and the ``pfa`` argument of :meth:`link_budget`,
-    :meth:`probability_of_detection` and :mod:`radarperf.sweeps`) is the
-    false-alarm probability per range-Doppler resolution cell, over all beams
-    formed in it; the detector tests each bin at the lower per-test value from
-    :meth:`false_alarm_budget`.  The functions in :mod:`radarperf.detection`
-    take the per-test value.  ``pfa_reference="test"`` instead applies the
-    value to every test unchanged, the convention before 2026-10-01.
+    ``default_pfa`` (and the ``pfa`` argument of ``link_budget``,
+    ``probability_of_detection`` and ``radarperf.sweeps``) is the false-alarm
+    probability per range-Doppler resolution cell, over all beams formed in it;
+    the detector tests each bin at the lower per-test value from
+    ``false_alarm_budget``.  The functions in ``radarperf.detection`` take the
+    per-test value.  ``pfa_reference="test"`` instead applies the value to
+    every test unchanged, the convention before 2026-10-01.
     """
 
     frontend: Frontend
@@ -137,8 +137,8 @@ class Radar:
 
         For a Pfa per cell, the effective tests per range-Doppler cell come
         from the processing budget's range and Doppler FFT axes and, when the
-        receive antenna is a :class:`~radarperf.protocols.BeamSet`, its beams.
-        The looks include noise-only (collapsing) cells.
+        receive antenna is a ``BeamSet``, its beams.  The looks include
+        noise-only (collapsing) cells.
         """
         value = self.default_pfa if pfa is None else pfa
         budget = self.processing.budget(
@@ -260,7 +260,7 @@ class Radar:
         """Evaluate SNR / SCR / SINR (with breakdown) at one geometry.
 
         The false-alarm budget reported with it is for ``pfa`` (default
-        ``default_pfa``; see :meth:`false_alarm_budget`).
+        ``default_pfa``; see ``false_alarm_budget``).
         """
         if not geometry.is_scalar:
             raise ValueError(
@@ -319,7 +319,7 @@ class Radar:
         ``use_sinr=False`` to detect against thermal noise only.  The Swerling
         case defaults to the target's, and ``n_pulses`` is the number of
         non-coherent looks reported by the processing model.  ``pfa`` has the
-        same meaning as ``default_pfa`` (see :meth:`false_alarm_budget`).
+        same meaning as ``default_pfa`` (see ``false_alarm_budget``).
         """
         budget = self.link_budget(target, geometry, environment, pfa=pfa)
         metric_db = budget.sinr_db if use_sinr else budget.snr_db

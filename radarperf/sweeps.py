@@ -2,20 +2,20 @@
 
 These produce the arrays you actually plot:
 
-* :func:`range_sweep` -- SNR/SINR/Pd versus range along a fixed direction.
-* :func:`map_2d` -- a grid of Pd over any two coordinates, with helper geometry
+* ``range_sweep`` -- SNR/SINR/Pd versus range along a fixed direction.
+* ``map_2d`` -- a grid of Pd over any two coordinates, with helper geometry
   builders for range/azimuth, range/elevation, x/y and x/z.
-* :func:`coverage_range` / :func:`coverage_vs_azimuth` -- the maximum range that
+* ``coverage_range`` / ``coverage_vs_azimuth`` -- the maximum range that
   still meets a target Pd.
-* :func:`acquisition_sweep` -- per-scan, cumulative and M-of-N detection
-  probability as a target moves along a :class:`~radarperf.trajectory.Trajectory`.
+* ``acquisition_sweep`` -- per-scan, cumulative and M-of-N detection
+  probability as a target moves along a ``Trajectory``.
 
 Both the link budget and Pd are evaluated vectorised over the whole grid in a
-single call (the engine broadcasts over an array :class:`Geometry`), so large
-sweeps stay fast.
+single call (the engine broadcasts over an array ``Geometry``), so large sweeps
+stay fast.
 
 A ``pfa`` argument has the radar's meaning: per range-Doppler cell by default,
-converted to the per-test value by :meth:`Radar.false_alarm_budget`.
+converted to the per-test value by ``Radar.false_alarm_budget``.
 """
 
 from __future__ import annotations
@@ -116,8 +116,8 @@ def map_2d(
 ) -> Map2D:
     """Pd over a ``(coord1, coord2)`` grid.
 
-    ``geometry_from(c1, c2)`` maps a grid point to a :class:`Geometry`; use one
-    of the builders below or supply your own.  Result arrays are indexed
+    ``geometry_from(c1, c2)`` maps a grid point to a ``Geometry``; use one of
+    the builders below or supply your own.  Result arrays are indexed
     ``[i1, i2]``.
     """
     c1 = np.asarray(coord1_values, dtype=float)
@@ -147,7 +147,7 @@ def _grid_geometry(
     c1: npt.NDArray[np.float64],
     c2: npt.NDArray[np.float64],
 ) -> Geometry:
-    """Assemble a single batched :class:`Geometry` over the ``(c1, c2)`` grid.
+    """Assemble a single batched ``Geometry`` over the ``(c1, c2)`` grid.
 
     The per-point builder runs in a Python loop (cheap object construction); the
     expensive range-equation and detection maths then runs once, vectorised.
@@ -355,8 +355,8 @@ def acquisition_sweep(
     otherwise.
 
     With ``confirm=(m, n)`` the sliding M-of-N confirmation probability is also
-    returned (see :func:`~radarperf.detection.probability_of_acquisition_mofn`).
-    The cumulative "at least one detection" curve is always returned.
+    returned (see ``probability_of_acquisition_mofn``).  The cumulative "at
+    least one detection" curve is always returned.
     """
     frame_time = radar.waveform.cpi_duration_s if frame_time_s is None else frame_time_s
     if not np.isfinite(frame_time) or frame_time <= 0.0:
@@ -410,7 +410,7 @@ def _resolve_scan_count(
     *,
     max_scans: int = 1_000_000,
 ) -> int:
-    """Number of scans to evaluate; see :func:`acquisition_sweep` for the rules."""
+    """Number of scans to evaluate; see ``acquisition_sweep`` for the rules."""
     if n_scans is not None:
         if n_scans < 1:
             raise ValueError("n_scans must be >= 1")

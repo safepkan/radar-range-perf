@@ -1,32 +1,32 @@
 """Antenna (element) models of increasing sophistication.
 
-* :class:`ConstantGainAntenna` -- just a boresight gain. The simplest useful
+* ``ConstantGainAntenna`` -- just a boresight gain. The simplest useful
   model; you still supply beamwidths so clutter cell sizing works.
-* :class:`GaussianBeamAntenna` -- a separable parabolic-in-dB main beam derived
+* ``GaussianBeamAntenna`` -- a separable parabolic-in-dB main beam derived
   from the azimuth/elevation 3 dB beamwidths, with a sidelobe floor.
-* :class:`PatternCutAntenna` -- separable azimuth and elevation cuts, each given
+* ``PatternCutAntenna`` -- separable azimuth and elevation cuts, each given
   as tabulated gain-vs-angle (exactly what the Huber+Suhner SENCITY datasheets
   plot).
-* :class:`PatternUVAntenna` -- a full gain map over (azimuth, elevation),
+* ``PatternUVAntenna`` -- a full gain map over (azimuth, elevation),
   bilinearly interpolated, for when the complete pattern is available.
-* :class:`UniformRectangularApertureAntenna` -- the analytical sinc pattern of
+* ``UniformRectangularApertureAntenna`` -- the analytical sinc pattern of
   a uniformly illuminated continuous rectangular aperture.
-* :class:`RectangularArrayAntenna` -- a uniformly spaced rectangular aperture
+* ``RectangularArrayAntenna`` -- a uniformly spaced rectangular aperture
   with arbitrary complex element excitations. Its full 2-D array factor is
   evaluated from a zero-padded FFT.
-* :class:`UniformArrayAntenna` -- a steerable ULA/URA layer applied on top of
+* ``UniformArrayAntenna`` -- a steerable ULA/URA layer applied on top of
   any element or subarray pattern, with coherent peak gain left to processing.
-* :class:`MultiBeamUniformArrayAntenna` -- the best-beam envelope of several
+* ``MultiBeamUniformArrayAntenna`` -- the best-beam envelope of several
   simultaneously formed beams from the same ULA/URA.
-* :class:`AntennaPair` -- a transmit/receive antenna pair, as a real module
+* ``AntennaPair`` -- a transmit/receive antenna pair, as a real module
   ships (or as two designs combined during a study).  This is what the engine
   takes as its ``antenna``.
 
-:func:`load_pattern_cut_csv` builds a single :class:`PatternCutAntenna` from a CSV
-table of gain-vs-angle cuts, and :func:`load_antenna_pair_csv` builds a TX/RX
-:class:`AntennaPair` from a table with separate transmit/receive columns; the
-:func:`sencity_this_ii` and :func:`sencity_farad_iv` presets use the latter to
-load the digitised Huber+Suhner SENCITY datasheet patterns shipped under
+``load_pattern_cut_csv`` builds a single ``PatternCutAntenna`` from a CSV table
+of gain-vs-angle cuts, and ``load_antenna_pair_csv`` builds a TX/RX
+``AntennaPair`` from a table with separate transmit/receive columns; the
+``sencity_this_ii`` and ``sencity_farad_iv`` presets use the latter to load the
+digitised Huber+Suhner SENCITY datasheet patterns shipped under
 ``radarperf/data/``.
 
 The simple and tabulated models normally report one channel's element/subarray
@@ -208,8 +208,8 @@ class PatternCutAntenna:
     The total gain is ``boresight + rel_az(az) + rel_el(el)`` -- a separability
     assumption that is good near boresight and a reasonable engineering
     approximation elsewhere.  Build from tabulated *relative* cuts with
-    :meth:`from_cuts`, from *absolute* gain cuts with :meth:`from_absolute_cuts`,
-    or from a CSV pattern table with :func:`load_pattern_cut_csv`.
+    ``from_cuts``, from *absolute* gain cuts with ``from_absolute_cuts``, or
+    from a CSV pattern table with ``load_pattern_cut_csv``.
     """
 
     boresight_gain_dbi: float
@@ -684,10 +684,9 @@ class MultiBeamUniformArrayAntenna:
 
     It stands for a detector that tests every beam and reports a detection in
     any of them. The false-alarm side of that is in the engine: the antenna is
-    a :class:`~radarperf.protocols.BeamSet`, so with the Pfa per range-Doppler
-    cell (the default) every beam counts as a test, correlated noise between
-    beams included, and the detection threshold rises to match (see
-    :mod:`radarperf.false_alarms`).
+    a ``BeamSet``, so with the Pfa per range-Doppler cell (the default) every
+    beam counts as a test, correlated noise between beams included, and the
+    detection threshold rises to match (see ``radarperf.false_alarms``).
 
     The detection side is an approximation. Pd is evaluated in the beam with
     the strongest expected signal, this envelope. Where several beams receive
@@ -959,8 +958,8 @@ class AntennaPair:
 
     A real module (e.g. a Huber+Suhner SENCITY) ships as one part carrying its
     own transmit and receive elements, so it is natural to keep them together.
-    The two members are ordinary :class:`Antenna` objects -- two distinct designs
-    combined during a paper study, or (via :meth:`from_element`) the same element
+    The two members are ordinary ``Antenna`` objects -- two distinct designs
+    combined during a paper study, or (via ``from_element``) the same element
     used for both ports.  Pass the pair straight to the engine::
 
         radar = Radar(antenna=sencity_this_ii(), ...)
@@ -1006,7 +1005,7 @@ def load_pattern_cut_csv(
     plane_column: str = "plane",
     angle_column: str = "angle_deg",
 ) -> PatternCutAntenna:
-    """Build a single :class:`PatternCutAntenna` from a CSV table of gain cuts.
+    """Build a single ``PatternCutAntenna`` from a CSV table of gain cuts.
 
     The CSV needs a plane column (values ``azimuth``/``elevation``, or the short
     ``az``/``el``), an angle column [deg] and the named absolute-gain column
@@ -1015,8 +1014,8 @@ def load_pattern_cut_csv(
     than one antenna or frequency; after filtering, exactly one azimuth and one
     elevation cut must remain.  ``source`` may be a path or an open text file.
 
-    Use :func:`load_antenna_pair_csv` for tables with separate transmit and
-    receive gain columns.
+    Use ``load_antenna_pair_csv`` for tables with separate transmit and receive
+    gain columns.
     """
     rows = _read_pattern_rows(source, antenna_name, frequency_ghz)
     return _build_pattern_cut(rows, gain_column, plane_column, angle_column)
@@ -1033,13 +1032,13 @@ def load_antenna_pair_csv(
     plane_column: str = "plane",
     angle_column: str = "angle_deg",
 ) -> AntennaPair:
-    """Build an :class:`AntennaPair` from a CSV with TX and RX gain columns.
+    """Build an ``AntennaPair`` from a CSV with TX and RX gain columns.
 
     Loads ``tx_column`` into the pair's transmit element and ``rx_column`` into
     its receive element, so one datasheet table becomes a ready-to-use TX/RX
     pair.  Filtering and the plane/angle columns behave as in
-    :func:`load_pattern_cut_csv`.  ``name`` defaults to the file's
-    ``antenna_name`` (or ``part_number``).
+    ``load_pattern_cut_csv``.  ``name`` defaults to the file's ``antenna_name``
+    (or ``part_number``).
     """
     rows = _read_pattern_rows(source, antenna_name, frequency_ghz)
     tx = _build_pattern_cut(rows, tx_column, plane_column, angle_column)
@@ -1134,16 +1133,15 @@ def sencity_this_ii() -> AntennaPair:
     (~140 deg 10-dB beamwidth) paired with a narrow elevation beam (~16 deg
     10-dB beamwidth) and first sidelobes > 20 dB down.
 
-    Returns an :class:`AntennaPair` whose ``tx``/``rx`` elements are the
-    datasheet's per-channel ``Avg. TX``/``Avg. RX`` cuts (similar but not
-    identical)::
+    Returns an ``AntennaPair`` whose ``tx``/``rx`` elements are the datasheet's
+    per-channel ``Avg. TX``/``Avg. RX`` cuts (similar but not identical)::
 
         radar = Radar(antenna=sencity_this_ii(), ...)
 
     Digitised from the preliminary datasheet's 77 GHz performance charts (see
     ``radarperf/data/sencity_this_ii.csv``); valid for a PCB mount without
     radome.  The gains are directivities: antenna efficiency and radome loss go
-    in :class:`~radarperf.losses.SystemLosses` (``docs/hardware/sencity.md``).
+    in ``SystemLosses`` (``docs/hardware/sencity.md``).
     """
     return _load_packaged_pair("sencity_this_ii.csv", "SENCITY THIS-II")
 
@@ -1156,14 +1154,13 @@ def sencity_farad_iv() -> AntennaPair:
     (~94 deg 10-dB beamwidth) and a narrow elevation beam (~30 deg 10-dB
     beamwidth) with first sidelobes ~20 dB down.
 
-    Returns an :class:`AntennaPair` whose ``tx``/``rx`` elements are the
-    datasheet's per-channel ``Avg. TX``/``Avg. RX`` cuts (similar but not
-    identical).
+    Returns an ``AntennaPair`` whose ``tx``/``rx`` elements are the datasheet's
+    per-channel ``Avg. TX``/``Avg. RX`` cuts (similar but not identical).
 
     Digitised from the preliminary datasheet's 77 GHz performance charts (see
     ``radarperf/data/sencity_farad_iv.csv``); valid for a PCB mount without
     radome.  The gains are directivities: antenna efficiency and radome loss go
-    in :class:`~radarperf.losses.SystemLosses` (``docs/hardware/sencity.md``).
+    in ``SystemLosses`` (``docs/hardware/sencity.md``).
 
     It is the antenna of Infineon's CARKIT evaluation radar.  A turntable
     measurement of CARKIT's two-way azimuth response read 0.9, 2.5 and 4.7 dB

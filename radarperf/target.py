@@ -1,15 +1,13 @@
 """Target radar-cross-section and fluctuation models.
 
 The ``swerling`` attribute selects the fluctuation statistics used by
-:mod:`radarperf.detection` (0/5 non-fluctuating, 1-4 fluctuating).  RCS may be
+``radarperf.detection`` (0/5 non-fluctuating, 1-4 fluctuating).  RCS may be
 constant, a tabulated function of aspect angle, or any callable.
 
-.. warning::
-
-   The presets (:func:`car`, :func:`pedestrian`, ...) use **illustrative** RCS
-   and Swerling assignments.  Real automotive RCS is strongly aspect- and
-   range-dependent and best taken from measurement; treat presets as starting
-   points.
+Warning: the presets (``car``, ``pedestrian``, ...) use **illustrative** RCS
+and Swerling assignments.  Real automotive RCS is strongly aspect- and
+range-dependent and best taken from measurement; treat presets as starting
+points.
 """
 
 from __future__ import annotations

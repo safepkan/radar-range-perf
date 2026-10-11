@@ -17,7 +17,7 @@ Every ``pfa`` here is per test: the probability that one detection cell (one
 FFT bin of one beam) exceeds the threshold.  No multiple-testing correction is
 applied.  ``Radar`` instead takes a Pfa per range-Doppler cell; its per-test
 equivalent is ``radar.false_alarm_budget().pfa_per_test``
-(:mod:`radarperf.false_alarms`).
+(``radarperf.false_alarms``).
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def probability_of_detection(
     For collapsing (``n_collapsing > 0``) the spatial looks are assumed to share
     a single fluctuation realisation (correct for simultaneous array channels in
     one CPI), so only the correlated cases Swerling 0/1/3 are supported; the
-    independent cases 2/4 raise :class:`NotImplementedError`.
+    independent cases 2/4 raise ``NotImplementedError``.
     """
     scalar_input = np.isscalar(snr_db)
     snr = np.atleast_1d(db_to_linear(np.asarray(snr_db, dtype=float)))

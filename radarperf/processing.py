@@ -119,7 +119,7 @@ def window_loss_db(window: WindowSpec, length: int) -> float:
     """Single-bin FFT SNR loss of a window relative to rectangular [dB].
 
     ``10 log10`` of the equivalent noise bandwidth, in bins, of the periodic
-    ``length``-point window from :func:`scipy.signal.get_window`.
+    ``length``-point window from ``scipy.signal.get_window``.
     """
     return _window_loss_db(window, _positive_length(length))
 
@@ -226,11 +226,11 @@ class StandardProcessing:
     range_window, doppler_window, range_fft_size, doppler_fft_size:
         The FFT windows (default Hann) and FFT sizes (default: no zero-padding)
         of the range and Doppler FFTs.  The window and straddle losses are
-        computed from them (:func:`window_loss_db`, :func:`straddle_loss_db`
-        with the mean over target position) for ``n_samples`` and the chirps per
-        transmitter.  The budget also reports both axes, so the engine can
-        count the tests that zero padding adds per resolution cell
-        (:mod:`radarperf.false_alarms`).
+        computed from them (``window_loss_db``, ``straddle_loss_db`` with the
+        mean over target position) for ``n_samples`` and the chirps per
+        transmitter.  The budget also reports both axes, so the engine can count
+        the tests that zero padding adds per resolution cell
+        (``radarperf.false_alarms``).
     range_window_loss_db, doppler_window_loss_db, range_straddle_loss_db,
     doppler_straddle_loss_db:
         Overrides for the computed values; ``None`` (default) computes them.
@@ -382,10 +382,10 @@ class CombiningStage:
 class StagedProcessing:
     """Processing defined by an explicit list of named combining stages.
 
-    A flexible alternative to :class:`StandardProcessing` for combining
-    topologies that do not fit the fixed RX / TX-subband axes: any number of
-    named :class:`CombiningStage` axes, each coherent or non-coherent, with
-    optional noise-only (collapsing) cells.
+    A flexible alternative to ``StandardProcessing`` for combining topologies
+    that do not fit the fixed RX / TX-subband axes: any number of named
+    ``CombiningStage`` axes, each coherent or non-coherent, with optional
+    noise-only (collapsing) cells.
 
     The coherent integration gain is the range-FFT * Doppler-FFT product (over
     ``n_samples`` and ``n_chirps``) times the counts of the coherent stages.
@@ -393,14 +393,14 @@ class StagedProcessing:
     are the product of the stages' ``signal_bearing_count`` and the collapsing
     cells are the remaining product of ``count``.
 
-    Unlike :class:`StandardProcessing`, this model applies no MIMO-scheme /
-    TDM duty-cycle bookkeeping -- ``n_samples * n_chirps`` is taken as the full
-    coherent base.  For TDM, use :class:`StandardProcessing` (or set
+    Unlike ``StandardProcessing``, this model applies no MIMO-scheme / TDM
+    duty-cycle bookkeeping -- ``n_samples * n_chirps`` is taken as the full
+    coherent base.  For TDM, use ``StandardProcessing`` (or set
     ``include_doppler_fft_gain=False`` and fold the integration in elsewhere).
 
     Windows, FFT sizes and the window/straddle loss overrides work as in
-    :class:`StandardProcessing`, with ``n_samples`` and ``n_chirps`` as the
-    window lengths.
+    ``StandardProcessing``, with ``n_samples`` and ``n_chirps`` as the window
+    lengths.
     """
 
     combining_stages: tuple[CombiningStage, ...] = ()

@@ -4,10 +4,10 @@ The front-end preset gives datasheet TX power and noise figure at the MMIC's RF
 reference plane, the antenna pattern is usually a directivity, and the
 processing model covers windows, straddle, CFAR and combining.  The terms in
 between are easy to leave out because leaving them out means zero.
-:class:`SystemLosses` names them, so a study states each one even when it
-chooses zero, and the link budget lists each one.  ``docs/losses.md``
-catalogues these and every other term, including those that live in other
-components or are not modelled.
+``SystemLosses`` names them, so a study states each one even when it chooses
+zero, and the link budget lists each one.  ``docs/losses.md`` catalogues these
+and every other term, including those that live in other components or are not
+modelled.
 
 Where each term acts
 --------------------
@@ -20,7 +20,7 @@ Where each term acts
   receive loss lowers SNR by exactly its value.
 * Noise: ``noise_figure_derating_db`` raises the front-end noise figure.
 * Coherence: ``chirp_frequency_error_rms_hz`` gives a range-dependent loss of
-  the coherent Doppler peak (see :meth:`SystemLosses.coherence_loss_db`).
+  the coherent Doppler peak (see ``SystemLosses.coherence_loss_db``).
 
 All values default to zero, which reproduces the ideal model exactly.
 """
@@ -67,14 +67,14 @@ class SystemLosses:
         transmit and receive.  Includes any water film, ice or dirt assumed.
     chirp_frequency_error_rms_hz:
         RMS over chirps of each chirp's RF frequency error, the LO's error
-        averaged over the sampled payload with the range window's weights.
-        It gives a beat phase error ``2 pi df tau`` at delay ``tau = 2 R / c``,
+        averaged over the sampled payload with the range window's weights.  It
+        gives a beat phase error ``2 pi df tau`` at delay ``tau = 2 R / c``,
         the same ``df`` for every return.  It depends on the MMIC's phase
         noise, the payload and window, and how the ramps are programmed
         (flyback, wait, pre-payload).  Compute it from a CW phase-noise
-        spectrum with :func:`radarperf.phase_noise.chirp_frequency_error_rms_hz`
-        or from the timing with :class:`radarperf.phase_noise.ChirpSettling`;
-        the pages under ``docs/hardware`` list values per part and
+        spectrum with ``radarperf.phase_noise.chirp_frequency_error_rms_hz`` or
+        from the timing with ``radarperf.phase_noise.ChirpSettling``; the pages
+        under ``docs/hardware`` list values per part and
         ``docs/phase_noise.md`` derives the term.
     """
 

@@ -50,7 +50,7 @@ def plot_snr_vs_range(
     use_sinr: bool = True,
     label: Optional[str] = None,
 ) -> Axes:
-    """Plot SINR (or SNR) in dB versus range from a :class:`RangeSweep`."""
+    """Plot SINR (or SNR) in dB versus range from a ``RangeSweep``."""
     ax = _new_ax(ax)
     values = sweep.sinr_db if use_sinr else sweep.snr_db
     ax.plot(sweep.range_m, values, label=label)
@@ -68,7 +68,7 @@ def plot_pd_vs_range(
     ax: Optional[Axes] = None,
     label: Optional[str] = None,
 ) -> Axes:
-    """Plot probability of detection versus range from a :class:`RangeSweep`."""
+    """Plot probability of detection versus range from a ``RangeSweep``."""
     ax = _new_ax(ax)
     ax.plot(sweep.range_m, sweep.pd, label=label)
     ax.set_xlabel("range [m]")
@@ -120,7 +120,7 @@ def plot_pd_map(
     contour_levels: Sequence[float] = (0.5, 0.9),
     colorbar: bool = True,
 ) -> Axes:
-    """Plot a filled Pd map over a :class:`Map2D` grid.
+    """Plot a filled Pd map over a ``Map2D`` grid.
 
     ``coord1`` runs along x and ``coord2`` along y.  ``contour_levels`` overlays
     Pd iso-contours (e.g. the 0.5 and 0.9 boundaries); pass an empty sequence to
@@ -239,8 +239,8 @@ def plot_pattern_cuts(
 ) -> tuple[Axes, Axes]:
     """Plot the azimuth and elevation cuts side by side; return the two axes.
 
-    Forwards ``rx_antenna``/``two_way`` to :func:`plot_pattern_cut` (see there
-    for how TX, RX and round-trip traces are chosen).  Creates a 1x2 figure when
+    Forwards ``rx_antenna``/``two_way`` to ``plot_pattern_cut`` (see there for
+    how TX, RX and round-trip traces are chosen).  Creates a 1x2 figure when
     ``axes`` is omitted; pass the returned pair back in (or reuse it across
     calls) to overlay several antennas on one figure.
     """

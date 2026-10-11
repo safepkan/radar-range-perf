@@ -1,7 +1,7 @@
 """Vectorised engine / sweep behaviour.
 
-The engine broadcasts over an array :class:`Geometry`; these tests pin the
-vectorised path to the per-point :meth:`Radar.link_budget` result so the two can
+The engine broadcasts over an array ``Geometry``; these tests pin the
+vectorised path to the per-point ``Radar.link_budget`` result so the two can
 never drift apart.
 """
 

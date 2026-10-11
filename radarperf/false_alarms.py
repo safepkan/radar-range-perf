@@ -12,24 +12,24 @@ A detection is a local maximum of the detection statistic along each FFT axis
 The detector compares every test -- one FFT bin of one beam -- with a single
 threshold ``T`` in units of the noise power per look.  With ``Q(n, T)`` the
 probability that one test exceeds it (square-law detection of ``n``
-non-coherent looks; :func:`~radarperf.detection.detection_threshold`), the
-false detections per cell are ``tests(T) Q(n, T)``.  ``tests(T)`` is the
-*effective number of tests* per cell.  It is close to 1 for an unpadded FFT
-and one beam; zero padding and beam sets raise it, so ``T`` must rise to hold
-the per-cell value.  :func:`false_alarm_budget` solves for that threshold.
+non-coherent looks; ``detection_threshold``), the false detections per cell are
+``tests(T) Q(n, T)``.  ``tests(T)`` is the *effective number of tests* per
+cell.  It is close to 1 for an unpadded FFT and one beam; zero padding and beam
+sets raise it, so ``T`` must rise to hold the per-cell value.
+``false_alarm_budget`` solves for that threshold.
 
 Range and Doppler
 -----------------
-For one FFT axis padded ``P`` times, neighbouring bins are ``1/P``
-resolution cells apart.  A bin is a peak if its power exceeds that of both
-neighbours.  The three bins are jointly complex Gaussian with the correlation
-of the windowed FFT (:func:`window_correlation`).  Conditional on the centre
-bin's looks ``x0`` with ``|x0|^2 = p``, each neighbour is ``c x0 + W`` with
-``W`` Gaussian and independent of ``x0``.  By unitary invariance over the looks,
-its power is ``|c|^2 p + 2 sqrt(p) Re(c* W_1) + |W|^2``.  The neighbour is
-below the centre if and only if ``p`` exceeds the square of the positive root
-of ``(1 - |c|^2) x^2 - 2 Re(c* W_1) x - |W|^2``.  Each sample of ``W``
-therefore gives one level ``p*`` above which the centre is a peak, and
+For one FFT axis padded ``P`` times, neighbouring bins are ``1/P`` resolution
+cells apart.  A bin is a peak if its power exceeds that of both neighbours.  The
+three bins are jointly complex Gaussian with the correlation of the windowed FFT
+(``window_correlation``).  Conditional on the centre bin's looks ``x0`` with
+``|x0|^2 = p``, each neighbour is ``c x0 + W`` with ``W`` Gaussian and
+independent of ``x0``.  By unitary invariance over the looks, its power is
+``|c|^2 p + 2 sqrt(p) Re(c* W_1) + |W|^2``.  The neighbour is below the centre
+if and only if ``p`` exceeds the square of the positive root of
+``(1 - |c|^2) x^2 - 2 Re(c* W_1) x - |W|^2``.  Each sample of ``W`` therefore
+gives one level ``p*`` above which the centre is a peak, and
 
     peaks per cell above T = P E[Q(n, max(T, p*))],
 
@@ -108,14 +108,13 @@ _TestCount = Callable[[float], tuple[dict[str, float], float]]
 class FalseAlarmBudget:
     """How the false-alarm probability sets the detection threshold.
 
-    ``pfa_per_test`` is the probability that one test (one FFT bin of one
-    beam) exceeds the threshold; the detector uses it.  When the radar's Pfa
-    is per range-Doppler cell, ``pfa_per_cell`` holds it and ``tests`` the
-    effective tests per cell on each axis (``"range"``, ``"doppler"``,
-    ``"angle"``; 1 for an axis that adds none).  When the Pfa is given per
-    test, ``pfa_per_cell`` is ``None`` and ``tests`` is empty.
-    :func:`false_alarm_budget` caches its results and returns each caller its
-    own copy of ``tests``.
+    ``pfa_per_test`` is the probability that one test (one FFT bin of one beam)
+    exceeds the threshold; the detector uses it.  When the radar's Pfa is per
+    range-Doppler cell, ``pfa_per_cell`` holds it and ``tests`` the effective
+    tests per cell on each axis (``"range"``, ``"doppler"``, ``"angle"``; 1 for
+    an axis that adds none).  When the Pfa is given per test, ``pfa_per_cell``
+    is ``None`` and ``tests`` is empty.  ``false_alarm_budget`` caches its
+    results and returns each caller its own copy of ``tests``.
     """
 
     pfa_per_test: float
@@ -158,7 +157,7 @@ def window_correlation(
     """Correlation of windowed-FFT outputs ``lag_bins`` unpadded bins apart.
 
     ``E[X(f + lag) X(f)*] / E[|X(f)|^2]`` for white noise through the periodic
-    ``length``-point window from :func:`scipy.signal.get_window`.
+    ``length``-point window from ``scipy.signal.get_window``.
     """
     if length < 1:
         raise ValueError("length must be >= 1")
@@ -219,8 +218,8 @@ def false_alarm_budget(
 
     The model is meant for small Pfa per cell.  Near the largest value it can
     produce (around 0.1 per cell), the iteration converges slowly; a bracketed
-    search then solves on the branch where the false detections fall with
-    the threshold.  Larger values raise :class:`ValueError`.
+    search then solves on the branch where the false detections fall with the
+    threshold.  Larger values raise ``ValueError``.
     """
     if not 0.0 < pfa_per_cell < 1.0:
         raise ValueError("pfa_per_cell must be in (0, 1)")

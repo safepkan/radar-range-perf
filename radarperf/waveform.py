@@ -26,13 +26,13 @@ class FmcwWaveform:
     ``bandwidth_hz`` is the bandwidth swept while the ADC samples,
     ``slope * n_samples / sample_rate_hz``, not the whole ramp's.  It sets the
     range resolution ``c / (2 bandwidth_hz)`` and, unless
-    ``chirp_slope_hz_per_s`` is given, the slope; :meth:`from_slope` builds
-    the waveform from the slope instead.  ``chirp_repetition_time_s`` is the
-    chirp period: optional for SNR and Pd, needed for the CPI duration and the
+    ``chirp_slope_hz_per_s`` is given, the slope; ``from_slope`` builds the
+    waveform from the slope instead.  ``chirp_repetition_time_s`` is the chirp
+    period: optional for SNR and Pd, needed for the CPI duration and the
     velocity figures.  ``noise_bandwidth_hz`` is the noise bandwidth per
-    complex sample; 0 means the sample rate.  :attr:`max_unambiguous_range_m`
-    assumes a real-sampled IF, whose beat frequencies run up to half the
-    sample rate.
+    complex sample; 0 means the sample rate.  ``max_unambiguous_range_m``
+    assumes a real-sampled IF, whose beat frequencies run up to half the sample
+    rate.
     """
 
     center_frequency_hz: float

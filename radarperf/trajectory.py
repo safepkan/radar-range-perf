@@ -1,12 +1,11 @@
 """Target trajectories for multi-scan (track-acquisition) analysis.
 
-A :class:`Trajectory` maps elapsed time since track start to a
-:class:`~radarperf.geometry.Geometry`.  Single-scan link budgets and sweeps do
-not need it; it comes into play when evaluating how detection probability
-accumulates over successive scans as a target moves -- see
-:func:`radarperf.sweeps.acquisition_sweep`.
+A ``Trajectory`` maps elapsed time since track start to a ``Geometry``.
+Single-scan link budgets and sweeps do not need it; it comes into play when
+evaluating how detection probability accumulates over successive scans as a
+target moves -- see ``radarperf.sweeps.acquisition_sweep``.
 
-The first concrete trajectory, :class:`RadialApproach`, is a target approaching
+The first concrete trajectory, ``RadialApproach``, is a target approaching
 straight along a fixed look direction at constant speed -- the simplest
 acquisition scenario.  More general trajectories (crossing targets, waypoint or
 numerically integrated paths) are future work: each need only implement
@@ -36,8 +35,8 @@ class Trajectory(Protocol):
         """Target geometry at ``time_s`` [s] since track start.
 
         Accepts a scalar or a broadcastable array of times and returns a
-        matching (scalar or batch) :class:`~radarperf.geometry.Geometry`, so a
-        whole schedule of scan times is evaluated in one vectorised pass.
+        matching (scalar or batch) ``Geometry``, so a whole schedule of scan
+        times is evaluated in one vectorised pass.
         """
 
 
@@ -45,13 +44,12 @@ class Trajectory(Protocol):
 class RadialApproach:
     """A target approaching the radar straight on at constant radial speed.
 
-    The target moves directly along a fixed look direction
-    (``azimuth_deg`` / ``elevation_deg``), so only its range changes with time:
+    The target moves directly along a fixed look direction (``azimuth_deg`` /
+    ``elevation_deg``), so only its range changes with time:
     ``range(t) = initial_range_m - closing_speed_mps * t``.  Positive
     ``closing_speed_mps`` approaches the radar (negative recedes); the resulting
-    :class:`~radarperf.geometry.Geometry` carries
-    ``radial_velocity_mps = -closing_speed_mps``, since radial velocity is
-    positive for receding targets.
+    ``Geometry`` carries ``radial_velocity_mps = -closing_speed_mps``, since
+    radial velocity is positive for receding targets.
     """
 
     initial_range_m: float

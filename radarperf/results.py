@@ -1,9 +1,9 @@
 """Result type for a single range-equation evaluation.
 
-:class:`LinkBudget` carries the headline figures (SNR, SCR, SINR) plus an
-itemised breakdown of every term that went into them, so a user can see
-exactly where the dBs came from -- which is most of the value of a tool like
-this during design reviews.
+``LinkBudget`` carries the headline figures (SNR, SCR, SINR) plus an itemised
+breakdown of every term that went into them, so a user can see exactly where
+the dBs came from -- which is most of the value of a tool like this during
+design reviews.
 """
 
 from __future__ import annotations
