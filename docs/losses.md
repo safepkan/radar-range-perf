@@ -228,7 +228,7 @@ These were explicit before `SystemLosses`; they are listed for completeness.
 | Pfa per range–Doppler cell | `Radar.default_pfa` and the `pfa` arguments of `Radar` and `radarperf.sweeps` | 10⁻⁶ | false detections per unpadded range–Doppler cell, over all beams; the detector tests each bin at the lower per-test Pfa that holds it ([false_alarms.md](false_alarms.md)). `Radar(pfa_reference="test")` applies the value per test, the convention before 2026-10-01. The functions in `radarperf.detection` take the Pfa per test |
 | Fluctuation | `Target.swerling` | 1 for the presets | |
 | RCS | target model | illustrative presets | |
-| Antenna noise temperature | `Radar.antenna_noise_temperature_k` | 290 K (the noise-figure reference temperature) | |
+| Antenna noise temperature | `Radar.antenna_noise_temperature_k` | 290 K (the noise-figure reference temperature) | one value per radar. The clear sky at 76.5 GHz is 55 K at the zenith, 97 K at 30° and 288 K at the horizon (`itu.sky_brightness_temperature_k`); looking straight up gains at most 0.5 dB with a 10 dB noise figure ([link_budget.md: “A cold sky”](link_budget.md#a-cold-sky)) |
 
 ### Not covered
 

@@ -282,5 +282,6 @@ range/Doppler-cell clutter for ground / guardrail / multipath, waveform validity
 checks (max beat frequency, range / velocity ambiguity, duty cycle, EIRP),
 computing the angular beamforming / straddle loss from the actual array geometry
 rather than a configurable scalar, and a direction-dependent antenna/scene noise
-temperature (the current `T_ant` is a single scalar per `Radar`; likely a minor
-effect at these frequencies and noise figures, where receiver noise dominates).
+temperature (`T_ant` is one value per `Radar`; looking straight up rather than
+along the horizon gains a few tenths of a dB with these noise figures, see
+[docs/link_budget.md](docs/link_budget.md#a-cold-sky)).

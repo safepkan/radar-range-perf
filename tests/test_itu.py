@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
+import numpy.typing as npt
 import pytest
 
 from radarperf import Atmosphere, FmcwWaveform, Geometry, Rain
@@ -11,6 +13,7 @@ from radarperf.itu import (
     gaseous_specific_attenuation_db_per_km,
     rain_coefficients,
     reference_atmosphere,
+    sky_brightness_temperature_k,
 )
 
 # ITU-R validation examples for P.676-13 (CG-3M3J-13-ValEx, rev. 8.3.0, sheet
@@ -103,6 +106,8 @@ US_STANDARD_ATMOSPHERE_1976 = {
     0.0: (288.150, 1013.25),
     1000.0: (281.651, 898.76),
     5000.0: (255.676, 540.48),
+    15000.0: (216.650, 121.11),
+    20000.0: (216.650, 55.29),
 }
 
 
@@ -123,7 +128,7 @@ def test_reference_atmosphere_water_vapour_and_limits() -> None:
     with pytest.raises(ValueError):
         reference_atmosphere(-1.0)
     with pytest.raises(ValueError):
-        reference_atmosphere(12000.0)
+        reference_atmosphere(21000.0)
 
 
 def test_atmosphere_itu_reference_at_sea_level_is_the_standard_value() -> None:
@@ -134,3 +139,53 @@ def test_atmosphere_itu_reference_at_sea_level_is_the_standard_value() -> None:
         Atmosphere.itu_reference(1000.0).specific_attenuation_db_per_km
         < Atmosphere.itu_reference(0.0).specific_attenuation_db_per_km
     )
+
+
+def test_sky_brightness_matches_an_independent_integration() -> None:
+    # At the zenith the path is vertical: integrate dtau/dh = alpha and
+    # dT/dh = T alpha exp(-tau) with an adaptive ODE solver instead of layers.
+    from scipy.integrate import solve_ivp
+
+    def rates(h_km: float, y: npt.NDArray[np.float64]) -> list[float]:
+        c = reference_atmosphere(h_km * 1000.0)
+        alpha = sum(
+            gaseous_specific_attenuation_db_per_km(
+                76.5e9,
+                temperature_c=c.temperature_c,
+                pressure_hpa=c.pressure_hpa,
+                water_vapour_density_g_m3=c.water_vapour_density_g_m3,
+            )
+        ) * (math.log(10.0) / 10.0)
+        return [alpha, (c.temperature_c + 273.15) * alpha * math.exp(-y[0])]
+
+    top_km = 6356.766 * 20.0 / (6356.766 - 20.0)
+    solution = solve_ivp(rates, (0.0, top_km), [0.0, 0.0], rtol=1e-8, atol=1e-10)
+    tau, emitted = solution.y[:, -1]
+    expected = emitted + 2.725 * math.exp(-tau)
+    assert sky_brightness_temperature_k(90.0, 76.5e9) == pytest.approx(
+        expected, abs=0.05
+    )
+
+
+def test_sky_brightness_limits() -> None:
+    # Colder towards the zenith; at the horizon the path is opaque and the
+    # sky as warm as the air near the ground (288.15 K at sea level).
+    elevations = [0.0, 2.0, 5.0, 10.0, 30.0, 90.0]
+    values = [sky_brightness_temperature_k(e, 76.5e9) for e in elevations]
+    assert all(a > b for a, b in zip(values, values[1:]))
+    assert 285.0 < values[0] <= 288.15
+    # Higher up, less air remains above.
+    assert sky_brightness_temperature_k(
+        90.0, 76.5e9, height_m=5000.0
+    ) < 0.5 * sky_brightness_temperature_k(90.0, 76.5e9)
+    # The layers are thin enough: a five times coarser grid agrees.
+    assert sky_brightness_temperature_k(10.0, 76.5e9, step_m=50.0) == pytest.approx(
+        sky_brightness_temperature_k(10.0, 76.5e9), abs=0.1
+    )
+    for bad in ({"elevation_deg": -1.0}, {"elevation_deg": 91.0}):
+        with pytest.raises(ValueError):
+            sky_brightness_temperature_k(frequency_hz=76.5e9, **bad)
+    with pytest.raises(ValueError):
+        sky_brightness_temperature_k(90.0, 76.5e9, height_m=25000.0)
+    with pytest.raises(ValueError):
+        sky_brightness_temperature_k(90.0, 76.5e9, step_m=0.0)

@@ -8,10 +8,15 @@
   (2)-(5) with the constants of Tables 1-4.
 * ``reference_atmosphere`` -- ITU-R P.835-7 (08/2024), Annex 1: the ITU-R
   reference atmosphere's temperature, total pressure and water-vapour density
-  versus height, equations (1a), (2a), (3a) and (6), for the lowest 11 km.
+  versus height, equations (1a), (2a)-(2b), (3a)-(3b) and (6), up to 20 km.
+* ``sky_brightness_temperature_k`` -- the clear sky's noise temperature in one
+  direction: the emission of those gases in that atmosphere, by radiative
+  transfer along the path.
 
 The tests check the first two against values published by the ITU: the
-P.676-13 validation examples and P.838-3 Table 5.  Frequencies are in hertz here and
+P.676-13 validation examples and P.838-3 Table 5.  They check the reference
+atmosphere against the U.S. Standard Atmosphere 1976 and the sky temperature
+against an independent integration.  Frequencies are in hertz here and
 converted to the recommendations' gigahertz internally.
 """
 
@@ -274,22 +279,106 @@ class AtmosphericConditions(NamedTuple):
     water_vapour_density_g_m3: float
 
 
+# Top of the reference atmosphere covered here: 20 km geopotential height.
+_TOP_GEOPOTENTIAL_KM: Final[float] = 20.0
+_GEOPOTENTIAL_RADIUS_KM: Final[float] = 6356.766  # P.835-7 equation (1a)
+_TOP_HEIGHT_KM: Final[float] = (
+    _GEOPOTENTIAL_RADIUS_KM
+    * _TOP_GEOPOTENTIAL_KM
+    / (_GEOPOTENTIAL_RADIUS_KM - _TOP_GEOPOTENTIAL_KM)
+)
+_EARTH_RADIUS_KM: Final[float] = 6371.0  # mean radius
+# Cosmic microwave background: D. J. Fixsen, "The temperature of the cosmic
+# microwave background", The Astrophysical Journal 707 (2009) 916-920.
+_COSMIC_BACKGROUND_K: Final[float] = 2.725
+
+
 def reference_atmosphere(height_m: float) -> AtmosphericConditions:
     """ITU-R reference atmosphere at a geometric height, ITU-R P.835-7 Annex 1.
 
     Temperature and total (barometric) pressure follow the U.S. Standard
-    Atmosphere 1976 in its lowest layer, equations (2a) and (3a) at the
-    geopotential height of equation (1a); water-vapour density is the
-    exponential profile of equation (6), 7.5 g/m^3 at sea level with a 2 km
-    scale height.  Covers 0 to 11 km geopotential height (about 11.02 km
-    geometric).  The returned values feed
-    ``gaseous_specific_attenuation_db_per_km`` directly.
+    Atmosphere 1976 at the geopotential height of equation (1a): falling
+    6.5 K/km up to 11 km, equations (2a) and (3a), and constant at 216.65 K
+    from 11 to 20 km, (2b) and (3b).  Water-vapour density is the exponential
+    profile of equation (6), 7.5 g/m^3 at sea level with a 2 km scale height.
+    Covers 0 to 20 km geopotential height (about 20.06 km geometric).  The
+    returned values feed ``gaseous_specific_attenuation_db_per_km`` directly.
     """
     height_km = height_m / 1000.0
-    geopotential_km = 6356.766 * height_km / (6356.766 + height_km)  # (1a)
-    if not 0.0 <= geopotential_km <= 11.0:
-        raise ValueError("the P.835 lowest layer covers 0-11 km geopotential height")
-    temperature_k = 288.15 - 6.5 * geopotential_km  # (2a)
-    pressure_hpa = 1013.25 * (288.15 / temperature_k) ** (-34.1632 / 6.5)  # (3a)
+    geopotential_km = (
+        _GEOPOTENTIAL_RADIUS_KM * height_km / (_GEOPOTENTIAL_RADIUS_KM + height_km)
+    )  # (1a)
+    if not 0.0 <= geopotential_km <= _TOP_GEOPOTENTIAL_KM:
+        raise ValueError("the reference atmosphere here covers 0-20 km geopotential")
+    if geopotential_km <= 11.0:
+        temperature_k = 288.15 - 6.5 * geopotential_km  # (2a)
+        pressure_hpa = 1013.25 * (288.15 / temperature_k) ** (-34.1632 / 6.5)  # (3a)
+    else:
+        temperature_k = 216.65  # (2b)
+        pressure_hpa = 226.3226 * math.exp(
+            -34.1632 * (geopotential_km - 11.0) / 216.65
+        )  # (3b)
     water_vapour = 7.5 * math.exp(-height_km / 2.0)  # (6)
     return AtmosphericConditions(temperature_k - 273.15, pressure_hpa, water_vapour)
+
+
+def sky_brightness_temperature_k(
+    elevation_deg: float,
+    frequency_hz: float,
+    *,
+    height_m: float = 0.0,
+    step_m: float = 10.0,
+) -> float:
+    """Noise temperature of the clear sky [K] in one direction.
+
+    The gases of ``gaseous_specific_attenuation_db_per_km`` in the
+    ``reference_atmosphere`` absorb and, in thermal equilibrium, emit.  Seen
+    from ``height_m`` at ``elevation_deg`` (0 at the horizon, 90 at the
+    zenith), the path is cut into layers ``step_m`` high, each uniform at its
+    mid-height, and
+
+        T_b = sum_k T_k (1 - exp(-dtau_k)) exp(-tau_k) + T_cmb exp(-tau),
+
+    with dtau_k a layer's optical depth along the path, tau_k the optical depth
+    below it, tau the whole path's and T_cmb = 2.725 K the cosmic background.
+    Temperatures stand for noise power per hertz over Boltzmann's constant
+    (Rayleigh-Jeans).  The path is straight over a spherical earth of radius
+    6371 km, without refraction, and ends at 20 km; at 76.5 GHz the layer from
+    11 to 20 km adds 1.5 K at the zenith, the thinner air above it less.  This
+    is what an ideal pencil beam sees; an antenna's noise temperature weights
+    it with the whole pattern, including sidelobes that see the ground.
+    """
+    if not (math.isfinite(elevation_deg) and 0.0 <= elevation_deg <= 90.0):
+        raise ValueError("elevation_deg must lie in [0, 90]")
+    start_km = height_m / 1000.0
+    if not (math.isfinite(start_km) and 0.0 <= start_km < _TOP_HEIGHT_KM):
+        raise ValueError("height_m must lie within the reference atmosphere (0-20 km)")
+    if not (math.isfinite(step_m) and step_m > 0.0):
+        raise ValueError("step_m must be positive")
+    edges = np.append(
+        np.arange(start_km, _TOP_HEIGHT_KM, step_m / 1000.0), _TOP_HEIGHT_KM
+    )
+    edges = edges[np.concatenate(([True], np.diff(edges) > 0.0))]
+    temperature = np.empty(edges.size - 1)
+    nepers_per_km = np.empty(edges.size - 1)
+    for k, mid_km in enumerate((edges[:-1] + edges[1:]) / 2.0):
+        conditions = reference_atmosphere(mid_km * 1000.0)
+        oxygen, vapour = gaseous_specific_attenuation_db_per_km(
+            frequency_hz,
+            temperature_c=conditions.temperature_c,
+            pressure_hpa=conditions.pressure_hpa,
+            water_vapour_density_g_m3=conditions.water_vapour_density_g_m3,
+        )
+        temperature[k] = conditions.temperature_c + 273.15
+        nepers_per_km[k] = (oxygen + vapour) * math.log(10.0) / 10.0
+    # Path length from the observer to each height (law of cosines).
+    observer_km = _EARTH_RADIUS_KM + start_km
+    elevation = math.radians(elevation_deg)
+    path_km = np.sqrt(
+        (_EARTH_RADIUS_KM + edges) ** 2 - (observer_km * math.cos(elevation)) ** 2
+    ) - observer_km * math.sin(elevation)
+    layer_depth = nepers_per_km * np.diff(path_km)
+    depth_below = np.concatenate(([0.0], np.cumsum(layer_depth)[:-1]))
+    emitted = temperature * -np.expm1(-layer_depth) * np.exp(-depth_below)
+    total_depth = float(depth_below[-1] + layer_depth[-1])
+    return float(np.sum(emitted) + _COSMIC_BACKGROUND_K * math.exp(-total_depth))

@@ -92,6 +92,46 @@ colder scene (`Radar(antenna_noise_temperature_k=...)` below 290 K) makes the
 same loss cost a little more, because the loss's own noise replaces less noise
 from the scene.
 
+### A cold sky
+
+At 77 GHz the clear sky is not very cold. Oxygen, in the wing of its band
+around 60 GHz, and water vapour absorb, and so they also emit.
+`itu.sky_brightness_temperature_k` integrates that emission along the path
+through the ITU-R reference atmosphere, with the absorption of ITU-R P.676-13
+([losses.md: “Propagation”](losses.md#propagation)). At 76.5 GHz, seen from sea
+level:
+
+| Elevation | 90° | 45° | 30° | 20° | 10° | 5° | 0° |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Sky temperature | 55 K | 74 K | 97 K | 129 K | 195 K | 252 K | 288 K |
+
+From 1 km up the zenith sky is 40 K, from 5 km 14 K. Along the horizon the
+path is long enough to be opaque, and the sky is as warm as the air: the
+default T_ant = T0 fits. Looking up, the antenna temperature falls. An ideal
+pencil beam at the zenith sees the sky's 55 K; a real antenna weights the sky
+with its whole pattern, and sidelobes that see the ground at about 290 K raise
+it.
+
+The SNR gained against T_ant = T0 is 10 log₁₀ of T_sys at T0 over T_sys at
+T_ant. The receiver's own (F·D_nf − 1)·T0 dominates T_sys, so the gain cannot
+exceed 10 log₁₀(F/(F − 1)), reached with T_ant = 0 and no receive loss.
+Receive losses reduce it further, because their own noise at T0 replaces part
+of the cold sky. Computed from the formula above, with the range gain for an
+SNR that grows as R⁻⁴:
+
+| Noise figure | Upper bound | T_ant 60 K, no receive loss | T_ant 60 K, 1.5 dB receive loss |
+|---|---:|---:|---:|
+| 9.7 dB (CTRX8188F, +3 dB step) | 0.49 dB, +2.9 % range | 0.39 dB, +2.2 % | 0.27 dB, +1.6 % |
+| 10.2 dB (CTRX8188F, 0 dB step) | 0.44 dB, +2.5 % | 0.34 dB, +2.0 % | 0.24 dB, +1.4 % |
+| 12 dB (AWR2243 preset) | 0.28 dB, +1.6 % | 0.22 dB, +1.3 % | 0.16 dB, +0.9 % |
+| 14 dB (AWR1243 preset) | 0.18 dB, +1.0 % | 0.14 dB, +0.8 % | 0.10 dB, +0.6 % |
+
+So with the noise figures of these MMICs, a radar looking straight up gains a
+few tenths of a dB over one looking along the horizon: a percent or two of
+range. For an upward-looking budget, set `Radar(antenna_noise_temperature_k=...)`.
+It is one value per radar, not per direction, so a sweep over elevation keeps
+it fixed.
+
 ## Coherent gain and the MIMO scheme
 
 For one virtual channel, one transmitter and one receiver, the range FFT sums
