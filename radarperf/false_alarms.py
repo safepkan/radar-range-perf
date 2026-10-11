@@ -61,7 +61,7 @@ Combining the axes
 ------------------
 The total is the product of the range, Doppler and angle factors.  This is
 an approximation for small Pfa, where exceedances are nearly independent
-between axes; ``docs/losses.md`` lists the cases it has been checked for.
+between axes; ``docs/false_alarms.md`` lists the cases it has been checked for.
 It is not a false-detection rate at high Pfa: there the product can even
 rise with the threshold before it falls.
 """

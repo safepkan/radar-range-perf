@@ -92,7 +92,8 @@ offsets [1, Table 22]:
 | 10 MHz | −121 / −115 | −120 / −114 |
 
 All entries are in dBc/Hz. `radarperf.phase_noise.ctrx8188f_phase_noise`
-holds the table and interpolates it linearly in dB against log offset. Over
+holds the table and interpolates it linearly in dB against log offset;
+[hardware/ctrx8188f.md](hardware/ctrx8188f.md) has the part's other figures. Over
 10 kHz–10 MHz the typical 76–77 GHz table integrates to 3.9·10⁻³ rad², or
 62 mrad (3.6°) rms. That is the LO's own jitter. A return sees far less of it
 at short range, as the next sections show. The datasheet gives no phase noise

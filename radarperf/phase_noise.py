@@ -641,7 +641,7 @@ def ctrx8188f_phase_noise(
     with both sidebands of the real beat signal counted, and between the
     typical and maximum tables at 0.3-0.5 MHz. The per-chirp frequency error
     matched the typical table when the synthesizer had enough time between
-    chirps and grew with less (``docs/losses.md``).
+    chirps and grew with less (``docs/hardware/ctrx8188f.md``).
     """
     tables = {
         ("76-77", "typical"): (-79.0, -80.0, -100.0, -116.0, -121.0),
@@ -727,7 +727,8 @@ def ctrx8188f_chirp_settling() -> ChirpSettling:
     flyback and wait it matched that unit's 14-30 kHz within the fit's
     factor-of-1.5 uncertainty. The floor lies between the CW table's typical
     values for the two RF bands (:func:`chirp_frequency_error_rms_hz`). Other
-    units, ramps, windows and DPLL settings are untested.
+    units, ramps, windows and DPLL settings are untested
+    (``docs/hardware/ctrx8188f.md``).
     """
     return ChirpSettling(
         floor_hz=3.285e3,

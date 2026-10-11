@@ -1143,7 +1143,7 @@ def sencity_this_ii() -> AntennaPair:
     Digitised from the preliminary datasheet's 77 GHz performance charts (see
     ``radarperf/data/sencity_this_ii.csv``); valid for a PCB mount without
     radome.  The gains are directivities: antenna efficiency and radome loss go
-    in :class:`~radarperf.losses.SystemLosses`.
+    in :class:`~radarperf.losses.SystemLosses` (``docs/hardware/sencity.md``).
     """
     return _load_packaged_pair("sencity_this_ii.csv", "SENCITY THIS-II")
 
@@ -1163,7 +1163,7 @@ def sencity_farad_iv() -> AntennaPair:
     Digitised from the preliminary datasheet's 77 GHz performance charts (see
     ``radarperf/data/sencity_farad_iv.csv``); valid for a PCB mount without
     radome.  The gains are directivities: antenna efficiency and radome loss go
-    in :class:`~radarperf.losses.SystemLosses`.
+    in :class:`~radarperf.losses.SystemLosses` (``docs/hardware/sencity.md``).
 
     It is the antenna of Infineon's CARKIT evaluation radar.  A turntable
     measurement of CARKIT's two-way azimuth response read 0.9, 2.5 and 4.7 dB

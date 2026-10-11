@@ -74,8 +74,8 @@ class SystemLosses:
         (flyback, wait, pre-payload).  Compute it from a CW phase-noise
         spectrum with :func:`radarperf.phase_noise.chirp_frequency_error_rms_hz`
         or from the timing with :class:`radarperf.phase_noise.ChirpSettling`;
-        ``docs/losses.md`` lists values and ``docs/phase_noise.md`` derives
-        the term.
+        the pages under ``docs/hardware`` list values per part and
+        ``docs/phase_noise.md`` derives the term.
     """
 
     tx_power_derating_db: float = 0.0

@@ -95,7 +95,9 @@ zero. Printing a `LinkBudget` lists every processing and system term with its
 value, zeros included, so an omitted term shows as an explicit zero.
 [docs/losses.md](docs/losses.md) catalogues all terms, including those in other
 components (`Atmosphere`, `Rain`, processing losses) and those not modelled,
-with their defaults, typical sizes at 77 GHz and a checklist for studies.
+with their defaults, what sets their values and a checklist for studies. Values
+for particular parts (the CTRX8188F, the SENCITY antennas) are on the pages
+under [docs/hardware/](docs/hardware/).
 
 `chirp_repetition_time_s` is optional for range/SNR/Pd calculations. Leave it
 unset for range-only budgets; set it when you need CPI duration, velocity
@@ -158,8 +160,8 @@ add tests per cell, so the engine counts them (`radarperf.false_alarms`) and
 tests each bin at a lower Pfa. Padding therefore lowers straddle loss but
 raises the threshold: Hann with fourfold padding saves 0.44 dB of straddle
 and costs 0.18 dB of threshold per axis. The link budget prints the tests per
-axis, the per-test Pfa and the threshold increase. See "False alarms per
-cell" in [docs/losses.md](docs/losses.md); `Radar(pfa_reference="test")`
+axis, the per-test Pfa and the threshold increase. See
+[docs/false_alarms.md](docs/false_alarms.md); `Radar(pfa_reference="test")`
 restores the earlier per-test convention.
 
 The low-level functions in `radarperf.detection` (`probability_of_detection`,
@@ -222,7 +224,8 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 `Processing`, `Target` and `Environment` (in `radarperf.protocols`).
 
 * **Front-end** — `GenericFrontend` plus `cascade()` and datasheet-sourced presets
-  (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`).
+  (`awr1243`, `awr2243`, `awr2e44p`, `ctrx8188f`; see
+  [docs/hardware/ctrx8188f.md](docs/hardware/ctrx8188f.md) for the last).
 * **Antenna** — models `ConstantGainAntenna` -> `GaussianBeamAntenna` ->
   `PatternCutAntenna` (separable az/el cuts) -> `PatternUVAntenna` (full
   pattern), plus `UniformRectangularApertureAntenna` for an analytical uniform

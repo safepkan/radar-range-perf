@@ -270,7 +270,8 @@ range cell, summed over Doppler, holds the per-chirp phase variance that
 
 **CTRX8188F.** `ctrx8188f_phase_noise(rf_band=..., level=...)` holds the
 TX-port CW table of the target datasheet, rev. 0.20, Table 22
-([phase_noise.md: “Phase noise and how it is specified”](phase_noise.md#phase-noise-and-how-it-is-specified)).
+([phase_noise.md: “Phase noise and how it is specified”](phase_noise.md#phase-noise-and-how-it-is-specified);
+the part's other figures are in [hardware/ctrx8188f.md](hardware/ctrx8188f.md)).
 `level="maximum"` gives the specified maxima at the five offsets; values
 interpolated between them are a model, not a guaranteed mask. A payload that
 crosses 77 GHz needs a choice between the two bands. The table does not
