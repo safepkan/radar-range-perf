@@ -210,26 +210,33 @@ horizontal path:
 
 | Term | Where | Default | Sourced values | Source |
 |---|---|---|---|---|
-| Per-chirp frequency error | `SystemLosses.chirp_frequency_error_rms_hz` | 0 | see the tables below | [8], [1] Table 22 |
-| Phase noise within a chirp | not a field | | CTRX8188F, 76–77 GHz table, offsets 100 kHz–10 MHz: ≤ 0.02 dB (typical) and ≤ 0.06 dB (maximum) at 300 m–1 km; computed with `radarperf.phase_noise` | [1] Table 22 |
-| Phase-noise skirts of strong returns | `radarperf.phase_noise` diagnostics only | | an SINR term near strong clutter. CTRX8188F, one unit: a strong return's skirt 2.3–3.1 dB below the typical CW table's prediction at 1–12 MHz offset | [8] |
+| Per-chirp frequency error | `SystemLosses.chirp_frequency_error_rms_hz` | 0 | see the tables below; from a CW spectrum with `phase_noise.chirp_frequency_error_rms_hz`, from the chirp timing with `phase_noise.ctrx8188f_chirp_settling` | [8], [1] Table 22 |
+| Phase noise within a chirp | not a field | | the residual that the range window keeps out of the per-chirp error lowers the range peak instead; the window sets the split, not the total. CTRX8188F, 76–77 GHz table, both parts together: 0.025–0.037 dB (typical) and 0.07–0.11 dB (maximum) at 300 m–1 km; computed with `SingleReturnPhaseNoise.residual_variance_rad2` ([phase_noise.md](phase_noise.md)) | [1] Table 22 |
+| Phase-noise skirts of strong returns | `phase_noise_fft`, a separate prediction ([phase_noise_prediction.md](phase_noise_prediction.md)) | | an SINR term near strong clutter. CTRX8188F, one unit: a strong return's skirt 2.3–3.1 dB below the typical CW table's prediction at 1–12 MHz offset | [8] |
 | Chirp nonlinearity | not modelled | | | |
 | Range migration during the CPI | not modelled | | negligible while \|v\| T_CPI is small against the range resolution | |
 | Doppler spread of the target | not modelled | | | |
 
-A per-chirp RF frequency offset `δf`, constant within a chirp and independent
-from chirp to chirp, gives a beat phase error of rms `σ = 2π δf · 2R/c`. For
-Gaussian errors the Doppler peak keeps `exp(−σ²)` of its power and the rest
-spreads into a pedestal, so the loss is `10 log10(e) σ²` dB, growing as `R²`.
-It is a loss of the Doppler integration over chirps, the same in every
-channel, not a loss in combining channels.
+The per-chirp frequency error `δf` is the LO's frequency error averaged over
+each chirp's sampled ramp with the range window's weights, quoted as its rms
+over chirps. It gives a beat phase error of rms `σ = 2π δf · 2R/c`, the same
+`δf` for every return. For Gaussian errors the Doppler peak keeps `exp(−σ²)`
+of its power and the rest spreads into a pedestal, so the loss is
+`10 log10(e) σ²` dB, growing as `R²`. It is a loss of the Doppler integration
+over chirps, the same in every channel, not a loss in combining channels.
+[phase_noise.md](phase_noise.md) derives these steps. With the exact delay
+filter the CW part of `δf` falls at long range, so the `R²` law is an upper
+bound.
 
-Values of `δf` for the CTRX8188F, all from [8], with a 10.24 µs sampled ramp
-unless stated:
+Values of `δf` for the CTRX8188F, with a 10.24 µs sampled ramp unless stated.
+The measured values used a Blackman–Harris range window, which gives a higher
+`δf` than Hann:
 
 | Case | δf rms |
 |---|---:|
-| Computed from the CW phase-noise table [1, Table 22], typical; for the waveforms in [8] | 2.7–3.5 kHz |
+| Computed from the CW phase-noise table [1, Table 22], typical; Hann range window, all of slow time (`chirp_frequency_error_rms_hz`) | 2.1–2.6 kHz |
+| Same, maximum table | 3.7–4.5 kHz |
+| Computed as in [8]: typical table, Blackman–Harris, \|f_D\| ≥ 500 Hz, for the waveforms in [8] | 2.7–3.5 kHz |
 | Same, maximum table | 4.8–6.1 kHz |
 | Measured: 36 µs or more of flyback and wait, 4.0 µs pre-payload | 3.1–3.6 kHz |
 | Measured: 25.5 µs chirp period, 11.2 µs of flyback and wait, 4.0 µs pre-payload | 5.9 kHz |
@@ -244,6 +251,8 @@ wait for a pre-payload of 2, 4 or 6 µs. The flyback's own length does not
 matter, and the datasheet's 1 µs flyback ([1] Table 23) is far from enough.
 These figures come from one unit and one ramp length; a longer sampled ramp
 averages the error down, as the last row shows.
+`radarperf.phase_noise.ctrx8188f_chirp_settling()` holds [8]'s fit as an
+illustrative preset that returns `δf` for a given timing.
 
 The measurements in [8] confirm the `R²` law up to 270 m; beyond that it is an
 extrapolation. Loss from the formula above:

@@ -493,7 +493,7 @@ def test_exact_delay_filter_tends_to_the_small_delay_limit() -> None:
     assert far < 0.7 * limit
 
 
-def test_per_chirp_phase_matches_the_range_doppler_diagnostic() -> None:
+def test_per_chirp_phase_matches_the_range_doppler_prediction() -> None:
     # On its range bin, the first-order FFT model puts the per-chirp phase
     # variance times the Doppler window's ENBW into the bin's Doppler column.
     wf = waveform(samples=64, chirps=16, period=80e-6)

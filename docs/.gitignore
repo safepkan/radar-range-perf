@@ -1,0 +1,3 @@
+# Figures linked from the docs, drawn by examples/phase_noise_figures.py. Track
+# them so the docs read on GitHub without running anything.
+!/figures/**/*.png

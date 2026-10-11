@@ -247,6 +247,13 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
   for given conditions), `Rain` (ITU-R P.838-3), `CompositeEnvironment`.
 * **System losses** — `SystemLosses`: derating, feeds, antenna efficiency, radome
   and per-chirp coherence (see [docs/losses.md](docs/losses.md)).
+* **Phase noise** — `radarperf.phase_noise`: the per-chirp frequency error behind
+  the coherence loss, from a CW spectrum (`chirp_frequency_error_rms_hz`) or the
+  chirp timing (`ChirpSettling`), and a prediction of a strong return's skirt and
+  pedestal in range and Doppler (`phase_noise_fft`). [docs/phase_noise.md](docs/phase_noise.md)
+  explains how phase noise affects an FMCW radar, with derivations;
+  [docs/phase_noise_prediction.md](docs/phase_noise_prediction.md) covers the
+  prediction.
 
 Sweeps (`radarperf.sweeps`) wrap the per-point link budget into the arrays you
 plot: `range_sweep`, `map_2d` (with `range_azimuth_geometry`,
@@ -304,14 +311,10 @@ the same checks across Python 3.12 and 3.14.
 
 ## Possible next steps
 
-Single-return phase-noise diagnostics are available in `radarperf.phase_noise`:
-relative spectra, range/range–Doppler FFT predictions, real/complex sampling,
-and Infineon CTRX8188F CW presets. See [the model and usage guide](docs/phase_noise.md)
-and `examples/phase_noise.py` for a configurable single-return diagnostic. For a guided
-progression of six controlled examples, see [the phase-noise tutorial](docs/phase_noise_tutorial.md)
-and run `examples/phase_noise_tutorial.py`; it produces a local figure gallery.
-These are standalone diagnostics; integration
-into scene-level SNR/SINR and MIMO/channel combining remains future work.
+The phase-noise skirts and pedestals of strong returns are predicted separately
+(`phase_noise_fft`, [docs/phase_noise_prediction.md](docs/phase_noise_prediction.md)).
+Bringing them into the link budget, as a floor that can exceed the thermal noise
+near strong returns, with channel combining, remains future work.
 
 Longer-term extensions: short-range effects (receiver saturation / near-field,
 TX-to-RX leakage, ADC dynamic range, integration of phase-noise / reciprocal-mixing

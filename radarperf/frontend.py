@@ -155,8 +155,9 @@ def ctrx8188f(**overrides: object) -> GenericFrontend:
     towards low IF by more than the datasheet says, about 0.8 dB from 5.3 down
     to 1.25 MHz; ``SystemLosses.noise_figure_derating_db`` can carry it for
     targets at low IF. The IF high-pass (second order, -6 dB at 300 kHz in its
-    lowest setting) is not modelled. Separate single-return phase-noise diagnostics
-    use :func:`radarperf.phase_noise.ctrx8188f_phase_noise`; the link budget
+    lowest setting) is not modelled. Predictions of a strong return's phase noise
+    (:func:`radarperf.phase_noise.phase_noise_fft`) use
+    :func:`radarperf.phase_noise.ctrx8188f_phase_noise`; the link budget
     includes only the per-chirp coherence loss
     (``SystemLosses.chirp_frequency_error_rms_hz``).
     """

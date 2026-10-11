@@ -1,4 +1,4 @@
-"""LO phase noise: single-return diagnostics and the per-chirp frequency error.
+"""LO phase noise: single-return predictions and the per-chirp frequency error.
 
 SSB input L(f) is in dBc/Hz. In the small-phase approximation, its linear
 value is also the *two-sided* phase PSD at either signed offset: do not add
@@ -13,7 +13,7 @@ The per-chirp frequency error delta_f, which sets the link budget's coherence
 loss (``SystemLosses.chirp_frequency_error_rms_hz``), follows from a CW
 spectrum with :func:`chirp_frequency_error_rms_hz`, or from the chirp timing
 with an empirical :class:`ChirpSettling`. See docs/phase_noise.md for the
-derivations and docs/phase_noise_diagnostic.md for the FFT diagnostic.
+derivations and docs/phase_noise_prediction.md for the FFT prediction.
 """
 
 from __future__ import annotations

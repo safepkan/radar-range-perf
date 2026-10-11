@@ -1,8 +1,9 @@
-"""Single-return phase-noise diagnostic with CTRX8188F-like defaults.
+"""Predicted phase noise of a strong return, with CTRX8188F-like defaults.
 
 FFT windows and the RF reference remain assumptions; the hardware high-pass
-response is not modeled. Use --help to override settings. For the guided
-progression, run examples/phase_noise_tutorial.py instead.
+response is not modeled. Use --help to override settings. The defaults are the
+worked example in docs/phase_noise_prediction.md; docs/phase_noise.md explains
+the physics.
 """
 
 from __future__ import annotations
