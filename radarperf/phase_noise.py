@@ -1,4 +1,4 @@
-"""Single-return phase-noise diagnostics, independent of the link-budget engine.
+"""LO phase noise: single-return diagnostics and the per-chirp frequency error.
 
 SSB input L(f) is in dBc/Hz. In the small-phase approximation, its linear
 value is also the *two-sided* phase PSD at either signed offset: do not add
@@ -7,27 +7,41 @@ another factor of two per sideband. Shared-source noise is multiplied by
 
 FFT predictions integrate a band-limited stationary process over the actual
 sample times, including chirp gaps. They return expected power, not a random
-realization. See docs/phase_noise.md for normalization and model boundaries.
+realization, and are independent of the link-budget engine.
+
+The per-chirp frequency error delta_f, which sets the link budget's coherence
+loss (``SystemLosses.chirp_frequency_error_rms_hz``), follows from a CW
+spectrum with :func:`chirp_frequency_error_rms_hz`, or from the chirp timing
+with an empirical :class:`ChirpSettling`. See docs/phase_noise.md for the
+derivations and docs/phase_noise_diagnostic.md for the FFT diagnostic.
 """
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Literal, Protocol
+from typing import Literal, Protocol, cast
 
 import numpy as np
 import numpy.typing as npt
 from scipy.fft import next_fast_len
 from scipy.signal import get_window
 
-from .units import SPEED_OF_LIGHT, db_to_linear, linear_to_db
+from .units import SPEED_OF_LIGHT, FloatOrArray, db_to_linear, linear_to_db
 from .waveform import FmcwWaveform
 
 FloatArray = npt.NDArray[np.float64]
 Extrapolation = Literal["error", "constant", "slope"]
 Sampling = Literal["complex", "real_phase_averaged"]
 ChirpCorrelation = Literal["stationary", "independent"]
+
+# Zero-padded FFT length for the payload weighting's frequency response. Its
+# spacing, fs / 2**20, is far finer than the window's bin width fs / n_samples.
+_RESPONSE_FFT_SIZE = 2**20
+# Slow-time grid for integrating the folded per-chirp PSD over a band.
+_SLOW_TIME_POINTS = 2049
+# Folds evaluated together in chirp_frequency_error_psd, to bound memory.
+_FOLD_BLOCK = 64
 
 
 class PhaseNoiseSpectrum(Protocol):
@@ -430,6 +444,184 @@ def phase_noise_fft(
     )
 
 
+def _offset_band(offset_band_hz: tuple[float, float]) -> tuple[float, float]:
+    low, high = offset_band_hz
+    if not (math.isfinite(low) and math.isfinite(high) and 0 < low < high):
+        raise ValueError("offset_band_hz must be finite with 0 < low < high")
+    return float(low), float(high)
+
+
+@dataclass(frozen=True)
+class _PerChirpDensity:
+    """f² L(f) |H(f)|² [Hz²/Hz] at signed offsets, zero outside the band.
+
+    f² is the small-delay limit; with a delay it is the exact
+    4 sin²(pi f tau) / (2 pi tau)². H is the payload weighting's normalized
+    response, zero beyond the IF Nyquist frequency.
+    """
+
+    source: PhaseNoiseSpectrum
+    band: tuple[float, float]
+    response_hz: FloatArray
+    response: FloatArray
+    delay_s: float | None
+
+    @classmethod
+    def build(
+        cls,
+        source: PhaseNoiseSpectrum,
+        waveform: FmcwWaveform,
+        offset_band_hz: tuple[float, float],
+        range_window: str | FloatArray,
+        range_m: float | None,
+    ) -> _PerChirpDensity:
+        band = _offset_band(offset_band_hz)
+        if range_m is not None and not (math.isfinite(range_m) and range_m > 0):
+            raise ValueError("range_m must be finite and positive, or None")
+        _positive_int(waveform.n_samples, "n_samples")
+        weights = _window(range_window, waveform.n_samples)
+        size = max(_RESPONSE_FFT_SIZE, 64 * weights.size)
+        response = np.abs(np.fft.rfft(weights, size) / weights.sum()) ** 2
+        return cls(
+            source=source,
+            band=band,
+            response_hz=np.asarray(
+                np.fft.rfftfreq(size, 1 / waveform.sample_rate_hz), dtype=float
+            ),
+            response=np.asarray(response, dtype=float),
+            delay_s=None if range_m is None else 2 * range_m / SPEED_OF_LIGHT,
+        )
+
+    def __call__(self, offset_hz: FloatArray) -> FloatArray:
+        f = np.abs(offset_hz)
+        inside = (f >= self.band[0]) & (f <= self.band[1])
+        out: FloatArray = np.zeros(f.shape)
+        g = f[inside]
+        if self.delay_s is None:
+            transfer = g**2
+        else:
+            # 4 sin²(pi f tau) / (2 pi tau)²
+            transfer = (np.sin(np.pi * g * self.delay_s) / (np.pi * self.delay_s)) ** 2
+        out[inside] = (
+            transfer
+            * self.source.ssb_linear_per_hz(g)
+            * np.interp(g, self.response_hz, self.response, right=0.0)
+        )
+        return out
+
+
+def _prf_hz(waveform: FmcwWaveform) -> float:
+    period = waveform.chirp_repetition_time_s
+    if not (math.isfinite(period) and period >= waveform.adc_duration_s):
+        raise ValueError("need a chirp repetition time >= the ADC duration")
+    return 1 / period
+
+
+def chirp_frequency_error_psd(
+    source: PhaseNoiseSpectrum,
+    waveform: FmcwWaveform,
+    slow_time_hz: npt.ArrayLike,
+    *,
+    offset_band_hz: tuple[float, float],
+    range_window: str | FloatArray = "hann",
+    range_m: float | None = None,
+) -> FloatArray:
+    """Two-sided PSD [Hz²/Hz] of the per-chirp frequency error over slow time.
+
+    ``source`` is the LO's phase noise, shared by TX and RX. A return at delay
+    tau carries phi(t) - phi(t - tau); for small f tau this is 2 pi tau times
+    the LO's instantaneous frequency error, whose PSD is f² L(f). At its peak
+    range bin the range FFT keeps the ``range_window``-weighted mean of that
+    over the sampled payload, which multiplies the PSD by |H(f)|², the
+    weighting's normalized response. Sampling once per chirp folds the result
+    at the PRF:
+
+        S(f_D) = sum over k of f² L(f) |H(f)|²,  f = f_D + k PRF.
+
+    ``slow_time_hz`` must lie within +-PRF/2. ``range_m=None`` takes the
+    small-delay limit, the same for every return. With ``range_m``, f² becomes
+    the exact 4 sin²(pi f tau) / (2 pi tau)²: the per-chirp phase PSD at that
+    range in frequency units, which falls below the limit once f tau is no
+    longer small where |H|² passes. Independent TX/RX residuals follow no
+    delay law and are not included. ``offset_band_hz`` bounds the positive
+    offsets, as in :func:`phase_noise_fft`; H is taken as zero beyond the IF
+    Nyquist frequency. See docs/phase_noise.md.
+    """
+    density = _PerChirpDensity.build(
+        source, waveform, offset_band_hz, range_window, range_m
+    )
+    prf = _prf_hz(waveform)
+    f_d = np.asarray(slow_time_hz, dtype=float)
+    if not np.all(np.isfinite(f_d)) or np.any(np.abs(f_d) > prf / 2):
+        raise ValueError("slow-time frequencies must lie within +-PRF/2")
+    top = min(density.band[1], waveform.sample_rate_hz / 2)
+    k_max = math.ceil((top + prf / 2) / prf)
+    folds = np.arange(-k_max, k_max + 1)
+    out: FloatArray = np.zeros(f_d.shape)
+    flat = f_d.reshape(-1, 1)
+    for start in range(0, folds.size, _FOLD_BLOCK):
+        offsets = flat + prf * folds[None, start : start + _FOLD_BLOCK]
+        out += density(offsets).sum(axis=1).reshape(f_d.shape)
+    return out
+
+
+def chirp_frequency_error_rms_hz(
+    source: PhaseNoiseSpectrum,
+    waveform: FmcwWaveform,
+    *,
+    offset_band_hz: tuple[float, float],
+    range_window: str | FloatArray = "hann",
+    range_m: float | None = None,
+    slow_time_band_hz: tuple[float, float] | None = None,
+) -> float:
+    """RMS per-chirp frequency error delta_f [Hz] from the LO's phase noise.
+
+    The value for ``SystemLosses.chirp_frequency_error_rms_hz``: the square
+    root of :func:`chirp_frequency_error_psd` integrated over slow time. The
+    arguments are the same. Folding keeps the variance, so over the whole
+    slow-time band (the default) this is the integral of f² L(f) |H(f)|² over
+    all offsets, and the chirp period is not needed. ``slow_time_band_hz=(a,
+    b)`` integrates only |f_D| from a to b, within PRF/2, as when comparing
+    with a measurement that leaves out slow motion.
+
+    The default ``range_m=None`` gives the small-delay value, which the link
+    budget's 2 pi delta_f tau then applies at every range; at long range it
+    overstates the CW part (docs/phase_noise.md). The chirp timing can add an
+    excess that a CW spectrum does not predict (:class:`ChirpSettling`).
+    """
+    if slow_time_band_hz is not None:
+        a, b = slow_time_band_hz
+        prf = _prf_hz(waveform)
+        if not (math.isfinite(a) and math.isfinite(b) and 0 <= a < b <= prf / 2):
+            raise ValueError("slow_time_band_hz must satisfy 0 <= a < b <= PRF/2")
+        grid = np.linspace(a, b, _SLOW_TIME_POINTS)
+        psd = chirp_frequency_error_psd(
+            source,
+            waveform,
+            grid,
+            offset_band_hz=offset_band_hz,
+            range_window=range_window,
+            range_m=range_m,
+        )
+        return float(np.sqrt(2 * np.trapezoid(psd, grid)))
+    density = _PerChirpDensity.build(
+        source, waveform, offset_band_hz, range_window, range_m
+    )
+    low, high = density.band
+    top = min(high, waveform.sample_rate_hz / 2)
+    if top <= low:
+        return 0.0
+    # Resolve the window's sidelobes and, with a delay, the transfer's ripple.
+    spacing = waveform.sample_rate_hz / (32 * waveform.n_samples)
+    if density.delay_s is not None:
+        spacing = min(spacing, 1 / (32 * density.delay_s))
+    grid = np.union1d(
+        np.geomspace(low, top, math.ceil(400 * math.log10(top / low)) + 1),
+        np.linspace(low, top, math.ceil((top - low) / spacing) + 1),
+    )
+    return float(np.sqrt(2 * np.trapezoid(density(grid), grid)))
+
+
 def ctrx8188f_phase_noise(
     *,
     rf_band: Literal["76-77", "77-81"] = "76-77",
@@ -465,4 +657,83 @@ def ctrx8188f_phase_noise(
         extrapolation=extrapolation,
         name=f"CTRX8188F {rf_band} GHz, {level}, CW",
         source="Infineon CTRX8188F Target Datasheet v0.20, 2025-06-17, Table 22, pp. 26-27",
+    )
+
+
+@dataclass(frozen=True)
+class ChirpSettling:
+    """Per-chirp frequency error against the time between ramps (empirical).
+
+        delta_f² = floor² + excess² exp(-T_fast / tau_fast - T_pre / tau_pre)
+
+    T_fast is the time the synthesizer spends in fast-settling mode between
+    payloads (flyback plus wait) and T_pre the pre-payload, the unsampled
+    start of the ramp. The floor is the error with ample time, such as the
+    LO's ordinary phase noise gives; the excess is the chirp-to-chirp part of
+    a synthesizer that has not settled from the previous ramp. Both depend on
+    the sampled payload and its window, so a fit holds for the waveform it
+    was measured with. See docs/phase_noise.md.
+    """
+
+    floor_hz: float
+    excess_hz: float
+    fast_settling_time_constant_s: float
+    pre_payload_time_constant_s: float
+    name: str = "chirp settling"
+    source: str = "user supplied"
+
+    def __post_init__(self) -> None:
+        for value, label in (
+            (self.floor_hz, "floor_hz"),
+            (self.excess_hz, "excess_hz"),
+            (self.fast_settling_time_constant_s, "fast_settling_time_constant_s"),
+            (self.pre_payload_time_constant_s, "pre_payload_time_constant_s"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{label} must be finite and non-negative")
+        if (
+            self.fast_settling_time_constant_s == 0
+            or self.pre_payload_time_constant_s == 0
+        ):
+            raise ValueError("time constants must be positive")
+
+    def frequency_error_rms_hz(
+        self, *, fast_settling_s: FloatOrArray, pre_payload_s: FloatOrArray
+    ) -> FloatOrArray:
+        """delta_f rms [Hz] for flyback plus wait and pre-payload [s], broadcast."""
+        fast = np.asarray(fast_settling_s, dtype=float)
+        pre = np.asarray(pre_payload_s, dtype=float)
+        if not (np.all(np.isfinite(fast)) and np.all(np.isfinite(pre))) or (
+            np.any(fast < 0) or np.any(pre < 0)
+        ):
+            raise ValueError("timings must be finite and non-negative")
+        decay = np.exp(
+            -fast / self.fast_settling_time_constant_s
+            - pre / self.pre_payload_time_constant_s
+        )
+        return cast(FloatOrArray, np.sqrt(self.floor_hz**2 + self.excess_hz**2 * decay))
+
+
+def ctrx8188f_chirp_settling() -> ChirpSettling:
+    """Illustrative: delta_f against chirp timing on one CTRX8188F radar.
+
+    A fit to ten chirp timings on one CARKIT evaluation radar
+    (``studies/2026-09-11_carkit-validation``, NOTES.md "Window: the chirp
+    timing sets the error"): floor 3.28 kHz, excess 84.8 kHz, time constants
+    3.4 us in fast-settling mode and 1.68 us of pre-payload. Measured with
+    a 10.24 us sampled ramp at 11.67 MHz/us, a Blackman-Harris range window,
+    flyback plus wait 9.2-86 us and pre-payload 0.02-6 us, around 77 GHz;
+    the delay law checked to 270 m. Extrapolated to Infineon's 0.12 us of
+    flyback and wait it matched that unit's 14-30 kHz within the fit's
+    factor-of-1.5 uncertainty. The floor lies between the CW table's typical
+    values for the two RF bands (:func:`chirp_frequency_error_rms_hz`). Other
+    units, ramps, windows and DPLL settings are untested.
+    """
+    return ChirpSettling(
+        floor_hz=3.285e3,
+        excess_hz=84.77e3,
+        fast_settling_time_constant_s=3.435e-6,
+        pre_payload_time_constant_s=1.678e-6,
+        name="CTRX8188F chirp settling, one CARKIT unit",
+        source="studies/2026-09-11_carkit-validation, window timing test 2026-10-06",
     )

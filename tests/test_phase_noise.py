@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -11,8 +12,12 @@ from scipy.signal import get_window
 
 from radarperf import FmcwWaveform
 from radarperf.phase_noise import (
+    ChirpSettling,
     SingleReturnPhaseNoise,
     TabulatedPhaseNoise,
+    chirp_frequency_error_psd,
+    chirp_frequency_error_rms_hz,
+    ctrx8188f_chirp_settling,
     ctrx8188f_phase_noise,
     phase_noise_fft,
 )
@@ -446,6 +451,134 @@ def test_invalid_inputs() -> None:
         phase_noise_fft(model, wf, offset_band_hz=(1e4, 1e6), range_window=np.zeros(16))
     with pytest.raises(ValueError, match="Nyquist"):
         phase_noise_fft(SingleReturnPhaseNoise(1), wf, offset_band_hz=(1e4, 1e6))
+
+
+@pytest.mark.parametrize("window", ["boxcar", "hann", "blackmanharris"])
+def test_white_frequency_noise_averages_over_the_payload(window: str) -> None:
+    # L = 1/f² is white frequency noise of 1 Hz²/Hz. The weighted mean over
+    # the payload then has variance 1 Hz²/Hz times the window's ENBW in Hz.
+    source = TabulatedPhaseNoise((1.0, 10.0), (0.0, -20.0), extrapolation="slope")
+    wf = waveform(samples=64)
+    w = get_window(window, 64)
+    enbw_hz = wf.sample_rate_hz * np.sum(w**2) / np.sum(w) ** 2
+    df = chirp_frequency_error_rms_hz(
+        source, wf, offset_band_hz=(1e-3, 1e7), range_window=window
+    )
+    assert df**2 == pytest.approx(enbw_hz, rel=1e-3)
+
+
+def test_folding_keeps_the_per_chirp_variance() -> None:
+    source = ctrx8188f_phase_noise(extrapolation="constant")
+    wf = waveform(samples=64, chirps=16, period=100e-6)
+    kwargs: dict[str, Any] = {"offset_band_hz": (1.0, 2e6), "range_m": 150.0}
+    whole = chirp_frequency_error_rms_hz(source, wf, **kwargs)
+    folded = chirp_frequency_error_rms_hz(
+        source, wf, slow_time_band_hz=(0, 5e3), **kwargs
+    )
+    assert folded == pytest.approx(whole, rel=1e-3)
+    psd = chirp_frequency_error_psd(source, wf, [-2e3, 2e3], **kwargs)
+    assert psd[0] == pytest.approx(psd[1])
+
+
+def test_exact_delay_filter_tends_to_the_small_delay_limit() -> None:
+    # A 10.24 us payload passes offsets up to about 100 kHz, where f tau at
+    # 1 km is no longer small.
+    source = ctrx8188f_phase_noise(extrapolation="constant")
+    wf = FmcwWaveform.from_slope(77e9, 20e12, 25e6, 256, 1)
+    band = (1.0, 2e6)
+    limit = chirp_frequency_error_rms_hz(source, wf, offset_band_hz=band)
+    near = chirp_frequency_error_rms_hz(source, wf, offset_band_hz=band, range_m=1.0)
+    far = chirp_frequency_error_rms_hz(source, wf, offset_band_hz=band, range_m=1e3)
+    assert near == pytest.approx(limit, rel=1e-4)
+    assert far < 0.7 * limit
+
+
+def test_per_chirp_phase_matches_the_range_doppler_diagnostic() -> None:
+    # On its range bin, the first-order FFT model puts the per-chirp phase
+    # variance times the Doppler window's ENBW into the bin's Doppler column.
+    wf = waveform(samples=64, chirps=16, period=80e-6)
+    beat_bin_hz = wf.sample_rate_hz / wf.n_samples
+    delay = 4 * beat_bin_hz / wf.effective_slope_hz_per_s
+    source = ctrx8188f_phase_noise(extrapolation="constant")
+    model = SingleReturnPhaseNoise(delay, shared=source)
+    band = (100.0, 4e5)  # inside the ideal IF filter on both sides
+    result = phase_noise_fft(model, wf, offset_band_hz=band, integration_oversample=8)
+    column = np.argmin(np.abs(result.range_m - model.range_m))
+    variance = result.phase_noise_power[:, column].sum() / result.doppler_enbw_bins
+    df = chirp_frequency_error_rms_hz(
+        source, wf, offset_band_hz=band, range_m=model.range_m
+    )
+    assert (2 * np.pi * delay * df) ** 2 == pytest.approx(variance, rel=1e-3)
+
+
+def test_cw_frequency_error_reproduces_the_carkit_prediction() -> None:
+    # CARKIT study, window captures of 2026-09-30, a case with no clean
+    # returns (evaluated at 100 m): 10.24 us payload at 50 MS/s, 100 us chirp
+    # period, Blackman-Harris, |f_D| >= 500 Hz. Its per_chirp_frequency_psd
+    # gave 2698.7 and 3360.5 Hz for the typical tables.
+    wf = FmcwWaveform.from_slope(77e9, 11.67e12, 50e6, 512, 128, 100e-6)
+    for source, expected in (
+        (ctrx8188f_phase_noise(rf_band="76-77", extrapolation="constant"), 2698.7),
+        (ctrx8188f_phase_noise(rf_band="77-81", extrapolation="constant"), 3360.5),
+    ):
+        df = chirp_frequency_error_rms_hz(
+            source,
+            wf,
+            offset_band_hz=(1.0, 20e6),
+            range_window="blackmanharris",
+            range_m=100.0,
+            slow_time_band_hz=(500.0, 5e3),
+        )
+        assert df == pytest.approx(expected, rel=2e-3)
+
+
+def test_chirp_settling_preset_reproduces_the_carkit_fit() -> None:
+    settling = ctrx8188f_chirp_settling()
+    # (pre-payload, flyback + wait) -> the study's fitted delta_f [kHz].
+    for pre_us, fast_us, expected_khz in (
+        (4.0, 85.72, 3.28),
+        (4.0, 11.22, 6.01),
+        (6.0, 9.22, 4.95),
+        (3.54, 0.12, 29.2),
+        (4.2, 0.12, 24.1),
+        (5.54, 0.12, 16.3),
+    ):
+        df = settling.frequency_error_rms_hz(
+            fast_settling_s=fast_us * 1e-6, pre_payload_s=pre_us * 1e-6
+        )
+        assert float(df) / 1e3 == pytest.approx(expected_khz, rel=4e-3)
+    many = np.asarray(
+        settling.frequency_error_rms_hz(
+            fast_settling_s=np.array([1e-6, 1e-3]), pre_payload_s=4e-6
+        )
+    )
+    assert many.shape == (2,) and many[1] == pytest.approx(settling.floor_hz)
+    with pytest.raises(ValueError, match="time constants"):
+        ChirpSettling(3e3, 85e3, 0.0, 1e-6)
+    with pytest.raises(ValueError, match="timings"):
+        settling.frequency_error_rms_hz(fast_settling_s=-1e-6, pre_payload_s=0.0)
+
+
+def test_chirp_frequency_error_invalid_inputs() -> None:
+    source = ctrx8188f_phase_noise(extrapolation="constant")
+    wf = waveform()
+    with pytest.raises(ValueError, match="offset_band"):
+        chirp_frequency_error_rms_hz(source, wf, offset_band_hz=(0, 1e6))
+    with pytest.raises(ValueError, match="range_m"):
+        chirp_frequency_error_rms_hz(source, wf, offset_band_hz=(1, 1e6), range_m=0.0)
+    with pytest.raises(ValueError, match="slow_time_band"):
+        chirp_frequency_error_rms_hz(
+            source, wf, offset_band_hz=(1, 1e6), slow_time_band_hz=(0, 1e6)
+        )
+    with pytest.raises(ValueError, match="PRF/2"):
+        chirp_frequency_error_psd(source, wf, [1e6], offset_band_hz=(1, 1e6))
+    with pytest.raises(ValueError, match="repetition"):
+        chirp_frequency_error_psd(
+            source,
+            replace(wf, chirp_repetition_time_s=float("nan")),
+            [0.0],
+            offset_band_hz=(1, 1e6),
+        )
 
 
 def test_plotting_helpers() -> None:

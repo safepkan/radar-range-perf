@@ -66,12 +66,16 @@ class SystemLosses:
         Radome (or bumper) transmission loss for one pass; applied on both
         transmit and receive.  Includes any water film, ice or dirt assumed.
     chirp_frequency_error_rms_hz:
-        RMS RF frequency offset of each chirp from the ideal ramp, constant
-        within a chirp and independent from chirp to chirp.  It gives a beat
-        phase error ``2 pi df tau`` at delay ``tau = 2 R / c``.  It depends on
-        the MMIC and on how its ramps are programmed (flyback, wait,
-        pre-payload); ``docs/losses.md`` lists datasheet-based and measured
-        values.
+        RMS over chirps of each chirp's RF frequency error, the LO's error
+        averaged over the sampled payload with the range window's weights.
+        It gives a beat phase error ``2 pi df tau`` at delay ``tau = 2 R / c``,
+        the same ``df`` for every return.  It depends on the MMIC's phase
+        noise, the payload and window, and how the ramps are programmed
+        (flyback, wait, pre-payload).  Compute it from a CW phase-noise
+        spectrum with :func:`radarperf.phase_noise.chirp_frequency_error_rms_hz`
+        or from the timing with :class:`radarperf.phase_noise.ChirpSettling`;
+        ``docs/losses.md`` lists values and ``docs/phase_noise.md`` derives
+        the term.
     """
 
     tx_power_derating_db: float = 0.0
@@ -107,12 +111,15 @@ class SystemLosses:
         )
 
     def coherence_loss_db(self, range_m: FloatOrArray) -> FloatOrArray:
-        """Doppler-peak loss from independent per-chirp phase errors [dB].
+        """Doppler-peak loss from per-chirp phase errors [dB].
 
         With Gaussian phase errors of rms ``sigma = 2 pi df (2 R / c)``, the
         coherent sum over chirps keeps ``exp(-sigma**2)`` of its peak power; the
         rest spreads into a pedestal across Doppler.  The loss is therefore
-        ``10 log10(e) sigma**2``, growing as ``R**2``.
+        ``10 log10(e) sigma**2``, growing as ``R**2``.  It is a loss of Doppler
+        integration gain, alike in every channel, not of channel summation.
+        The small-delay ``df`` makes it an upper bound at long range
+        (``docs/phase_noise.md``).
         """
         delay_s = 2.0 * np.asarray(range_m, dtype=float) / SPEED_OF_LIGHT
         sigma_rad = 2.0 * math.pi * self.chirp_frequency_error_rms_hz * delay_s
