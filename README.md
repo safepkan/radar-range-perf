@@ -65,7 +65,8 @@ coverage and track acquisition.
   detector: where it lives, its default, what sets its value, and a checklist
   for studies.
 * [docs/false_alarms.md](docs/false_alarms.md) — the Pfa per range–Doppler
-  cell, and how zero padding and beam sets raise the threshold.
+  cell, how zero padding and beam sets raise the threshold, and how much range
+  more false alarms buy.
 * [docs/phase_noise.md](docs/phase_noise.md) — how LO phase noise affects an
   FMCW radar, with derivations: the delay filter, the per-chirp frequency
   error and its Doppler integration loss, chirp timing, skirts.
