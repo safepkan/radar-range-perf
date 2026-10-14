@@ -5,7 +5,7 @@ October 2026 · before the antenna supplier's design data · Patrik Andersson
 *Internal. This page quotes figures from Infineon's CTRX8188F datasheet, which
 we hold under NDA.*
 
-Lannik Psi is our 76–77 GHz radar for drone interceptors, built on Infineon's
+Lannik Psi is our long-range, narrow-beam 76–77 GHz radar, built on Infineon's
 CTRX8188F radar chip with eight transmit (TX) and eight receive (RX) channels.
 This page gives our current estimate of how far it detects a small target, how
 that compares with what we said in June, and how far we can trust it now that
@@ -188,6 +188,10 @@ the sensitivities).
   patterns will replace the ideal models and the 1.0 dB loss targets.
 - **The radome**, which the product needs and which is not yet defined.
 - **The waveform**, including chirp timing with margin for the synthesizer.
+- **The signal-processing chain in detail.** The estimate assumes standard
+  processing: windowed range and Doppler transforms, a cell-averaging
+  detection threshold and the best of the 64 receive beams. The chain's
+  actual design can change some of the numbers.
 - **Requirements:** detection probability, false-alarm rate and closing speeds
   for the use cases.
 - **What the model leaves out:** clutter, interference, strong returns near

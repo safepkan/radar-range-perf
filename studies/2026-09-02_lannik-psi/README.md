@@ -2,7 +2,7 @@
 
 2026-09-02 to 2026-10-01 · concluded
 
-Lannik Psi is a 76–77 GHz FMCW radar for drone interceptors, built on the
+Lannik Psi is a long-range, narrow-beam 76–77 GHz FMCW radar, built on the
 Infineon CTRX8188F MMIC with eight transmit (TX) and eight receive (RX)
 channels. This study took it from a generic range estimate to an antenna
 concept that could go out for quotation. The study ended when the antenna RFQ

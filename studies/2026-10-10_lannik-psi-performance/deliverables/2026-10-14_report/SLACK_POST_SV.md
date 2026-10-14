@@ -8,3 +8,5 @@ Kort version:
 • **Två designregler från mätningarna:** tillräckligt med tid mellan chirparna för att frekvenssyntesen ska hinna svänga in, och mottagarförstärkningen explicit satt till +3 dB.
 
 Uppskattningen uppdateras när GD:s designdata kommer.
+
+*Uppdaterad 14 oktober:* ny version av dokumentet, med samma siffror. Inledningen nämner inte längre tillämpningen, och avsnittet ”Not yet established” tar nu också upp signalbehandlingskedjan, vars detaljdesign kan ändra en del av siffrorna.
