@@ -8,14 +8,31 @@ Gaseous attenuation follows ITU-R P.676-13 and rain attenuation the ITU-R
 P.838-3 power law ``gamma = k * R**alpha`` [dB/km]; both are implemented in
 ``radarperf.itu``.
 
-Warning: the rain *clutter* model uses the Probert-Jones (1962) beam-filling
-volume, the Marshall-Palmer (1948) relation ``Z = 200 R**1.6`` and Rayleigh
-reflectivity with ``|K|^2 = 0.93``, the usual value for water at centimetre
-wavelengths.  At 77 GHz raindrops are not Rayleigh scatterers (Mie regime), so
-the clutter reflectivity is not validated.  It is wired in so the
-signal-to-clutter path exists and is overridable; calibrate
-``dielectric_factor`` and the Z-R coefficients against data before trusting
-absolute numbers.
+Warning: the rain *clutter* model is a placeholder, and it overstates rain's
+level in three ways.
+
+* Reflectivity.  It uses ``Z = 200 R**1.6``, the relation usually called
+  Marshall-Palmer, with Rayleigh scattering and ``|K|^2 = 0.93``, the usual
+  values for water at centimetre wavelengths.  At 77 GHz raindrops are Mie
+  scatterers.  ``radarperf.rain`` computes the reflectivity from Mie
+  scattering over Marshall-Palmer (1948) drop sizes.  At 77 GHz and 10
+  degrees C, ``200 R**1.6`` overstates it by 3.7 dB at 1 mm/h, 11.9 dB at
+  10 mm/h and 21.8 dB at 100 mm/h (docs/rain_clutter.md).
+* Volume.  It takes the Probert-Jones (1962) volume from the receive
+  antenna's beamwidths, as if transmit and receive shared one beam, over a
+  range cell of ``c / 2B``.  That leaves out the range window's widening and
+  any difference between the transmit and receive patterns.
+* Doppler.  The engine gives the clutter the target's coherent gain, as if
+  all of rain's power fell in the target's range-Doppler cell.  Rain spreads
+  over a band of Doppler bins, and a target outside that band does not meet
+  it at all.  Inside the band the level is overstated by about the number of
+  bins the band spans.
+
+The model is wired in so that the signal-to-clutter path exists and can be
+overridden.  Do not use its numbers in studies.  Passing a ``Rain`` to the
+engine brings its clutter with it.  For attenuation alone, add
+``Rain.specific_attenuation_db_per_km`` into an ``Atmosphere``, as the Lannik
+Psi studies do.  docs/rain_clutter.md builds the better model in steps.
 """
 
 from __future__ import annotations
@@ -121,7 +138,10 @@ class Atmosphere:
 
 @dataclass(frozen=True)
 class Rain:
-    """Rain attenuation (ITU-R P.838-3) plus approximate volume clutter.
+    """Rain attenuation (ITU-R P.838-3) plus placeholder volume clutter.
+
+    The clutter overstates rain's level; the module docstring says by how
+    much and why.
 
     By default ``k`` and ``alpha`` come from ITU-R P.838-3 at the waveform's
     centre frequency for a horizontal path, with ``polarization_tilt_deg`` 0

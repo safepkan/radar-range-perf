@@ -53,6 +53,7 @@ test:
 smoke:
 	$(PYTHON) examples/basic_link_budget.py
 	$(PYTHON) examples/ddma_combinations.py
+	$(PYTHON) examples/rain_reflectivity.py
 	MPLBACKEND=Agg $(PYTHON) examples/pd_vs_range.py
 	MPLBACKEND=Agg $(PYTHON) examples/plotting_demo.py
 	MPLBACKEND=Agg $(PYTHON) examples/phase_noise.py

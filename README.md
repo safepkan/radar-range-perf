@@ -67,6 +67,10 @@ coverage and track acquisition.
 * [docs/false_alarms.md](docs/false_alarms.md) — the Pfa per range–Doppler
   cell, how zero padding and beam sets raise the threshold, and how much range
   more false alarms buy.
+* [docs/rain_clutter.md](docs/rain_clutter.md) — rain's reflectivity at
+  77 GHz from Mie scattering over Marshall–Palmer drop sizes, the drops' fall
+  speeds, and where the model breaks down; the first step towards a rain
+  clutter model.
 * [docs/phase_noise.md](docs/phase_noise.md) — how LO phase noise affects an
   FMCW radar, with derivations: the delay filter, the per-chirp frequency
   error and its Doppler integration loss, chirp timing, skirts.
@@ -204,6 +208,8 @@ structural match. The protocols are `Frontend`, `Antenna`, `Waveform`,
 * **Target** — `ConstantRcsTarget`, `AspectRcsTarget`, `RcsTableTarget`, presets.
 * **Environment** — `FreeSpace`, `Atmosphere` (constant, or `Atmosphere.itu_p676`
   for given conditions), `Rain` (ITU-R P.838-3), `CompositeEnvironment`.
+  `radarperf.rain` holds rain's scattering: water's permittivity, the Mie
+  series, drop sizes, fall speeds and rain's reflectivity.
 * **System losses** — `SystemLosses`: derating, feeds, antenna efficiency, radome
   and per-chirp coherence (see [docs/losses.md](docs/losses.md)).
 * **Phase noise** — `radarperf.phase_noise`: the per-chirp frequency error behind
@@ -243,11 +249,17 @@ Each takes an optional `ax` and returns it, so they compose and overlay; see
   Copy a preset and override the fields with controlled or measured numbers.
   [docs/hardware/](docs/hardware/) collects what is known about a part beyond
   its preset.
-* **Rain clutter is approximate.** Attenuation uses ITU-R P.838-3 and clear-air
-  absorption ITU-R P.676-13 (`radarperf.itu`, checked against ITU-published
-  values); the volume-clutter reflectivity uses a Marshall-Palmer Z-R relation with a
-  Rayleigh assumption (at 77 GHz raindrops are in the Mie regime), so calibrate
-  `dielectric_factor` and the Z-R coefficients before trusting absolute numbers.
+* **Rain clutter is a placeholder; rain attenuation is not.** Attenuation uses
+  ITU-R P.838-3 and clear-air absorption ITU-R P.676-13 (`radarperf.itu`,
+  checked against ITU-published values). The volume clutter that `Rain` brings
+  to the engine overstates rain's level, so don't use it in studies. It uses
+  Rayleigh reflectivity, where 77 GHz raindrops are Mie scatterers. It
+  approximates the beam volume crudely. And it puts all of rain's power in the
+  target's range–Doppler cell. [docs/losses.md](docs/losses.md) says by how much.
+  `radarperf.rain` computes the reflectivity properly, and
+  [docs/rain_clutter.md](docs/rain_clutter.md) gives its values.
+  For attenuation alone, add `Rain.specific_attenuation_db_per_km` into an
+  `Atmosphere`.
 * **Losses default to zero.** `SystemLosses` terms, the environment
   (`FreeSpace` unless one is passed) and the beamforming/MIMO/other processing
   losses all start at zero; choose them per study (see
@@ -276,6 +288,14 @@ The phase-noise skirts and pedestals of strong returns are predicted separately
 (`phase_noise_fft`, [docs/phase_noise_prediction.md](docs/phase_noise_prediction.md)).
 Bringing them into the link budget, as a floor that can exceed the thermal noise
 near strong returns, with channel combining, remains future work.
+
+Rain clutter is due for a better model. Its reflectivity from Mie scattering is
+in place ([docs/rain_clutter.md](docs/rain_clutter.md)). Still to come are the
+clutter volume of a radar's beams and range cells and rain's spread in Doppler,
+so that a target competes only with the rain at its own Doppler. A literature
+survey,
+[docs/references/rain_clutter_77ghz_reference.pdf](docs/references/rain_clutter_77ghz_reference.pdf),
+collects the sources.
 
 Longer-term extensions: short-range effects (receiver saturation / near-field,
 TX-to-RX leakage, ADC dynamic range), eclipsing, ADC quantisation noise,

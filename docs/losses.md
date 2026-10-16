@@ -133,7 +133,7 @@ half wavelengths thick in the material; paint and coatings shift that optimum
 |---|---|---|---|---|
 | Gaseous absorption | `Atmosphere(specific_attenuation_db_per_km)`, `Atmosphere.itu_p676(...)` or `Atmosphere.itu_reference(height_m)` | the engine's default environment is `FreeSpace()`, i.e. 0; `Atmosphere()` uses 0.35 dB/km | see the table below | [1] |
 | Rain attenuation | `Rain(rain_rate_mm_per_hr, polarization_tilt_deg)` | off | `k R^α` with `k`, `α` from ITU-R P.838-3 at the waveform's centre frequency; see the table below | [6] |
-| Rain clutter | `Rain` | off | Marshall–Palmer Z–R relation, Rayleigh reflectivity and Probert-Jones beam filling; not validated at 77 GHz, where raindrops are Mie scatterers | see `radarperf.environment` |
+| Rain clutter | `Rain` | off | a placeholder that overstates rain's level; not for studies (see below the rain attenuation table). Rain's reflectivity at 77 GHz is in [rain_clutter.md](rain_clutter.md) | [9], [10]; `radarperf.environment`, `radarperf.rain` |
 | Fog, snow, dust | not modelled | | | |
 | Multipath (ground reflection) | not modelled | 0 | derived: the two-way propagation factor is at most (1 + \|Γ\|)⁴, +12 dB for \|Γ\| = 1, with nulls in between | |
 
@@ -181,6 +181,31 @@ horizontal path:
 | 10 mm/h | 5.91 | 5.75 |
 | 25 mm/h | 11.4 | 11.0 |
 | 50 mm/h | 18.8 | 17.9 |
+
+`Rain` also brings volume clutter with it when it is passed to the engine. That
+clutter is a placeholder, and it overstates rain's level in three ways:
+
+- **Reflectivity.** It uses `Z = 200 R^1.6`, the relation usually called
+  Marshall–Palmer, with Rayleigh scattering and `|K|² = 0.93`, the usual
+  values at centimetre wavelengths. At 77 GHz raindrops are Mie scatterers.
+  `radarperf.rain` computes the reflectivity from Mie scattering over
+  Marshall–Palmer drop sizes ([rain_clutter.md](rain_clutter.md)). At 77 GHz
+  and 10 °C, `200 R^1.6` overstates it by 3.7 dB at 1 mm/h, 11.9 dB at
+  10 mm/h and 21.8 dB at 100 mm/h. Bertoldo et al.'s 77 GHz fit
+  `Z = 130 R^0.65` [9] agrees with that computation within 2 dB.
+- **Volume.** It takes the Probert-Jones volume from the receive antenna's
+  beamwidths, as if transmit and receive shared one beam, over a range cell
+  of `c/2B`. The range window's widening is left out.
+- **Doppler.** The engine gives the clutter the target's coherent gain, as if
+  all of rain's power fell in the target's range–Doppler cell. Rain spreads
+  over a band of Doppler bins, and a target outside that band does not meet
+  it at all. Inside the band the level is overstated by about the number of
+  bins the band spans.
+
+For attenuation alone, add `Rain.specific_attenuation_db_per_km` into an
+`Atmosphere`. [rain_clutter.md](rain_clutter.md) builds a better clutter
+model in steps, from the sources the literature survey [10] collects. So far
+it has the reflectivity and the drops' fall speeds.
 
 ### Waveform and LO coherence
 
@@ -277,3 +302,15 @@ For each study or one-off calculation, state:
    with the U.S. Standard Atmosphere 1976.
 8. F. J. Harris, "On the use of windows for harmonic analysis with the
    discrete Fourier transform", *Proc. IEEE*, vol. 66, no. 1, 1978, Table 1.
+9. S. Bertoldo, C. Lucianaz and M. Allegretti, "On the use of a 77 GHz
+   automotive radar as a microwave rain gauge", *Engineering, Technology &
+   Applied Science Research*, vol. 8, no. 1, pp. 2356–2360, 2018,
+   equation (5), p. 2358,
+   <https://etasr.com/index.php/ETASR/article/download/1755/pdf/4515>.
+10. *Rain-clutter returns for 77 GHz FMCW radar: levels, Doppler spectra,
+    fluctuations, and source traceability*, version 1.0, 14 October 2026,
+    [references/rain_clutter_77ghz_reference.pdf](references/rain_clutter_77ghz_reference.pdf).
+    A literature survey compiled with ChatGPT Pro. It guides the reader to the
+    primary sources it cites, with links. Its own calculated examples have not
+    been checked here, so cite the primary sources for numbers, not the
+    survey.
